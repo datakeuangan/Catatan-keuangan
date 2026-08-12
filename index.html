@@ -2,53 +2,36 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#121212">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Catatan Keuangan</title>
 
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
     html, body {
       margin: 0;
       padding: 0;
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #121212;
+      background-color: #121212;
     }
 
-    #appFrame {
-      display: block;
+    iframe {
       width: 100%;
       height: 100%;
-      height: 100dvh;
-      margin: 0;
-      padding: 0;
-      border: 0;
-      outline: 0;
-      background: #121212;
-    }
-
-    @supports not (height: 100dvh) {
-      #appFrame {
-        height: 100vh;
-      }
+      border: none;
+      display: block;
     }
   </style>
 </head>
 
 <body>
+
   <iframe
-    id="appFrame"
-    src="https://script.google.com/macros/s/AKfycbz5HJgUKmTYYhEDUXWgUsnWneSDTe8gH5w4nSFZMII_wRSTodECMxrONSL4j5uqIToWmw/exec?embedded=true"
-    title="Catatan Keuangan"
+    src="https://script.google.com/macros/s/AKfycbz5HJgUKmTYYhEDUXWgUsnWneSDTe8gH5w4nSFZMII_wRSTodECMxrONSL4j5uqIToWmw/exec"
     frameborder="0"
-    scrolling="auto"
-    allow="clipboard-read; clipboard-write"
-    referrerpolicy="strict-origin-when-cross-origin">
+    scrolling="auto">
   </iframe>
+
 </body>
 </html>
