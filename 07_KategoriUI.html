@@ -1,0 +1,781 @@
+<!-- 07_KategoriUI.html : extracted from Form 7F5 -->
+<style id="kategori-ui-css">
+    .cat-picker-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 110; align-items: center; justify-content: center; padding: 15px; overflow-y: auto; }
+    .cat-picker-content { background: #1e1e1e; border-radius: 12px; width: 100%; max-width: 420px; height: 80vh; max-height: 85dvh; display: flex; flex-direction: column; overflow: hidden; border: 1px solid #333; margin: auto; }
+    .cat-picker-header { background: #2e7d32; color: white; padding: 14px; font-weight: bold; text-align: center; font-size: 16px; flex-shrink: 0; }
+    .cat-picker-body { overflow-y: auto; padding: 10px; flex: 1; min-height: 0; -webkit-overflow-scrolling: touch; }
+
+    .cat-group { margin-bottom: 4px; }
+    .cat-group.cat-dragging { opacity: .45; }
+    .cat-group.cat-drag-over { border-top: 2px solid #9c27b0; }
+    .cat-drag-handle {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 22px; height: 30px; flex: 0 0 22px;
+      color: #777; font-size: 17px; line-height: 1;
+      cursor: grab; user-select: none; touch-action: none;
+      border-radius: 5px;
+    }
+    .cat-drag-handle:hover { color: #bbb; background: #333; }
+    .cat-drag-handle:active { cursor: grabbing; }
+    .cat-parent {
+      --cat-accent: #e57373;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px; border-radius: 8px; cursor: pointer; user-select: none;
+      border: 1px solid rgba(255,255,255,0.045);
+      border-left: 3px solid var(--cat-accent);
+      background: linear-gradient(90deg, color-mix(in srgb, var(--cat-accent) 10%, #1e1e1e), #1e1e1e 72%);
+      transition: background .18s ease, border-color .18s ease, transform .18s ease;
+    }
+    .cat-parent:hover {
+      background: linear-gradient(90deg, color-mix(in srgb, var(--cat-accent) 17%, #252525), #252525 72%);
+    }
+    .cat-left { display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: bold; }
+    .icon-circle { width: 38px; height: 38px; border-radius: 50%; background: var(--cat-accent, #e57373); display: flex; align-items: center; justify-content: center; font-size: 18px; color: #fff; flex-shrink: 0; box-shadow: 0 0 0 3px color-mix(in srgb, var(--cat-accent, #e57373) 13%, transparent); }
+    .cat-arrow, .cat-select-arrow, .form-select-arrow {
+      display: inline-block;
+      width: 0;
+      height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 7px solid #888;
+      font-size: 0;
+      line-height: 0;
+      flex: 0 0 auto;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+    .cat-arrow { transition: transform 0.2s ease; }
+    .cat-group.open .cat-arrow { transform: rotate(180deg); }
+
+    .sub-list { display: none; padding-left: 20px; position: relative; margin-top: 2px; }
+    .cat-group.open .sub-list { display: block; }
+    .sub-list::before { content: ''; position: absolute; left: 38px; top: 0; bottom: 18px; width: 2px; background: #444; }
+    .sub-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border-radius: 6px; cursor: pointer; position: relative; }
+    .sub-item .cat-select-arrow,
+    .sub-item .cat-arrow { display: none !important; }
+    .sub-item:hover { background: #2a2a2a; }
+    .sub-left { display: flex; align-items: center; gap: 12px; }
+    .sub-icon-circle { width: 30px; height: 30px; border-radius: 50%; background: #333; display: flex; align-items: center; justify-content: center; font-size: 14px; z-index: 1; }
+
+    .action-btn-sm { background: none; border: none; color: #888; font-size: 14px; padding: 4px 6px; cursor: pointer; border-radius: 4px; }
+    .action-btn-sm:hover { color: #fff; background: #444; }
+
+    .cat-picker-footer { padding: 10px; border-top: 1px solid #2c2c2c; display: flex; flex-direction: column; gap: 4px; background: #1e1e1e; flex-shrink: 0; }
+    .cat-color-settings {
+      border-top: 1px solid #303030;
+      margin-top: 4px;
+      padding: 10px 8px 6px;
+    }
+    .cat-color-settings-title {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      color: #ddd; font-size: 11px; font-weight: 800; margin-bottom: 8px;
+    }
+    .cat-color-settings-title span:last-child { color: #777; font-weight: 600; }
+    .cat-color-swatches { display: grid; grid-template-columns: repeat(8, 1fr); gap: 7px; }
+    .cat-color-swatch {
+      width: 100%; aspect-ratio: 1 / 1; min-height: 25px;
+      border: 2px solid transparent; border-radius: 8px; padding: 0; cursor: pointer;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.12);
+      transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+    }
+    .cat-color-swatch:hover { transform: translateY(-1px); }
+    .cat-color-swatch.active {
+      border-color: #fff;
+      box-shadow: 0 0 0 2px rgba(255,255,255,.18), inset 0 0 0 1px rgba(255,255,255,.18);
+    }
+    .btn-action-text { background: none; border: none; color: #4caf50; text-align: left; padding: 8px; font-weight: bold; cursor: pointer; font-size: 13px; }
+</style>
+
+<div id="catPickerModal" class="cat-picker-modal">
+    <div class="cat-picker-content">
+      <div class="cat-picker-header" id="pickerHeader">Pilih kategori</div>
+      <div class="cat-picker-body" id="catPickerList"></div>
+      <div class="cat-picker-footer">
+        <div class="cat-color-settings" id="catColorSettings">
+          <div class="cat-color-settings-title">
+            <span>🎨 Warna Kategori Utama</span>
+            <span id="catColorScopeLabel">Pemasukan</span>
+          </div>
+          <div class="cat-color-swatches" id="catColorSwatches"></div>
+        </div>
+        <button type="button" class="btn-action-text" id="btnAddMainText" onclick="openAddMainModal()">+ Kategori Utama baru</button>
+        <button type="button" class="btn-action-text" id="btnAddSubText" onclick="openAddSubModal()">+ Subkategori baru</button>
+        <button type="button" class="btn-action-text" style="color:#aaa;" onclick="closeCategoryPicker()">BATAL</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="addMainModal" class="popup-modal">
+    <div class="popup-box">
+      <div style="font-weight:bold; font-size:16px; margin-bottom:12px; text-align:center; flex-shrink:0;">Kategori Utama baru</div>
+      
+      <div class="popup-body">
+        <div class="form-group">
+          <label>Nama Kategori Utama:</label>
+          <input type="text" id="newMainName" class="form-control" placeholder="Contoh: Belanja, Gaji">
+        </div>
+        <div class="form-group">
+          <label>Pilih Icon Kategori:</label>
+          <div class="icon-grid" id="iconGridMain"></div>
+          <div class="custom-icon-row">
+            <div class="custom-icon-preview" id="previewMain">📁</div>
+            <input type="text" id="customIconMain" class="form-control" placeholder="Atau tempel/ketik emoji sendiri di sini" oninput="setCustomIcon(this.value, 'main')">
+          </div>
+        </div>
+      </div>
+
+      <div class="popup-footer">
+        <button type="button" class="form-control" style="background:#444;" onclick="closeAddMainModal()">BATAL</button>
+        <button type="button" class="form-control" id="btnSaveMain" style="background:#2e7d32; font-weight:bold;" onclick="saveNewMainCategory()">SIMPAN</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="addSubModal" class="popup-modal">
+    <div class="popup-box">
+      <div style="font-weight:bold; font-size:16px; margin-bottom:12px; text-align:center; flex-shrink:0;">Subkategori baru</div>
+      
+      <div class="popup-body">
+        <div class="form-group">
+          <label>Nama Subkategori:</label>
+          <input type="text" id="newSubName" class="form-control" placeholder="Contoh: Pakaian, Makanan">
+        </div>
+        <div class="form-group">
+          <label>Kategori Utama Induk:</label>
+          <select id="newSubParent" class="form-control"></select>
+        </div>
+        <div class="form-group">
+          <label>Pilih Icon Subkategori:</label>
+          <div class="icon-grid" id="iconGridSub"></div>
+          <div class="custom-icon-row">
+            <div class="custom-icon-preview" id="previewSub">📌</div>
+            <input type="text" id="customIconSub" class="form-control" placeholder="Atau tempel/ketik emoji sendiri di sini" oninput="setCustomIcon(this.value, 'sub')">
+          </div>
+        </div>
+      </div>
+
+      <div class="popup-footer">
+        <button type="button" class="form-control" style="background:#444;" onclick="closeAddSubModal()">BATAL</button>
+        <button type="button" class="form-control" id="btnSaveSub" style="background:#2e7d32; font-weight:bold;" onclick="saveNewSubcategory()">SIMPAN</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="editCategoryModal" class="popup-modal">
+    <div class="popup-box">
+      <div style="font-weight:bold; font-size:16px; margin-bottom:12px; text-align:center; flex-shrink:0;" id="editModalTitle">Edit Detail</div>
+      <input type="hidden" id="editRowVal">
+      <input type="hidden" id="editTargetVal">
+      <input type="hidden" id="editOldNameVal">
+      
+      <div class="popup-body">
+        <div class="form-group">
+          <label>Nama Baru:</label>
+          <input type="text" id="editNameInput" class="form-control" required>
+        </div>
+
+        <div class="form-group" id="editParentGroup" style="display:none;">
+          <label>Pindahkan ke Kategori Utama:</label>
+          <select id="editParentSelect" class="form-control"></select>
+        </div>
+
+        <div class="form-group">
+          <label>Pilih Icon Baru:</label>
+          <div class="icon-grid" id="iconGridEdit"></div>
+          <div class="custom-icon-row">
+            <div class="custom-icon-preview" id="previewEdit">🧾</div>
+            <input type="text" id="customIconEdit" class="form-control" placeholder="Atau tempel/ketik emoji sendiri di sini" oninput="setCustomIcon(this.value, 'edit')">
+          </div>
+        </div>
+      </div>
+
+      <div class="popup-footer">
+        <button type="button" class="form-control" style="background:#444;" onclick="closeEditCategoryModal()">BATAL</button>
+        <button type="button" class="form-control" id="btnSaveCategoryEdit" style="background:#2e7d32; font-weight:bold;" onclick="saveCategoryEdit()">SIMPAN</button>
+      </div>
+    </div>
+  </div>
+
+
+<script id="kategori-ui-js">
+var activeCategoryPointerDrag = null;
+var CATEGORY_COLOR_OPTIONS = [
+      { color: '#e57373', name: 'Coral' },
+      { color: '#ffb74d', name: 'Amber' },
+      { color: '#81c784', name: 'Hijau' },
+      { color: '#64b5f6', name: 'Biru' },
+      { color: '#ba68c8', name: 'Ungu' },
+      { color: '#4dd0e1', name: 'Cyan' },
+      { color: '#f06292', name: 'Pink' },
+      { color: '#90a4ae', name: 'Slate' }
+    ];
+
+function categoryOrderKey(tipe) {
+      return 'kategoriOrder_' + (userKey || 'guest') + '_' + (tipe || '');
+    }
+
+function getSavedCategoryOrderLocalOnly_(tipe) {
+      try {
+        var raw = localStorage.getItem(categoryOrderKey(tipe));
+        var parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+function getSavedCategoryOrder(tipe) {
+      if (serverUserSettingsLoaded && serverUserSettings) {
+        var serverOrder = tipe === '+' ? serverUserSettings.categoryOrderPlus : serverUserSettings.categoryOrderMinus;
+        if (Array.isArray(serverOrder) && serverOrder.length) return serverOrder.slice();
+      }
+      return getSavedCategoryOrderLocalOnly_(tipe);
+    }
+
+function saveCategoryOrder(tipe, names) {
+      try {
+        localStorage.setItem(categoryOrderKey(tipe), JSON.stringify(names));
+      } catch (e) {
+        console.warn('Urutan kategori tidak dapat disimpan:', e);
+      }
+
+      if (serverUserSettings) {
+        if (tipe === '+') serverUserSettings.categoryOrderPlus = names.slice();
+        else if (tipe === '-') serverUserSettings.categoryOrderMinus = names.slice();
+      }
+      saveUserSettingsToLocal_();
+      persistUserSettingsToServer();
+    }
+
+function applySavedCategoryOrder(names, tipe) {
+      var saved = getSavedCategoryOrder(tipe);
+      if (!saved.length) return names;
+
+      var result = [];
+      saved.forEach(function(name) {
+        if (names.indexOf(name) !== -1 && result.indexOf(name) === -1) {
+          result.push(name);
+        }
+      });
+      names.forEach(function(name) {
+        if (result.indexOf(name) === -1) result.push(name);
+      });
+      return result;
+    }
+
+function enableCategoryDrag(groupDiv, categoryName, tipe, listContainer) {
+      var handle = groupDiv.querySelector('.cat-drag-handle');
+      if (!handle) return;
+
+      // Pointer Events digunakan agar drag bekerja baik dengan mouse maupun layar sentuh.
+      handle.addEventListener('pointerdown', function(e) {
+        if (e.button !== undefined && e.button !== 0) return;
+        e.preventDefault();
+        e.stopPropagation();
+        activeCategoryPointerDrag = {
+          groupDiv: groupDiv,
+          tipe: tipe,
+          listContainer: listContainer,
+          pointerId: e.pointerId
+        };
+        groupDiv.classList.add('cat-dragging');
+        try { handle.setPointerCapture(e.pointerId); } catch (err) {}
+      });
+
+      handle.addEventListener('click', function(e) {
+        // Handle hanya untuk menggeser, bukan untuk membuka/menutup subkategori.
+        e.preventDefault();
+        e.stopPropagation();
+      });
+    }
+
+function getOrderedCategoryNames(grouped, tipe) {
+      return applySavedCategoryOrder(Object.keys(grouped), tipe);
+    }
+
+function categoryColorKey_(tipe) {
+      return 'kategoriColor_' + (userKey || 'guest') + '_' + (tipe || '');
+    }
+
+function getCategoryColor_(tipe) {
+      var fallback = tipe === '+' ? '#81c784' : '#e57373';
+      try {
+        var saved = localStorage.getItem(categoryColorKey_(tipe));
+        if (saved && CATEGORY_COLOR_OPTIONS.some(function(opt) { return opt.color === saved; })) return saved;
+      } catch (e) {}
+      return fallback;
+    }
+
+function setCategoryColor_(tipe, color) {
+      if (!CATEGORY_COLOR_OPTIONS.some(function(opt) { return opt.color === color; })) return;
+      try { localStorage.setItem(categoryColorKey_(tipe), color); } catch (e) {}
+      applyCategoryColorToPicker_(tipe, color);
+      renderCategoryColorSwatches_(tipe);
+      var currentTipe = document.getElementById('tipeVal') ? document.getElementById('tipeVal').value : '';
+      if (currentTipe === tipe) refreshSelectedCategoryDisplay_();
+    }
+
+function applyCategoryColorToPicker_(tipe, color) {
+      var listContainer = document.getElementById('catPickerList');
+      if (!listContainer) return;
+      listContainer.querySelectorAll('.cat-parent').forEach(function(parent) {
+        parent.style.setProperty('--cat-accent', color);
+      });
+    }
+
+function renderCategoryColorSwatches_(tipe) {
+      var wrap = document.getElementById('catColorSwatches');
+      var scope = document.getElementById('catColorScopeLabel');
+      if (!wrap) return;
+
+      var current = getCategoryColor_(tipe);
+      if (scope) scope.innerText = tipe === '+' ? 'Pemasukan' : 'Pengeluaran';
+      wrap.innerHTML = '';
+
+      CATEGORY_COLOR_OPTIONS.forEach(function(opt) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'cat-color-swatch' + (opt.color === current ? ' active' : '');
+        btn.style.background = opt.color;
+        btn.title = opt.name;
+        btn.setAttribute('aria-label', 'Pilih warna ' + opt.name);
+        btn.onclick = function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          setCategoryColor_(tipe, opt.color);
+        };
+        wrap.appendChild(btn);
+      });
+    }
+
+function openCategoryPicker() {
+      var currentTipe = document.getElementById('tipeVal').value;
+      var currentCategoryColor = getCategoryColor_(currentTipe);
+      renderCategoryColorSwatches_(currentTipe);
+      var listContainer = document.getElementById('catPickerList');
+      listContainer.innerHTML = '';
+
+      var filtered = globalKategori.filter(function(item) {
+        var t = (item.tipe || '').replace("'", "");
+        return t === currentTipe || !t;
+      });
+
+      var grouped = {};
+      filtered.forEach(function(item) {
+        if (!grouped[item.kategori]) {
+          grouped[item.kategori] = {
+            mainIcon: sanitizeIcon(item.iconKat),
+            mainRow: item.row,
+            subs: []
+          };
+        }
+        if (item.subKategori) {
+          grouped[item.kategori].subs.push({
+            name: item.subKategori,
+            icon: sanitizeIcon(item.iconSub),
+            row: item.row
+          });
+        }
+      });
+
+      var orderedNames = getOrderedCategoryNames(grouped, currentTipe);
+      orderedNames.forEach(function(katName) {
+        var groupData = grouped[katName];
+        var groupDiv = document.createElement('div');
+        groupDiv.className = 'cat-group';
+
+        var parentDiv = document.createElement('div');
+        parentDiv.className = 'cat-parent';
+        
+        var safeKatName = katName.replace(/'/g, "\\'");
+        var safeMainIcon = groupData.mainIcon.replace(/'/g, "\\'");
+
+        parentDiv.innerHTML = `
+          <div class="cat-left">
+            <div class="icon-circle">${groupData.mainIcon}</div>
+            <span>${katName}</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <button class="action-btn-sm" onclick="event.stopPropagation(); openEditCategoryModal(${groupData.mainRow}, '${safeKatName}', '${safeMainIcon}', 'kat', '${safeKatName}')">✏️</button>
+            <button class="action-btn-sm" style="color:#f44336;" onclick="event.stopPropagation(); deleteCategoryRow(${groupData.mainRow})">🗑️</button>
+            <span class="cat-drag-handle" draggable="true" title="Geser untuk mengatur urutan" aria-label="Geser kategori">⠿</span>
+            <span class="cat-arrow" aria-hidden="true"></span>
+          </div>
+        `;
+        parentDiv.style.setProperty('--cat-accent', currentCategoryColor);
+
+        (function(kName, gData, gDiv) {
+          parentDiv.onclick = function() {
+            if (gData.subs.length > 0) {
+              gDiv.classList.toggle('open');
+            } else {
+              selectCategory(kName, '', gData.mainIcon);
+            }
+          };
+        })(katName, groupData, groupDiv);
+
+        groupDiv.appendChild(parentDiv);
+
+        if (groupData.subs.length > 0) {
+          var subListDiv = document.createElement('div');
+          subListDiv.className = 'sub-list';
+
+          var selfSub = document.createElement('div');
+          selfSub.className = 'sub-item';
+          selfSub.innerHTML = `
+            <div class="sub-left">
+              <div class="sub-icon-circle">${groupData.mainIcon}</div>
+              <span style="font-weight:bold;">${katName} (Utama)</span>
+            </div>
+          `;
+          (function(kName, gIcon) {
+            selfSub.onclick = function(e) {
+              e.stopPropagation();
+              selectCategory(kName, '', gIcon);
+            };
+          })(katName, groupData.mainIcon);
+          subListDiv.appendChild(selfSub);
+
+          groupData.subs.forEach(function(sub) {
+            var subDiv = document.createElement('div');
+            subDiv.className = 'sub-item';
+            var safeSubName = sub.name.replace(/'/g, "\\'");
+            var safeSubIcon = sub.icon.replace(/'/g, "\\'");
+            subDiv.innerHTML = `
+              <div class="sub-left">
+                <div class="sub-icon-circle">${sub.icon}</div>
+                <span>${sub.name}</span>
+              </div>
+              <div style="display:flex; gap:4px;">
+                <button class="action-btn-sm" onclick="event.stopPropagation(); openEditCategoryModal(${sub.row}, '${safeSubName}', '${safeSubIcon}', 'sub', '${safeKatName}')">✏️</button>
+                <button class="action-btn-sm" style="color:#f44336;" onclick="event.stopPropagation(); deleteCategoryRow(${sub.row})">🗑️</button>
+              </div>
+            `;
+            (function(kName, sName, sIcon) {
+              subDiv.onclick = function(e) {
+                e.stopPropagation();
+                selectCategory(kName, sName, sIcon);
+              };
+            })(katName, sub.name, sub.icon);
+            subListDiv.appendChild(subDiv);
+          });
+
+          groupDiv.appendChild(subListDiv);
+        }
+
+        groupDiv.dataset.categoryName = katName;
+        listContainer.appendChild(groupDiv);
+        enableCategoryDrag(groupDiv, katName, currentTipe, listContainer);
+      });
+
+      document.getElementById('catPickerModal').style.display = 'flex';
+    }
+
+function closeCategoryPicker() {
+      document.getElementById('catPickerModal').style.display = 'none';
+    }
+
+function setSelectedCategoryDisplay_(tipe, kat, sub, icon) {
+      var selector = document.querySelector('.cat-selector-btn');
+      var label = document.getElementById('catSelectorLabel');
+      if (!selector || !label) return;
+
+      var color = getCategoryColor_(tipe);
+      selector.style.setProperty('--selected-cat-accent', color);
+
+      if (!kat) {
+        label.innerHTML = '<span style="color:#aaa;">Pilih kategori...</span>';
+        return;
+      }
+
+      var safeIcon = sanitizeIcon(icon) || '📁';
+      label.innerHTML =
+        `<span class="selected-cat-icon">${safeIcon}</span>` +
+        `<span>${kat}${sub ? ' ➔ ' + sub : ''}</span>`;
+    }
+
+function refreshSelectedCategoryDisplay_() {
+      var tipe = document.getElementById('tipeVal') ? document.getElementById('tipeVal').value : '';
+      var kat = document.getElementById('selectedKat') ? document.getElementById('selectedKat').value : '';
+      var sub = document.getElementById('selectedSubKat') ? document.getElementById('selectedSubKat').value : '';
+      var icon = document.getElementById('selectedIcon') ? document.getElementById('selectedIcon').value : '📁';
+      setSelectedCategoryDisplay_(tipe, kat, sub, icon);
+    }
+
+function selectCategory(kat, sub, icon) {
+      var safeIcon = sanitizeIcon(icon);
+      var tipe = document.getElementById('tipeVal').value;
+      document.getElementById('selectedKat').value = kat;
+      document.getElementById('selectedSubKat').value = sub;
+      document.getElementById('selectedIcon').value = safeIcon;
+      setSelectedCategoryDisplay_(tipe, kat, sub, safeIcon);
+
+      closeCategoryPicker();
+    }
+
+function openEditCategoryModal(row, currentName, currentIcon, target, oldKatName) {
+      var safeIcon = sanitizeIcon(currentIcon);
+      document.getElementById('editRowVal').value = row;
+      document.getElementById('editTargetVal').value = target;
+      document.getElementById('editOldNameVal').value = oldKatName || '';
+      document.getElementById('editNameInput').value = currentName;
+      document.getElementById('editModalTitle').innerText = target === 'kat' ? 'Edit Kategori Utama' : 'Edit Subkategori';
+
+      var parentGroup = document.getElementById('editParentGroup');
+      if (target === 'sub') {
+        parentGroup.style.display = 'block';
+        populateEditParentSelect(oldKatName);
+      } else {
+        parentGroup.style.display = 'none';
+      }
+
+      selectedEditIcon = safeIcon;
+      document.getElementById('previewEdit').innerText = safeIcon;
+      document.getElementById('customIconEdit').value = '';
+      highlightSelectedEditIcon();
+      
+      document.getElementById('editCategoryModal').style.display = 'flex';
+    }
+
+function populateEditParentSelect(currentParent) {
+      var currentTipe = document.getElementById('tipeVal').value;
+      var select = document.getElementById('editParentSelect');
+      select.innerHTML = '';
+
+      var uniqueParents = [];
+      globalKategori.forEach(function(item) {
+        var cleanTipe = (item.tipe || '').replace("'", "");
+        if ((cleanTipe === currentTipe || !cleanTipe) && uniqueParents.indexOf(item.kategori) === -1) {
+          uniqueParents.push(item.kategori);
+        }
+      });
+
+      uniqueParents.forEach(function(p) {
+        var opt = document.createElement('option');
+        opt.value = p;
+        opt.innerText = p;
+        if (p === currentParent) opt.selected = true;
+        select.appendChild(opt);
+      });
+    }
+
+function closeEditCategoryModal() {
+      document.getElementById('editCategoryModal').style.display = 'none';
+    }
+
+function highlightSelectedEditIcon() {
+      var gridEdit = document.getElementById('iconGridEdit');
+      var options = gridEdit.querySelectorAll('.icon-opt');
+      options.forEach(function(opt) {
+        if (opt.innerText === selectedEditIcon) {
+          opt.classList.add('selected');
+        } else {
+          opt.classList.remove('selected');
+        }
+      });
+    }
+
+function saveCategoryEdit() {
+      var row = document.getElementById('editRowVal').value;
+      var target = document.getElementById('editTargetVal').value;
+      var oldName = document.getElementById('editOldNameVal').value;
+      var newName = document.getElementById('editNameInput').value.trim();
+
+      if (!newName) return tampilkanPeringatanInput('Nama tidak boleh kosong!', 'Kelola Kategori', 'Isi nama kategori sebelum menyimpan perubahan.');
+
+      var param = {
+        row: row,
+        nama: newName,
+        icon: sanitizeIcon(selectedEditIcon),
+        target: target,
+        oldName: oldName,
+        userKey: userKey
+      };
+
+      if (target === 'sub') {
+        var newParent = document.getElementById('editParentSelect').value;
+        if (newParent && newParent !== oldName) {
+          param.newParent = newParent;
+        }
+      }
+
+      var btn = document.getElementById('btnSaveCategoryEdit');
+      btn.innerText = 'MENYIMPAN...';
+      btn.disabled = true;
+      var selesai = false;
+      var timeoutId = setTimeout(function() {
+        if (selesai) return;
+        selesai = true;
+        btn.innerText = 'SIMPAN';
+        btn.disabled = false;
+        alert('Tidak ada respon dari server. Coba lagi.');
+      }, 15000);
+
+      google.script.run
+        .withSuccessHandler(function(updatedList) {
+          if (selesai) return;
+          selesai = true;
+          clearTimeout(timeoutId);
+          globalKategori = updatedList;
+          closeEditCategoryModal();
+          openCategoryPicker();
+          btn.innerText = 'SIMPAN';
+          btn.disabled = false;
+        })
+        .withFailureHandler(function(err) {
+          if (selesai) return;
+          selesai = true;
+          clearTimeout(timeoutId);
+          btn.innerText = 'SIMPAN';
+          btn.disabled = false;
+          alert('Gagal menyimpan kategori: ' + (err && err.message ? err.message : 'Error'));
+        })
+        .updateKategoriDetail(param);
+    }
+
+function deleteCategoryRow(row) {
+      if (confirm('Yakin ingin menghapus item ini?')) {
+        google.script.run
+          .withSuccessHandler(function(updatedList) {
+            globalKategori = updatedList;
+            openCategoryPicker();
+          })
+          .hapusKategori(row, userKey);
+      }
+    }
+
+function openAddMainModal() {
+      document.getElementById('newMainName').value = '';
+      document.getElementById('customIconMain').value = '';
+      selectedMainIcon = availableIcons[0];
+      document.getElementById('previewMain').innerText = selectedMainIcon;
+      document.getElementById('addMainModal').style.display = 'flex';
+    }
+
+function closeAddMainModal() {
+      document.getElementById('addMainModal').style.display = 'none';
+    }
+
+function saveNewMainCategory() {
+      var name = document.getElementById('newMainName').value.trim();
+      var currentTipe = document.getElementById('tipeVal').value;
+
+      if (!name) return tampilkanPeringatanInput('Nama wajib diisi!', 'Kelola Kategori', 'Isi nama kategori utama sebelum menekan tombol Simpan.');
+
+      var param = { tipe: currentTipe, kategori: name, subKategori: '', iconKat: sanitizeIcon(selectedMainIcon) || '📁', iconSub: '', userKey: userKey };
+      var btn = document.getElementById('btnSaveMain');
+      btn.innerText = 'MENYIMPAN...';
+      btn.disabled = true;
+      var selesai = false;
+      var timeoutId = setTimeout(function() {
+        if (selesai) return;
+        selesai = true;
+        btn.innerText = 'SIMPAN';
+        btn.disabled = false;
+        alert('Tidak ada respon dari server. Coba lagi.');
+      }, 15000);
+
+      google.script.run
+        .withSuccessHandler(function(updatedList) {
+          if (selesai) return;
+          selesai = true;
+          clearTimeout(timeoutId);
+          globalKategori = updatedList;
+          selectCategory(name, '', param.iconKat);
+          closeAddMainModal();
+          btn.innerText = 'SIMPAN';
+          btn.disabled = false;
+        })
+        .withFailureHandler(function(err) {
+          if (selesai) return;
+          selesai = true;
+          clearTimeout(timeoutId);
+          btn.innerText = 'SIMPAN';
+          btn.disabled = false;
+          alert('Gagal menyimpan kategori utama: ' + (err && err.message ? err.message : 'Error'));
+        })
+        .simpanKategoriBaru(param);
+    }
+
+function openAddSubModal() {
+      var currentTipe = document.getElementById('tipeVal').value;
+      var selectParent = document.getElementById('newSubParent');
+      selectParent.innerHTML = '';
+
+      var uniqueParents = [];
+      globalKategori.forEach(function(item) {
+        var cleanTipe = (item.tipe || '').replace("'", "");
+        if ((cleanTipe === currentTipe || !cleanTipe) && uniqueParents.indexOf(item.kategori) === -1) {
+          uniqueParents.push(item.kategori);
+        }
+      });
+
+      if (uniqueParents.length === 0) uniqueParents = ['Lain-lain'];
+
+      uniqueParents.forEach(function(p) {
+        var opt = document.createElement('option');
+        opt.value = p; opt.innerText = p;
+        selectParent.appendChild(opt);
+      });
+
+      document.getElementById('newSubName').value = '';
+      document.getElementById('customIconSub').value = '';
+      selectedSubIcon = availableIcons[0];
+      document.getElementById('previewSub').innerText = selectedSubIcon;
+      document.getElementById('addSubModal').style.display = 'flex';
+    }
+
+function closeAddSubModal() {
+      document.getElementById('addSubModal').style.display = 'none';
+    }
+
+function saveNewSubcategory() {
+      var subName = document.getElementById('newSubName').value.trim();
+      var parentName = document.getElementById('newSubParent').value;
+      var currentTipe = document.getElementById('tipeVal').value;
+
+      if (!subName) return tampilkanPeringatanInput('Nama subkategori wajib diisi!', 'Kelola Kategori', 'Isi nama subkategori sebelum menekan tombol Simpan.');
+
+      var parentIcon = '📁';
+      for (var i = 0; i < globalKategori.length; i++) {
+        if (globalKategori[i].kategori === parentName && globalKategori[i].iconKat) {
+          parentIcon = sanitizeIcon(globalKategori[i].iconKat);
+          break;
+        }
+      }
+
+      var param = { tipe: currentTipe, kategori: parentName, subKategori: subName, iconKat: parentIcon, iconSub: sanitizeIcon(selectedSubIcon) || '📌', userKey: userKey };
+      var btn = document.getElementById('btnSaveSub');
+      btn.innerText = 'MENYIMPAN...';
+      btn.disabled = true;
+      var selesai = false;
+      var timeoutId = setTimeout(function() {
+        if (selesai) return;
+        selesai = true;
+        btn.innerText = 'SIMPAN';
+        btn.disabled = false;
+        alert('Tidak ada respon dari server. Coba lagi.');
+      }, 15000);
+
+      google.script.run
+        .withSuccessHandler(function(updatedList) {
+          if (selesai) return;
+          selesai = true;
+          clearTimeout(timeoutId);
+          globalKategori = updatedList;
+          selectCategory(parentName, subName, param.iconSub);
+          closeAddSubModal();
+          btn.innerText = 'SIMPAN';
+          btn.disabled = false;
+        })
+        .withFailureHandler(function(err) {
+          if (selesai) return;
+          selesai = true;
+          clearTimeout(timeoutId);
+          btn.innerText = 'SIMPAN';
+          btn.disabled = false;
+          alert('Gagal menyimpan subkategori: ' + (err && err.message ? err.message : 'Error'));
+        })
+        .simpanKategoriBaru(param);
+    }
+</script>

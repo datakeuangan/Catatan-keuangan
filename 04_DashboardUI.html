@@ -1,0 +1,1162 @@
+<!-- DASHBOARD UI -->
+<div id="pageIkhtisar" class="container">
+    <div id="widgetContainer">
+
+      <!-- 1. WIDGET RINGKASAN -->
+      <div class="widget-block" data-widget="ringkasan">
+        <div class="card">
+          <div class="card-title">Ringkasan</div>
+
+          <!-- SATU ANIMASI GLOBAL + STATUS KEUANGAN -->
+          <div class="summary-overview">
+            <div class="summary-logo-area">
+              <div id="moodRingkasan" class="summary-mood neutral" aria-live="polite">
+                <span class="summary-sparkle" aria-hidden="true">✨</span>
+                <span id="moodRingkasanFace" class="summary-mood-face" aria-hidden="true">😐</span>
+                <span class="summary-cloud" aria-hidden="true">☁️</span>
+              </div>
+            </div>
+
+            <div class="summary-status-panel">
+              <div class="summary-status-label">Status Keuangan Saat Ini</div>
+              <div id="moodRingkasanCaption" class="summary-status-value">Seimbang</div>
+              <div id="moodRingkasanDescription" class="summary-status-description">
+                Pemasukan dan pengeluaran berada dalam kondisi seimbang.
+              </div>
+            </div>
+          </div>
+
+          <!-- ENAM KOTAK RINCIAN RINGKASAN -->
+          <div class="summary-grid">
+            <div class="box-summary">
+              <div class="title">Hari ini</div>
+              <div class="summary-data-grid">
+                <div class="summary-labels">
+                  <div>Masuk:</div>
+                  <div>Keluar:</div>
+                  <div>Selisih:</div>
+                </div>
+                <div class="summary-values">
+                  <div class="val-in" id="hIn">Rp0</div>
+                  <div class="val-out" id="hOut">Rp0</div>
+                  <div class="val-diff zero" id="hSelisih">Rp0</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="box-summary">
+              <div class="title">Kemarin</div>
+              <div class="summary-data-grid">
+                <div class="summary-labels">
+                  <div>Masuk:</div>
+                  <div>Keluar:</div>
+                  <div>Selisih:</div>
+                </div>
+                <div class="summary-values">
+                  <div class="val-in" id="kIn">Rp0</div>
+                  <div class="val-out" id="kOut">Rp0</div>
+                  <div class="val-diff zero" id="kSelisih">Rp0</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="box-summary">
+              <div class="title">7 hari terakhir</div>
+              <div class="summary-data-grid">
+                <div class="summary-labels">
+                  <div>Masuk:</div>
+                  <div>Keluar:</div>
+                  <div>Selisih:</div>
+                </div>
+                <div class="summary-values">
+                  <div class="val-in" id="tIn">Rp0</div>
+                  <div class="val-out" id="tOut">Rp0</div>
+                  <div class="val-diff zero" id="tSelisih">Rp0</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="box-summary">
+              <div class="title">Bulan Ini</div>
+              <div class="summary-data-grid">
+                <div class="summary-labels">
+                  <div>Masuk:</div>
+                  <div>Keluar:</div>
+                  <div>Selisih:</div>
+                </div>
+                <div class="summary-values">
+                  <div class="val-in" id="bIn">Rp0</div>
+                  <div class="val-out" id="bOut">Rp0</div>
+                  <div class="val-diff zero" id="bSelisih">Rp0</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="box-summary">
+              <div class="title">Tahun Ini</div>
+              <div class="summary-data-grid">
+                <div class="summary-labels">
+                  <div>Masuk:</div>
+                  <div>Keluar:</div>
+                  <div>Selisih:</div>
+                </div>
+                <div class="summary-values">
+                  <div class="val-in" id="yIn">Rp0</div>
+                  <div class="val-out" id="yOut">Rp0</div>
+                  <div class="val-diff zero" id="ySelisih">Rp0</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="box-summary">
+              <div class="title">Total</div>
+              <div class="summary-data-grid">
+                <div class="summary-labels">
+                  <div>Masuk:</div>
+                  <div>Keluar:</div>
+                  <div>Selisih:</div>
+                </div>
+                <div class="summary-values">
+                  <div class="val-in" id="totIn">Rp0</div>
+                  <div class="val-out" id="totOut">Rp0</div>
+                  <div class="val-diff zero" id="totSelisih">Rp0</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="border-top:1px solid #2c2c2c; margin-top:10px; padding-top:8px; display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:12px; color:#aaa;">Rata-rata Keluar/Hari (Bulan Ini):</span>
+            <span class="val-out" id="rataHarianBulanIni" style="font-size:13px;">Rp0</span>
+          </div>
+          <div id="rataHarianKeterangan" style="font-size:10px; color:#777; text-align:right; margin-top:2px;"></div>
+        </div>
+      </div>
+
+      <!-- 2. WIDGET BULAT (DONUT CHART % ANALISIS BULANAN) -->
+      <div class="widget-block" data-widget="chart_bulat">
+        <div class="card">
+          <div class="card-title-wrap">
+            <span>📊 Analisis Persentase Bulanan</span>
+          </div>
+
+          <!-- Pilihan Kustomisasi Widget Bulat -->
+          <div class="donut-control-bar">
+            <!-- Tipe: Pengeluaran (-) vs Pemasukan (+) -->
+            <div class="donut-btn-group">
+              <button type="button" class="donut-btn-opt out active" id="btnDonutTipeOut" onclick="setDonutTipe('-')">Pengeluaran (-)</button>
+              <button type="button" class="donut-btn-opt in" id="btnDonutTipeIn" onclick="setDonutTipe('+')">Pemasukan (+)</button>
+              <button type="button" class="donut-btn-opt all" id="btnDonutTipeAll" onclick="setDonutTipe('all')">Gabungan</button>
+            </div>
+            <!-- View Mode: Kategori Utama vs Sub-Kategori -->
+            <div class="donut-btn-group">
+              <button type="button" class="donut-btn-opt active" id="btnDonutViewKat" onclick="setDonutView('kat')">Utama</button>
+              <button type="button" class="donut-btn-opt" id="btnDonutViewSub" onclick="setDonutView('sub')">Sub-Kat</button>
+            </div>
+          </div>
+
+          <!-- Navigasi Bulan untuk Widget Bulat -->
+          <div class="periode-nav" style="border-radius:8px; margin-bottom:10px; background:#1a1a1a;">
+            <button type="button" class="periode-nav-btn" onclick="geserDonutBulan(-1)">‹</button>
+            <div style="flex:1; text-align:center;">
+              <div class="periode-label" id="donutBulanLabel" onclick="bukaKalenderDonut()">Agustus 2026</div>
+            </div>
+            <button type="button" class="periode-nav-btn" onclick="geserDonutBulan(1)">›</button>
+          </div>
+
+          <!-- Canvas Donut Ring Chart & Center Stats -->
+          <div class="donut-chart-box">
+            <canvas id="donutChartCanvas" style="width: 190px; height: 190px; display: block;"></canvas>
+            <div class="donut-center-info" id="donutCenterInfo">
+              <div class="donut-center-percent" id="donutCenterPercent">0%</div>
+              <div class="donut-center-label" id="donutCenterLabel">Belum Ada Data</div>
+            </div>
+          </div>
+
+          <!-- Ringkasan Keunggulan / Dominasi -->
+          <div id="donutDominantBanner" style="background:#262626; border-radius:8px; padding:10px; text-align:center; font-size:12px; border:1px solid #333; margin-top:8px;">
+            Memuat analisis...
+          </div>
+
+          <!-- Legend & Breakdown Persentase -->
+          <div class="donut-legend-list" id="donutLegendList">
+            <div style="color:#888; text-align:center; font-size:12px; padding:8px;">Memuat data persentase...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. WIDGET HUTANG & PIUTANG (CUSTOMIZABLE VIA WIDGET SETTINGS) -->
+      <div class="widget-block" data-widget="hutang_piutang">
+        <div class="card">
+          <div class="card-title-wrap">
+            <span>🤝 Hutang/Piutang & 💳 Cicilan</span>
+            <span class="side-action" style="color:#ff9800; cursor:pointer;" onclick="openAddHutangPiutangModal()">+ Tambah</span>
+          </div>
+          <div class="hp-dashboard-summary">
+            <div class="hp-summary-card hutang">
+              <div class="hp-summary-label"><span class="hp-summary-icon">💸</span><span class="hp-summary-name">Hutang · Saya Pinjam</span></div>
+              <div class="hp-summary-value" id="hpWidgetSisaHutang">Rp0</div>
+            </div>
+            <div class="hp-summary-card piutang">
+              <div class="hp-summary-label"><span class="hp-summary-icon">💰</span><span class="hp-summary-name">Piutang · Saya Pinjamkan</span></div>
+              <div class="hp-summary-value" id="hpWidgetSisaPiutang">Rp0</div>
+            </div>
+          </div>
+          <div id="hpWidgetContainer">
+            <div style="color: #888; text-align: center; font-size: 13px; padding: 10px;">Memuat data hutang & piutang...</div>
+          </div>
+          <div style="text-align:right; margin-top:8px; border-top:1px solid #2c2c2c; padding-top:6px;">
+            <span style="font-size:12px; color:#9c27b0; font-weight:bold; cursor:pointer;" onclick="openHutangPiutangModal()">Kelola Semua Hutang/Piutang & Cicilan ›</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. WIDGET GOALS / TARGET TABUNGAN -->
+      
+
+      <!-- 5. WIDGET CHART 7 HARI -->
+      <div class="widget-block" data-widget="p_7hari">
+        <div class="card">
+          <div style="display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #2c2c2c; padding-bottom:8px; margin-bottom:10px;">
+            <span style="font-size:14px; font-weight:bold; color:#fff;">Transaksi - 7 hari terakhir</span>
+            <span style="font-size:11px; color:#888;">⋮</span>
+          </div>
+          <div id="barChartContainer" style="width:100%; overflow:hidden;">
+            <canvas id="barChart7Hari" style="width:100%; height:190px; display:block;"></canvas>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-top:8px; font-size:11px;">
+            <div><span style="display:inline-block; width:10px; height:10px; background:#4caf50; border-radius:2px; margin-right:4px;"></span><span style="color:#aaa;">Masuk</span></div>
+            <div><span style="display:inline-block; width:10px; height:10px; background:#f44336; border-radius:2px; margin-right:4px;"></span><span style="color:#aaa;">Keluar</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="widget-block" data-widget="p_bulan_lalu">
+        <div class="card">
+          <div class="card-title" style="text-align: left; border-bottom: 1px solid #2c2c2c; padding-bottom: 8px;">Bulan Lalu</div>
+          <div class="row-val" style="font-size:13px; margin-top:6px;"><span>Masuk:</span><span class="val-in" id="blIn">Rp0</span></div>
+          <div class="row-val" style="font-size:13px;"><span>Keluar:</span><span class="val-out" id="blOut">Rp0</span></div>
+        </div>
+      </div>
+
+      <div class="widget-block" data-widget="p_tahun_ini">
+        <div class="card">
+          <div class="card-title" style="text-align: left; border-bottom: 1px solid #2c2c2c; padding-bottom: 8px;">Tahun Ini</div>
+          <div class="row-val" style="font-size:13px; margin-top:6px;"><span>Masuk:</span><span class="val-in" id="tyIn">Rp0</span></div>
+          <div class="row-val" style="font-size:13px;"><span>Keluar:</span><span class="val-out" id="tyOut">Rp0</span></div>
+        </div>
+      </div>
+
+      <div class="widget-block" data-widget="p_tahun_lalu">
+        <div class="card">
+          <div class="card-title" style="text-align: left; border-bottom: 1px solid #2c2c2c; padding-bottom: 8px;">Tahun Lalu</div>
+          <div class="row-val" style="font-size:13px; margin-top:6px;"><span>Masuk:</span><span class="val-in" id="tlIn">Rp0</span></div>
+          <div class="row-val" style="font-size:13px;"><span>Keluar:</span><span class="val-out" id="tlOut">Rp0</span></div>
+        </div>
+      </div>
+
+      <div class="widget-block" data-widget="saldo_matauang">
+        <div class="card">
+          <div class="card-title-wrap">
+            <span>Saldo (Mata uang)</span>
+          </div>
+          <div id="saldoMataUangContainer">
+            <div style="color: #888; text-align: center; font-size: 13px; padding: 10px;">Memuat...</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="widget-block" data-widget="saldo">
+        <div class="card">
+          <div class="card-title-wrap">
+            <span>Saldo Rekening</span>
+            <span class="side-action" style="color:#9c27b0;" onclick="openRekeningVisibilitySettings()">⚙️ Atur</span>
+          </div>
+          <div id="saldoWidgetContainer">
+            <div style="color: #888; text-align: center; font-size: 13px; padding: 10px;">Memuat saldo...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. WIDGET RIWAYAT TRANSAKSI (DENGAN BATAS ITEM DI CUSTOM) -->
+      <div class="widget-block" data-widget="riwayat">
+        <div class="card">
+          <div class="card-title-wrap">
+            <span>Riwayat Transaksi</span>
+            <span class="side-action" style="color:#9c27b0; cursor:pointer;" onclick="openAllTransaksi()">Lihat Semua ›</span>
+          </div>
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+            <button type="button" class="periode-nav-btn" onclick="geserRiwayatWidgetTanggal(-1)">‹</button>
+            <div style="flex:1; text-align:center;">
+              <div style="font-weight:bold; font-size:13px; color:#fff;" id="riwayatWidgetLabel">Hari ini</div>
+            </div>
+            <button type="button" class="periode-nav-btn" onclick="geserRiwayatWidgetTanggal(1)">›</button>
+          </div>
+          <div id="riwayatListContainer">
+            <div style="color: #888; text-align: center; font-size: 13px; padding: 10px;">Memuat riwayat...</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="widget-block" data-widget="riwayat_transfer">
+        <div class="card">
+          <div class="card-title-wrap">
+            <span>Riwayat Transfer</span>
+          </div>
+          <div id="riwayatTransferContainer">
+            <div style="color: #888; text-align: center; font-size: 13px; padding: 10px;">Memuat riwayat...</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+<script>
+  // ===== Dashboard state =====
+  var donutState = {
+      tipe: '-', // '-' (Pengeluaran), '+' (Pemasukan), atau 'all' (Gabungan)
+      view: 'kat', // 'kat' (Kategori Utama) atau 'sub' (Sub-Kategori)
+      date: new Date() // Tanggal rujukan bulan
+    };
+  var donutPalette = [
+      '#9c27b0', '#ff9800', '#2196f3', '#4caf50', '#e91e63',
+      '#00bcd4', '#ffc107', '#8bc34a', '#3f51b5', '#009688'
+    ];
+  var donutCurrentItems = [];
+  var riwayatWidgetDate = new Date();
+
+  // ===== Dashboard functions =====
+  function updateSummaryMood(moodId, faceId, captionId, selisih) {
+      var wrap = document.getElementById(moodId);
+      var face = document.getElementById(faceId);
+      var caption = document.getElementById(captionId);
+      if (!wrap || !face || !caption) return;
+
+      var nilai = Number(selisih) || 0;
+      wrap.classList.remove('happy', 'sad', 'neutral');
+
+      if (nilai > 0) {
+        wrap.classList.add('happy');
+        face.innerText = '😊';
+        caption.innerText = 'Surplus';
+      } else if (nilai < 0) {
+        wrap.classList.add('sad');
+        face.innerText = '😔';
+        caption.innerText = 'Minus';
+      } else {
+        wrap.classList.add('neutral');
+        face.innerText = '😐';
+        caption.innerText = 'Seimbang';
+      }
+    }
+
+function updateAllSummaryMoods(d) {
+      if (!d || !d.total) return;
+
+      // Satu animasi global Ringkasan menggunakan saldo bersih TOTAL.
+      // Tidak mengubah data/perhitungan transaksi.
+      var totalIn = Number(d.total.in) || 0;
+      var totalOut = Number(d.total.out) || 0;
+      var selisihTotal = totalIn - totalOut;
+
+      updateSummaryMood(
+        'moodRingkasan',
+        'moodRingkasanFace',
+        'moodRingkasanCaption',
+        selisihTotal
+      );
+
+      var description = document.getElementById('moodRingkasanDescription');
+      if (description) {
+        if (selisihTotal > 0) {
+          description.innerText =
+            'Pemasukan lebih besar daripada pengeluaran. Pertahankan pengelolaan keuanganmu agar kondisi tetap sehat.';
+        } else if (selisihTotal < 0) {
+          description.innerText =
+            'Pengeluaran lebih besar daripada pemasukan. Coba kelola keuanganmu lebih baik agar keuangan tetap sehat dan tujuan keuanganmu tercapai.';
+        } else {
+          description.innerText =
+            'Pemasukan dan pengeluaran berada dalam kondisi seimbang.';
+        }
+      }
+    }
+
+function setDashboardSelisih(elementId, totalIn, totalOut) {
+      var el = document.getElementById(elementId);
+      if (!el) return;
+
+      var selisih = (Number(totalIn) || 0) - (Number(totalOut) || 0);
+      el.innerText = (selisih < 0 ? '-' : '') + formatRp(Math.abs(selisih));
+      el.classList.remove('positive', 'negative', 'zero');
+      el.classList.add(selisih > 0 ? 'positive' : (selisih < 0 ? 'negative' : 'zero'));
+    }
+
+function renderSaldoWidget() {
+      var container = document.getElementById('saldoWidgetContainer');
+      if (!container) return;
+      syncRekeningVisibility();
+
+      var html = '';
+      globalRekening.forEach(function(r) {
+        if (rekeningVisibility[r.nama] === false) return;
+        var rIcon = sanitizeIcon(r.icon);
+        html += `
+          <div class="tx-item">
+            <div class="tx-left">
+              <div class="tx-icon">${rIcon}</div>
+              <div class="tx-info"><div class="title">${r.nama}</div></div>
+            </div>
+            <div class="tx-right">
+              <div class="tx-amount" style="color:#4caf50;">${formatRp(r.saldoAkhir)}</div>
+            </div>
+          </div>
+        `;
+      });
+      container.innerHTML = html || '<div style="color:#888; text-align:center; font-size:13px; padding:10px;">Tidak ada rekening yang ditampilkan. Atur lewat ⚙️ Atur.</div>';
+    }
+
+function renderSaldoMataUang() {
+      var container = document.getElementById('saldoMataUangContainer');
+      if (!container) return;
+
+      var total = 0;
+      globalRekening.forEach(function(r) {
+        total += Number(r.saldoAkhir || 0);
+      });
+
+      // Skala visual saldo: Rp1.000.000 = 100%.
+      // Nilai saldo tetap mengikuti perubahan saldo secara realtime.
+      var saldoScale = 1000000;
+      var absTotal = Math.abs(total);
+      var percentage = Math.min((absTotal / saldoScale) * 100, 100);
+      var percentageText = (total < 0 ? '-' : '') + percentage.toLocaleString('id-ID', {
+        minimumFractionDigits: percentage % 1 ? 1 : 0,
+        maximumFractionDigits: 1
+      }) + '%';
+
+      var isNegative = total < 0;
+      var isZero = total === 0;
+      var valueColor = isNegative ? '#f44336' : (isZero ? '#888' : '#4caf50');
+      var barColor = isNegative ? '#f44336' : (isZero ? '#666' : '#2196f3');
+
+      container.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <span style="font-size:14px; font-weight:bold; color:#fff;">IDR</span>
+          <span style="font-size:15px; font-weight:bold; color:${valueColor};">${formatRp(total)}</span>
+        </div>
+        <div style="background:#333; border-radius:4px; height:8px; overflow:hidden;">
+          <div style="background:${barColor}; height:100%; width:${percentage}%; border-radius:4px; transition:width .35s ease, background .2s ease;"></div>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+          <span style="font-size:10px; color:#666;">Skala Rp1.000.000</span>
+          <span style="font-size:11px; color:${valueColor};">${percentageText}</span>
+        </div>
+      `;
+    }
+
+function loadDashboard() {
+      google.script.run
+        .withSuccessHandler(function(d) {
+          if (!d) return;
+          if (document.getElementById('hIn')) document.getElementById('hIn').innerText = formatRp(d.hariIni.in);
+          if (document.getElementById('hOut')) document.getElementById('hOut').innerText = formatRp(d.hariIni.out);
+          setDashboardSelisih('hSelisih', d.hariIni.in, d.hariIni.out);
+          updateAllSummaryMoods(d);
+
+          if (document.getElementById('kIn')) document.getElementById('kIn').innerText = formatRp(d.kemarin.in);
+          if (document.getElementById('kOut')) document.getElementById('kOut').innerText = formatRp(d.kemarin.out);
+          setDashboardSelisih('kSelisih', d.kemarin.in, d.kemarin.out);
+
+          if (document.getElementById('tIn')) document.getElementById('tIn').innerText = formatRp(d.tujuhHari.in);
+          if (document.getElementById('tOut')) document.getElementById('tOut').innerText = formatRp(d.tujuhHari.out);
+          setDashboardSelisih('tSelisih', d.tujuhHari.in, d.tujuhHari.out);
+
+          if (document.getElementById('bIn')) document.getElementById('bIn').innerText = formatRp(d.bulanIni.in);
+          if (document.getElementById('bOut')) document.getElementById('bOut').innerText = formatRp(d.bulanIni.out);
+          setDashboardSelisih('bSelisih', d.bulanIni.in, d.bulanIni.out);
+
+          if (document.getElementById('yIn')) document.getElementById('yIn').innerText = formatRp(d.tahunIni.in);
+          if (document.getElementById('yOut')) document.getElementById('yOut').innerText = formatRp(d.tahunIni.out);
+          setDashboardSelisih('ySelisih', d.tahunIni.in, d.tahunIni.out);
+
+          if (document.getElementById('totIn')) document.getElementById('totIn').innerText = formatRp(d.total.in);
+          if (document.getElementById('totOut')) document.getElementById('totOut').innerText = formatRp(d.total.out);
+          setDashboardSelisih('totSelisih', d.total.in, d.total.out);
+          if (document.getElementById('blIn')) document.getElementById('blIn').innerText = formatRp(d.bulanLalu.in);
+          if (document.getElementById('blOut')) document.getElementById('blOut').innerText = formatRp(d.bulanLalu.out);
+          if (document.getElementById('tyIn')) document.getElementById('tyIn').innerText = formatRp(d.tahunIni.in);
+          if (document.getElementById('tyOut')) document.getElementById('tyOut').innerText = formatRp(d.tahunIni.out);
+          if (document.getElementById('tlIn')) document.getElementById('tlIn').innerText = formatRp(d.tahunLalu.in);
+          if (document.getElementById('tlOut')) document.getElementById('tlOut').innerText = formatRp(d.tahunLalu.out);
+
+          var hariBerjalan = new Date().getDate();
+          var rataHarian = hariBerjalan > 0 ? Math.round(d.bulanIni.out / hariBerjalan) : 0;
+          document.getElementById('rataHarianBulanIni').innerText = formatRp(rataHarian);
+          document.getElementById('rataHarianKeterangan').innerText =
+            'Dari total keluar ' + formatRp(d.bulanIni.out) + ' dibagi ' + hariBerjalan + ' hari berjalan';
+        })
+        .getIkhtisarData(userKey);
+
+      google.script.run
+        .withSuccessHandler(function(list) {
+          drawBarChart7Hari(list || []);
+        })
+        .getRiwayatTransaksi(userKey);
+
+      muatRiwayatWidget();
+      muatDonutBulatWidget();
+
+      google.script.run
+        .withSuccessHandler(function(list) {
+          renderRiwayatTransfer(list || []);
+        })
+        .getRiwayatTransfer(userKey);
+    }
+
+function setDonutTipe(tipe) {
+      donutState.tipe = tipe;
+      document.getElementById('btnDonutTipeOut').classList.toggle('active', tipe === '-');
+      document.getElementById('btnDonutTipeIn').classList.toggle('active', tipe === '+');
+      document.getElementById('btnDonutTipeAll').classList.toggle('active', tipe === 'all');
+      muatDonutBulatWidget();
+    }
+
+function setDonutView(view) {
+      donutState.view = view;
+      document.getElementById('btnDonutViewKat').classList.toggle('active', view === 'kat');
+      document.getElementById('btnDonutViewSub').classList.toggle('active', view === 'sub');
+      muatDonutBulatWidget();
+    }
+
+function geserDonutBulan(dir) {
+      donutState.date.setDate(1);
+      donutState.date.setMonth(donutState.date.getMonth() + dir);
+      muatDonutBulatWidget();
+    }
+
+function formatBulanTahunLabel(d) {
+      return namaBulanPeriode[d.getMonth()] + ' ' + d.getFullYear();
+    }
+
+function bukaKalenderDonut() {
+      bukaKalender({
+        granularity: 'month',
+        initialDate: donutState.date,
+        onSelect: function(d) {
+          donutState.date = d;
+          muatDonutBulatWidget();
+        }
+      });
+    }
+
+function toIsoMonthStr(d) {
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    }
+
+function muatDonutBulatWidget() {
+      var labelEl = document.getElementById('donutBulanLabel');
+      if (labelEl) labelEl.innerText = formatBulanTahunLabel(donutState.date);
+
+      var monthStr = toIsoMonthStr(donutState.date);
+      var renderError = function(err) {
+        var legendEl = document.getElementById('donutLegendList');
+        if (legendEl) legendEl.innerHTML = '<div style=\"color:#f44336; text-align:center; font-size:12px; padding:8px;\">Gagal memuat chart: ' + (err ? err.message : 'Error') + '</div>';
+      };
+
+      // Mode biasa: satu tipe transaksi seperti sebelumnya.
+      if (donutState.tipe !== 'all') {
+        google.script.run
+          .withSuccessHandler(function(res) {
+            renderDonutChartAndLegend(res || { total: 0, items: [], dominant: null });
+          })
+          .withFailureHandler(renderError)
+          .getBreakdownKategoriBulanan(userKey, donutState.tipe, donutState.view, monthStr);
+        return;
+      }
+
+      // Mode Gabungan: ambil pemasukan + pengeluaran dari backend lama,
+      // lalu gabungkan berdasarkan kategori/sub-kategori di sisi frontend.
+      var hasil = { inData: null, outData: null, selesai: 0, gagal: false };
+      function prosesGabungan() {
+        if (hasil.gagal || hasil.selesai < 2) return;
+
+        var map = {};
+        var total = 0;
+        var sumber = [hasil.inData || { total: 0, items: [] }, hasil.outData || { total: 0, items: [] }];
+
+        sumber.forEach(function(data) {
+          total += Number(data.total || 0);
+          (data.items || []).forEach(function(item) {
+            var key = String(item.name || '').trim().toLowerCase();
+            if (!key) key = '__tanpa_nama__';
+            if (!map[key]) {
+              map[key] = {
+                name: item.name || 'Tanpa Nama',
+                kat: item.kat || '',
+                sub: item.sub || '',
+                icon: item.icon || '📁',
+                jumlah: 0
+              };
+            }
+            map[key].jumlah += Number(item.jumlah || 0);
+          });
+        });
+
+        var items = Object.keys(map).map(function(k) { return map[k]; });
+        items.sort(function(a, b) { return b.jumlah - a.jumlah; });
+        items.forEach(function(item) {
+          item.persentase = total > 0 ? (item.jumlah / total) * 100 : 0;
+        });
+
+        var dominant = items.length ? items[0] : null;
+        renderDonutChartAndLegend({
+          total: total,
+          items: items,
+          dominant: dominant,
+          mode: 'all'
+        });
+      }
+
+      function ambil(tipe, prop) {
+        google.script.run
+          .withSuccessHandler(function(res) {
+            hasil[prop] = res || { total: 0, items: [] };
+            hasil.selesai++;
+            prosesGabungan();
+          })
+          .withFailureHandler(function(err) {
+            if (!hasil.gagal) renderError(err);
+            hasil.gagal = true;
+          })
+          .getBreakdownKategoriBulanan(userKey, tipe, donutState.view, monthStr);
+      }
+
+      ambil('+', 'inData');
+      ambil('-', 'outData');
+    }
+
+function ensureDonutDetailModal() {
+      var modal = document.getElementById('donutDetailModal');
+      if (modal) return modal;
+
+      modal = document.createElement('div');
+      modal.id = 'donutDetailModal';
+      modal.innerHTML = `
+        <div class="donut-detail-header">
+          <div style="font-size:22px;">🔎</div>
+          <div class="donut-detail-title-wrap">
+            <div id="donutDetailTitle" class="donut-detail-title">Rincian Analisis</div>
+            <div id="donutDetailSubtitle" class="donut-detail-subtitle"></div>
+          </div>
+          <button type="button" class="donut-detail-close" onclick="tutupDetailDonutItem()">×</button>
+        </div>
+        <div class="donut-detail-body">
+          <div id="donutDetailSummary" class="donut-detail-summary"></div>
+          <div class="donut-detail-list">
+            <div class="donut-detail-section-title">Rincian Transaksi</div>
+            <div id="donutDetailListContainer">
+              <div class="donut-detail-loading">Memuat...</div>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      return modal;
+    }
+
+function tutupDetailDonutItem() {
+      var modal = document.getElementById('donutDetailModal');
+      if (modal) modal.style.display = 'none';
+    }
+
+function normDonutDetail(v) {
+      return String(v == null ? '' : v).trim().toLowerCase();
+    }
+
+function formatDonutDetailMonth(monthStr) {
+      var parts = String(monthStr || '').split('-');
+      if (parts.length < 2) return formatBulanTahunLabel(donutState.date);
+      var y = Number(parts[0]);
+      var m = Number(parts[1]) - 1;
+      if (!isFinite(y) || !isFinite(m) || m < 0 || m > 11) return formatBulanTahunLabel(donutState.date);
+      return namaBulanPeriode[m] + ' ' + y;
+    }
+
+function bukaDetailDonutItem(index) {
+      var item = donutCurrentItems[index];
+      if (!item) return;
+
+      var modal = ensureDonutDetailModal();
+      var titleEl = document.getElementById('donutDetailTitle');
+      var subtitleEl = document.getElementById('donutDetailSubtitle');
+      var summaryEl = document.getElementById('donutDetailSummary');
+      var listEl = document.getElementById('donutDetailListContainer');
+
+      var monthStr = toIsoMonthStr(donutState.date);
+      var tipeLabel = donutState.tipe === 'all' ? 'Gabungan' : (donutState.tipe === '+' ? 'Pemasukan' : 'Pengeluaran');
+      var viewLabel = donutState.view === 'sub' ? 'Sub-Kat' : 'Utama';
+
+      titleEl.innerText = sanitizeIcon(item.icon) + ' ' + (item.name || 'Tanpa Nama');
+      subtitleEl.innerText = formatDonutDetailMonth(monthStr) + ' • ' + viewLabel + ' • ' + tipeLabel;
+      summaryEl.innerHTML = `
+        <div class="donut-detail-summary-card">
+          <div class="donut-detail-summary-label">Total</div>
+          <div id="donutDetailTotal" class="donut-detail-summary-value">Memuat...</div>
+        </div>
+        <div class="donut-detail-summary-card">
+          <div class="donut-detail-summary-label">Jumlah Item</div>
+          <div id="donutDetailCount" class="donut-detail-summary-value">-</div>
+        </div>
+        <div class="donut-detail-summary-card">
+          <div class="donut-detail-summary-label">Masuk / Keluar</div>
+          <div id="donutDetailInOut" class="donut-detail-summary-value">-</div>
+        </div>
+      `;
+      listEl.innerHTML = '<div class="donut-detail-loading">Memuat rincian transaksi...</div>';
+      modal.style.display = 'block';
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          res = res || { list: [], totalIn: 0, totalOut: 0 };
+
+          var list = Array.isArray(res.list) ? res.list.slice() : [];
+          var target = normDonutDetail(item.name);
+
+          // Filter berdasarkan tipe yang sedang dipilih.
+          if (donutState.tipe !== 'all') {
+            list = list.filter(function(tx) {
+              return tx && tx.tipe === donutState.tipe;
+            });
+          }
+
+          // Filter berdasarkan mode grafik: Kategori Utama atau Sub-Kategori.
+          // Pada mode Sub-Kat, item grafik dari backend berbentuk
+          // "Kategori Utama › Sub-Kategori", sehingga jangan membandingkannya
+          // langsung dengan tx.subKategori saja. Gunakan kat + sub agar tepat.
+          list = list.filter(function(tx) {
+            if (!tx) return false;
+
+            if (donutState.view === 'sub') {
+              var itemKat = normDonutDetail(item.kat);
+              var itemSub = normDonutDetail(item.sub);
+              var txKat = normDonutDetail(tx.kategori);
+              var txSub = normDonutDetail(tx.subKategori);
+
+              // Format baru dari getBreakdownKategoriBulanan menyediakan kat/sub.
+              // Jika keduanya tersedia, cocokkan keduanya agar tidak tertukar
+              // apabila ada sub-kategori dengan nama yang sama di kategori lain.
+              if (itemKat && itemSub) {
+                return txKat === itemKat && txSub === itemSub;
+              }
+
+              // Fallback untuk item lama: cocokkan sub-kategori dengan nama item.
+              return txSub === target ||
+                normDonutDetail(txKat + ' › ' + txSub) === target;
+            }
+
+            // Mode Utama: cocokkan kategori utama.
+            var targetKat = normDonutDetail(item.kat || item.name);
+            return normDonutDetail(tx.kategori) === targetKat;
+          });
+
+          // Urutkan transaksi terbaru di atas.
+          list.sort(function(a, b) {
+            var da = String(a && a.tanggal || '');
+            var db = String(b && b.tanggal || '');
+            if (da !== db) return db.localeCompare(da);
+            return Number(b && b.row || 0) - Number(a && a.row || 0);
+          });
+
+          var total = 0, totalIn = 0, totalOut = 0;
+          list.forEach(function(tx) {
+            var n = Number(tx.jumlah || 0);
+            if (tx.tipe === '+') totalIn += n;
+            else if (tx.tipe === '-') totalOut += n;
+            total += n;
+          });
+
+          var totalEl = document.getElementById('donutDetailTotal');
+          var countEl = document.getElementById('donutDetailCount');
+          var inOutEl = document.getElementById('donutDetailInOut');
+
+          totalEl.innerText = formatRp(total);
+          countEl.innerText = String(list.length) + ' transaksi';
+          inOutEl.innerHTML =
+            '<span style="color:#4caf50;">+' + formatRp(totalIn) + '</span>' +
+            ' <span style="color:#777;">/</span> ' +
+            '<span style="color:#f44336;">-' + formatRp(totalOut) + '</span>';
+
+          if (list.length === 0) {
+            listEl.innerHTML = '<div class="donut-detail-empty">Tidak ditemukan transaksi yang masuk ke bagian grafik ini.</div>';
+            return;
+          }
+
+          var html = '';
+          list.forEach(function(tx) {
+            html += renderTxItemHtml(tx);
+          });
+          listEl.innerHTML = html;
+        })
+        .withFailureHandler(function(err) {
+          var listEl = document.getElementById('donutDetailListContainer');
+          if (listEl) {
+            listEl.innerHTML = '<div class="donut-detail-empty" style="color:#f44336;">Gagal memuat rincian: ' +
+              (err && err.message ? err.message : 'Terjadi kesalahan') + '</div>';
+          }
+        })
+        .getRiwayatPeriode(userKey, 'bulan', monthStr + '-01');
+    }
+
+function renderDonutChartAndLegend(res) {
+      var canvas = document.getElementById('donutChartCanvas');
+      var centerPercentEl = document.getElementById('donutCenterPercent');
+      var centerLabelEl = document.getElementById('donutCenterLabel');
+      var dominantBannerEl = document.getElementById('donutDominantBanner');
+      var legendListEl = document.getElementById('donutLegendList');
+
+      if (!canvas) return;
+
+      var total = res.total || 0;
+      var items = res.items || [];
+      var dominant = res.dominant || null;
+      donutCurrentItems = items.slice();
+      var isOut = donutState.tipe === '-';
+      var isAll = donutState.tipe === 'all';
+
+      // 1. Render Center Text & Dominant Banner
+      if (total > 0 && dominant) {
+        var domPercent = dominant.persentase || 0;
+        var domIcon = sanitizeIcon(dominant.icon);
+        centerPercentEl.innerText = domPercent.toFixed(1) + '%';
+        centerPercentEl.style.color = isAll ? '#2196f3' : (isOut ? '#f44336' : '#4caf50');
+        centerLabelEl.innerText = domIcon + ' ' + dominant.name;
+
+        var statusText = isAll ? 'Terbesar Gabungan' : (isOut ? 'Habis Terbanyak' : 'Keunggulan Utama');
+        var statusIcon = isAll ? '📊' : (isOut ? '🔥' : '💰');
+        dominantBannerEl.innerHTML = `
+          ${statusIcon} <b>${statusText}:</b> ${domIcon} <b>${dominant.name}</b> (${domPercent.toFixed(1)}% • ${formatRp(dominant.jumlah)})
+        `;
+      } else {
+        centerPercentEl.innerText = '0%';
+        centerPercentEl.style.color = '#aaa';
+        centerLabelEl.innerText = 'Tidak ada transaksi';
+        dominantBannerEl.innerHTML = `<span style="color:#888;">Belum ada data transaksi ${isAll ? 'pemasukan maupun pengeluaran' : (isOut ? 'pengeluaran' : 'pemasukan')} di bulan ini.</span>`;
+      }
+
+      // 2. Render Donut Canvas Ring
+      var dpr = window.devicePixelRatio || 1;
+      var W = 190, H = 190;
+      canvas.width = W * dpr;
+      canvas.height = H * dpr;
+      canvas.style.width = W + 'px';
+      canvas.style.height = H + 'px';
+
+      var ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+      ctx.clearRect(0, 0, W, H);
+
+      var centerX = W / 2;
+      var centerY = H / 2;
+      var outerRadius = 85;
+      var innerRadius = 58;
+
+      if (total <= 0 || items.length === 0) {
+        // Draw Empty Neutral Gray Ring
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, outerRadius, 0, Math.PI * 2);
+        ctx.arc(centerX, centerY, innerRadius, Math.PI * 2, 0, true);
+        ctx.fillStyle = '#2a2a2a';
+        ctx.fill();
+      } else {
+        var startAngle = -Math.PI / 2;
+        items.forEach(function(item, idx) {
+          var color = donutPalette[idx % donutPalette.length];
+          var sliceAngle = (item.jumlah / total) * Math.PI * 2;
+          var endAngle = startAngle + sliceAngle;
+
+          ctx.beginPath();
+          ctx.arc(centerX, centerY, outerRadius, startAngle, endAngle);
+          ctx.arc(centerX, centerY, innerRadius, endAngle, startAngle, true);
+          ctx.closePath();
+          ctx.fillStyle = color;
+          ctx.fill();
+
+          startAngle = endAngle;
+        });
+      }
+
+      // 3. Render Legend & Percentage List
+      if (items.length === 0) {
+        legendListEl.innerHTML = '<div style="color:#888; text-align:center; font-size:12px; padding:10px;">Belum ada riwayat transaksi pada kategori ini.</div>';
+        return;
+      }
+
+      var html = '';
+      items.forEach(function(item, idx) {
+        var color = donutPalette[idx % donutPalette.length];
+        var pct = item.persentase || 0;
+        var itIcon = sanitizeIcon(item.icon);
+        html += `
+          <div class="donut-legend-item donut-detail-clickable" onclick="bukaDetailDonutItem(${idx})" title="Klik untuk melihat rincian transaksi">
+            <div style="flex:1;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
+                <div class="donut-legend-left">
+                  <div class="donut-color-dot" style="background:${color};"></div>
+                  <div class="donut-legend-title">${itIcon} ${item.name}</div>
+                </div>
+                <div style="display:flex; align-items:center; gap:4px;">
+                  <div class="donut-legend-percent" style="color:${color};">${pct.toFixed(1)}%</div>
+                  <span class="donut-click-hint">↗</span>
+                </div>
+              </div>
+              <div class="donut-bar-wrap">
+                <div class="donut-bar-fill" style="width:${pct}%; background:${color};"></div>
+              </div>
+              <div style="font-size:10px; color:#888; text-align:right; margin-top:2px;">${formatRp(item.jumlah)}</div>
+            </div>
+          </div>
+        `;
+      });
+      legendListEl.innerHTML = html;
+    }
+
+function scrollToDashboardWidget(widgetKey) {
+      // Pastikan tetap berada di halaman Ikhtisar.
+      if (typeof currentPage !== 'undefined' && currentPage !== 'ikhtisar') {
+        switchPage('ikhtisar');
+      }
+
+      // Tunggu render/order widget selesai agar elemen sudah berada di DOM.
+      setTimeout(function() {
+        var widget = document.querySelector('.widget-block[data-widget="' + widgetKey + '"]');
+        if (!widget) return;
+
+        // Jika widget sedang disembunyikan melalui Atur Tampilan, jangan memaksa
+        // mengubah konfigurasi pengguna. Widget yang tidak terlihat memang tidak
+        // punya posisi scroll yang bisa dituju.
+        if (window.getComputedStyle(widget).display === 'none') {
+          return;
+        }
+
+        widget.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 80);
+    }
+
+function pad2Widget(n) {
+      return String(n).padStart(2, '0');
+    }
+
+function toIsoDateWidget(d) {
+      return d.getFullYear() + '-' + pad2Widget(d.getMonth() + 1) + '-' + pad2Widget(d.getDate());
+    }
+
+function formatRiwayatWidgetLabel() {
+      var today = new Date();
+      var d = riwayatWidgetDate;
+      if (toIsoDateWidget(d) === toIsoDateWidget(today)) return 'Hari ini';
+      var kemarin = new Date(today.getTime() - 86400000);
+      if (toIsoDateWidget(d) === toIsoDateWidget(kemarin)) return 'Kemarin';
+      return namaHariPeriode[d.getDay()] + ', ' + pad2Widget(d.getDate()) + '/' + pad2Widget(d.getMonth() + 1) + '/' + d.getFullYear();
+    }
+
+function geserRiwayatWidgetTanggal(dir) {
+      riwayatWidgetDate.setDate(riwayatWidgetDate.getDate() + dir);
+      muatRiwayatWidget();
+    }
+
+function muatRiwayatWidget() {
+      txByRow = {};
+      var labelEl = document.getElementById('riwayatWidgetLabel');
+      if (labelEl) labelEl.innerText = formatRiwayatWidgetLabel();
+
+      var container = document.getElementById('riwayatListContainer');
+      if (!container) return;
+      container.innerHTML = '<div style="color: #888; text-align: center; font-size: 13px; padding: 10px;">Memuat riwayat...</div>';
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          var list = (res && res.list) ? res.list : [];
+          if (list.length === 0) {
+            container.innerHTML = '<div style="color: #888; text-align: center; font-size: 13px; padding: 10px;">Tidak ada transaksi pada tanggal ini.</div>';
+            return;
+          }
+
+          // Batasi jumlah item transaksi di menu utama sesuai kustomisasi limitRiwayatUtama (1 - 25)
+          var slicedList = list.slice(0, limitRiwayatUtama);
+          var totalCount = list.length;
+
+          var html = '';
+          slicedList.forEach(function(tx) { html += renderTxItemHtml(tx); });
+
+          if (totalCount > limitRiwayatUtama) {
+            html += `
+              <div style="text-align:center; padding:10px 0 4px 0; font-size:11px; color:#888; border-top:1px dashed #333; margin-top:6px;">
+                Menampilkan ${limitRiwayatUtama} dari ${totalCount} transaksi. 
+                <span style="color:#9c27b0; font-weight:bold; cursor:pointer;" onclick="openAllTransaksi()">Lihat Semua ›</span>
+              </div>
+            `;
+          }
+
+          container.innerHTML = html;
+        })
+        .withFailureHandler(function(err) {
+          container.innerHTML = '<div style="color:#f44336; text-align:center; font-size:13px; padding:10px;">Gagal memuat: ' + (err ? err.message : 'Error') + '</div>';
+        })
+        .getRiwayatPeriode(userKey, 'hari', toIsoDateWidget(riwayatWidgetDate));
+    }
+
+function renderRiwayatTransfer(list) {
+      var container = document.getElementById('riwayatTransferContainer');
+      if (!container) return;
+
+      if (!list || list.length === 0) {
+        container.innerHTML = '<div style="color: #888; text-align: center; font-size: 13px; padding: 10px;">Belum ada riwayat transfer.</div>';
+        return;
+      }
+
+      var html = '';
+      list.forEach(function(tf) {
+        html += `
+          <div class="tx-item">
+            <div class="tx-left">
+              <div class="tx-icon">🔄</div>
+              <div class="tx-info">
+                <div class="title">${tf.dari} ➔ ${tf.kepada}</div>
+                <div class="subtitle">${tf.catatan ? tf.catatan : 'Transfer'}</div>
+              </div>
+            </div>
+            <div class="tx-right" style="display:flex; align-items:center; gap:8px;">
+              <div>
+                <div class="tx-amount" style="color:#2196f3;">${formatRp(tf.jumlah)}</div>
+                <div class="tx-date">${tf.tanggal}</div>
+              </div>
+
+            </div>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+    }
+
+
+function jalankanHapusTransfer(row) {
+      google.script.run
+        .withSuccessHandler(function() {
+          fetchRekeningData();
+          loadDashboard();
+        })
+        .withFailureHandler(function(err) {
+          alert('Gagal menghapus: ' + (err ? err.message : 'Error'));
+        })
+        .hapusTransfer(row, userKey);
+    }
+
+function drawBarChart7Hari(txList) {
+      var canvas = document.getElementById('barChart7Hari');
+      if (!canvas) return;
+
+      var days = [];
+      var labels = [];
+      var inData = [];
+      var outData = [];
+      var now = new Date();
+      for (var i = 6; i >= 0; i--) {
+        var d = new Date(now.getTime() - i * 86400000);
+        var key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+        days.push(key);
+        var bulan = String(d.getMonth()+1).padStart(2,'0');
+        var tgl = String(d.getDate()).padStart(2,'0');
+        labels.push(tgl + '/' + bulan);
+        inData.push(0);
+        outData.push(0);
+      }
+
+      txList.forEach(function(tx) {
+        var idx = days.indexOf(tx.tanggal);
+        if (idx === -1) return;
+        if (tx.tipe === '+') inData[idx] += tx.jumlah;
+        else outData[idx] += tx.jumlah;
+      });
+
+      var maxVal = 0;
+      for (var j = 0; j < 7; j++) {
+        if (inData[j] > maxVal) maxVal = inData[j];
+        if (outData[j] > maxVal) maxVal = outData[j];
+      }
+      if (maxVal === 0) maxVal = 1;
+
+      var dpr = window.devicePixelRatio || 1;
+      var W = canvas.parentElement.clientWidth || 300;
+      var H = 190;
+      canvas.width = W * dpr;
+      canvas.height = H * dpr;
+      canvas.style.width = W + 'px';
+      canvas.style.height = H + 'px';
+
+      var ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+      ctx.clearRect(0, 0, W, H);
+
+      var padTop = 22, padBottom = 22, padLeft = 4, padRight = 4;
+      var chartH = H - padTop - padBottom;
+      var midY = padTop + chartH / 2;   
+      var halfH = chartH / 2 - 16;      
+
+      var colW = (W - padLeft - padRight) / 7;
+      var barW = colW * 0.5;
+
+      ctx.strokeStyle = '#444';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(padLeft, midY);
+      ctx.lineTo(W - padRight, midY);
+      ctx.stroke();
+
+      function fmtK(v) {
+        if (v === 0) return '0';
+        if (v >= 1000000) return (v/1000000).toFixed(v%1000000===0?0:1) + 'jt';
+        if (v >= 1000) return Math.round(v/1000) + 'k';
+        return String(v);
+      }
+
+      ctx.font = '10px sans-serif';
+      ctx.textAlign = 'center';
+
+      for (var k = 0; k < 7; k++) {
+        var x = padLeft + colW * k + colW / 2;
+        var inH = (inData[k] / maxVal) * halfH;
+        var outH = (outData[k] / maxVal) * halfH;
+        var barX = x - barW / 2;
+
+        if (inData[k] > 0) {
+          ctx.fillStyle = '#4caf50';
+          ctx.beginPath();
+          if (ctx.roundRect) {
+            ctx.roundRect(barX, midY - inH, barW, inH, [3,3,0,0]);
+          } else {
+            ctx.rect(barX, midY - inH, barW, inH);
+          }
+          ctx.fill();
+          ctx.fillStyle = '#4caf50';
+          ctx.fillText(fmtK(inData[k]), x, midY - inH - 4);
+        }
+
+        if (outData[k] > 0) {
+          ctx.fillStyle = '#f44336';
+          ctx.beginPath();
+          if (ctx.roundRect) {
+            ctx.roundRect(barX, midY, barW, outH, [0,0,3,3]);
+          } else {
+            ctx.rect(barX, midY, barW, outH);
+          }
+          ctx.fill();
+          ctx.fillStyle = '#f44336';
+          ctx.fillText('-' + fmtK(outData[k]), x, midY + outH + 12);
+        }
+
+        ctx.fillStyle = '#888';
+        ctx.fillText(labels[k], x, H - 4);
+      }
+    }
+</script>

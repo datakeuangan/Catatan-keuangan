@@ -1,0 +1,43 @@
+<!-- 02_DataShared.html
+     Shared frontend data cache/loaders. Generated from Form(20260815-174521).html baseline.
+     Feature render functions remain in their owning modules for later stages.
+-->
+<script>
+var globalKategori = [];
+var globalRekening = [];
+
+    window.fetchRekeningData = function fetchRekeningData(callback) {
+      google.script.run
+        .withSuccessHandler(function(list) {
+          if (list) {
+            globalRekening = list;
+            renderRekeningView();
+            renderSaldoWidget();
+            renderSaldoMataUang();
+            updateRekeningDropdown();
+            populateGoalRekeningDropdowns();
+            populateHPRekeningDropdowns();
+          }
+          if (typeof callback === 'function') callback(globalRekening);
+        })
+        .withFailureHandler(function(err) {
+          if (typeof callback === 'function') callback(globalRekening);
+          if (err) console.error('Gagal memuat rekening:', err);
+        })
+        .getRekeningData(userKey);
+    }
+
+    function fetchKategori(callback) {
+      google.script.run
+        .withSuccessHandler(function(list) {
+          if (list) globalKategori = list;
+          if (typeof callback === 'function') callback(globalKategori);
+        })
+        .withFailureHandler(function(err) {
+          if (typeof callback === 'function') callback(globalKategori);
+          if (err) console.error('Gagal memuat kategori:', err);
+        })
+        .getKategoriData(userKey);
+    }
+
+</script>

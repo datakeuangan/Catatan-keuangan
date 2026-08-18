@@ -1,0 +1,373 @@
+<!-- Settings UI extracted from the 7F-10 baseline. Behavior-preserving refactor. -->
+  <div id="rekeningVisibilityModal" class="popup-modal">
+    <div class="popup-box" style="max-width:420px;">
+      <div style="font-weight:bold; font-size:16px; margin-bottom:4px; text-align:center; flex-shrink:0;">Atur Rekening di Beranda</div>
+      <div style="font-size:11px; color:#888; text-align:center; margin-bottom:12px; flex-shrink:0;">Pilih rekening mana saja yang ingin ditampilkan di widget "Saldo Rekening" pada halaman Ikhtisar</div>
+      
+      <div class="popup-body" id="rekeningVisibilityList"></div>
+
+      <div class="popup-footer">
+        <button type="button" class="form-control" style="background:#444;" onclick="closeRekeningVisibilitySettings()">BATAL</button>
+        <button type="button" class="form-control" style="background:#9c27b0; font-weight:bold;" onclick="applyRekeningVisibilitySettings()">SIMPAN</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- MODAL ATUR TAMPILAN BERANDA (WIDGET ORDER, VISIBILITY, & CUSTOM LIMIT RIWAYAT) -->
+  <div id="widgetSettingsModal" class="popup-modal">
+    <div class="popup-box" style="max-width:420px;">
+      <div style="font-weight:bold; font-size:16px; margin-bottom:4px; text-align:center; flex-shrink:0;">Atur Tampilan Beranda</div>
+      <div style="font-size:11px; color:#888; text-align:center; margin-bottom:12px; flex-shrink:0;">Centang untuk tampilkan/sembunyikan, gunakan ▲▼ untuk mengatur urutan</div>
+      
+      <div class="popup-body">
+        <!-- Setting Jumlah Riwayat di Beranda (1 - 25 Item) -->
+        <div style="background:#1e1e1e; border:1px solid #333; border-radius:8px; padding:10px; margin-bottom:12px;">
+          <label style="font-size:12px; color:#aaa; font-weight:bold; display:block; margin-bottom:4px;">Jumlah Riwayat di Menu Utama:</label>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <select id="limitRiwayatSelect" class="form-control" style="flex:1;" onchange="updateLimitRiwayat(this.value)">
+              <option value="1">1 Item</option>
+              <option value="2">2 Item</option>
+              <option value="3">3 Item</option>
+              <option value="5" selected>5 Item (Default)</option>
+              <option value="8">8 Item</option>
+              <option value="10">10 Item</option>
+              <option value="15">15 Item</option>
+              <option value="20">20 Item</option>
+              <option value="25">25 Item (Maksimal)</option>
+            </select>
+          </div>
+          <div style="font-size:10px; color:#777; margin-top:4px;">*Sisanya bisa dilihat lengkap melalui tombol <b>Lihat Semua ›</b></div>
+        </div>
+
+        <div id="widgetSettingsList"></div>
+      </div>
+
+      <div class="popup-footer">
+        <button type="button" class="form-control" style="background:#444;" onclick="closeWidgetSettings()">BATAL</button>
+        <button type="button" class="form-control" style="background:#9c27b0; font-weight:bold;" onclick="applyWidgetSettings()">SIMPAN</button>
+      </div>
+    </div>
+  </div>
+
+  </div>
+
+<script>
+    var STORAGE_KEY_SETTINGS_OWNER = 'financeSettingsOwner';
+    var serverUserSettingsLoaded = false;
+    var serverUserSettings = null;
+    var limitRiwayatUtama = 5;
+    function updateLimitRiwayat(val) {
+      limitRiwayatUtama = Math.max(1, Math.min(25, parseInt(val) || 5));
+      try { localStorage.setItem('limitRiwayatUtama', limitRiwayatUtama); } catch (e) {}
+      muatRiwayatWidget();
+      persistUserSettingsToServer();
+    }
+    var rekeningVisibility = {};
+    var isAdmin = false;
+
+    
+    // KOLEKSI LENGKAP & CLEAN EMOJI / ICON KATEGORI
+var widgetLabels = {
+      ringkasan: '📊 Ringkasan',
+      chart_bulat: '📊 Analisis Persentase Bulanan (% Donut)',
+      hutang_piutang: '🤝 Hutang/Piutang & 💳 Cicilan',
+      goals: '🎯 Target & Goals',
+      p_7hari: '📈 7 Hari Terakhir',
+      saldo_matauang: '💱 Saldo (Mata Uang)',
+      saldo: '🏦 Saldo Rekening',
+      riwayat: '🧾 Riwayat Transaksi',
+      riwayat_transfer: '🔄 Riwayat Transfer',
+      p_bulan_lalu: '📆 Bulan Lalu',
+      p_tahun_ini: '🎯 Tahun Ini',
+      p_tahun_lalu: '🎯 Tahun Lalu'
+    };
+    var widgetConfig = getDefaultWidgetConfig();
+
+    function getDefaultWidgetConfig() {
+      return [
+        { key: 'ringkasan', visible: true },
+        { key: 'chart_bulat', visible: true },
+        { key: 'hutang_piutang', visible: true },
+        { key: 'goals', visible: true },
+        { key: 'p_7hari', visible: true },
+        { key: 'saldo_matauang', visible: true },
+        { key: 'saldo', visible: true },
+        { key: 'riwayat', visible: true },
+        { key: 'riwayat_transfer', visible: true },
+        { key: 'p_bulan_lalu', visible: false },
+        { key: 'p_tahun_ini', visible: false },
+        { key: 'p_tahun_lalu', visible: false }
+      ];
+    }
+
+    function normalizeWidgetConfig(config) {
+      var defaults = getDefaultWidgetConfig();
+      var parsed = Array.isArray(config) ? config : [];
+      var result = [];
+      parsed.forEach(function(w) {
+        if (!w || !w.key || result.some(function(x) { return x.key === w.key; })) return;
+        result.push({ key: String(w.key), visible: w.visible !== false });
+      });
+      defaults.forEach(function(dw) {
+        if (!result.some(function(w) { return w.key === dw.key; })) result.push({ key: dw.key, visible: dw.visible });
+      });
+      return result;
+    }
+
+    function loadWidgetConfigLocal_() {
+      try {
+        var saved = localStorage.getItem('widgetConfig');
+        if (saved) return normalizeWidgetConfig(JSON.parse(saved));
+      } catch (e) {}
+      return getDefaultWidgetConfig();
+    }
+
+    function saveWidgetConfigToStorage() {
+      try { localStorage.setItem('widgetConfig', JSON.stringify(widgetConfig)); } catch (e) {}
+    }
+
+    function persistUserSettingsToServer() {
+      if (!userKey || !serverUserSettingsLoaded) return;
+
+      var categoryPlus = getSavedCategoryOrderLocalOnly_('+');
+      var categoryMinus = getSavedCategoryOrderLocalOnly_('-');
+
+      google.script.run
+        .withFailureHandler(function(err) {
+          console.warn('Pengaturan akun gagal disimpan:', err ? err.message : 'Error');
+        })
+        .simpanPengaturanPengguna({
+          userKey: userKey,
+          widgetConfig: widgetConfig,
+          rekeningVisibility: rekeningVisibility,
+          categoryOrderPlus: categoryPlus,
+          categoryOrderMinus: categoryMinus,
+          limitRiwayat: limitRiwayatUtama
+        });
+    }
+
+    function saveUserSettingsToLocal_() {
+      try {
+        localStorage.setItem(STORAGE_KEY_SETTINGS_OWNER, userKey);
+        localStorage.setItem('widgetConfig', JSON.stringify(widgetConfig));
+        localStorage.setItem('rekeningVisibility', JSON.stringify(rekeningVisibility || {}));
+        localStorage.setItem('limitRiwayatUtama', String(limitRiwayatUtama));
+        if (serverUserSettings) {
+          localStorage.setItem(categoryOrderKey('+'), JSON.stringify(serverUserSettings.categoryOrderPlus || []));
+          localStorage.setItem(categoryOrderKey('-'), JSON.stringify(serverUserSettings.categoryOrderMinus || []));
+        }
+      } catch (e) {}
+    }
+
+    function readLocalSettingsForMigration_() {
+      var owner = '';
+      try { owner = localStorage.getItem(STORAGE_KEY_SETTINGS_OWNER) || ''; } catch (e) {}
+
+      // Jika belum ada owner (versi lama aplikasi), anggap setting browser
+      // berasal dari akun yang sedang login agar setting lama pengguna tetap terselamatkan.
+      var bolehPakaiLocal = !owner || owner === userKey;
+      var localWidget = bolehPakaiLocal ? loadWidgetConfigLocal_() : getDefaultWidgetConfig();
+      var localRekening = {};
+      var localLimit = 5;
+
+      if (bolehPakaiLocal) {
+        try {
+          var rv = localStorage.getItem('rekeningVisibility');
+          if (rv) {
+            var parsedRv = JSON.parse(rv);
+            if (parsedRv && typeof parsedRv === 'object' && !Array.isArray(parsedRv)) localRekening = parsedRv;
+          }
+        } catch (e) {}
+        try { localLimit = Math.max(1, Math.min(25, parseInt(localStorage.getItem('limitRiwayatUtama')) || 5)); } catch (e) {}
+      }
+
+      return {
+        widgetConfig: localWidget,
+        rekeningVisibility: localRekening,
+        categoryOrderPlus: getSavedCategoryOrderLocalOnly_('+'),
+        categoryOrderMinus: getSavedCategoryOrderLocalOnly_('-'),
+        limitRiwayat: localLimit
+      };
+    }
+
+    function applyUserSettings_(settings) {
+      var s = settings || {};
+      widgetConfig = normalizeWidgetConfig(s.widgetConfig);
+      rekeningVisibility = (s.rekeningVisibility && typeof s.rekeningVisibility === 'object' && !Array.isArray(s.rekeningVisibility)) ? s.rekeningVisibility : {};
+      limitRiwayatUtama = Math.max(1, Math.min(25, parseInt(s.limitRiwayat) || 5));
+
+      serverUserSettings = {
+        categoryOrderPlus: Array.isArray(s.categoryOrderPlus) ? s.categoryOrderPlus : [],
+        categoryOrderMinus: Array.isArray(s.categoryOrderMinus) ? s.categoryOrderMinus : []
+      };
+
+      saveUserSettingsToLocal_();
+    }
+
+    function loadUserSettingsFromServer(callback) {
+      if (!userKey) {
+        serverUserSettingsLoaded = true;
+        applyUserSettings_(readLocalSettingsForMigration_());
+        if (callback) callback();
+        return;
+      }
+
+      google.script.run
+        .withSuccessHandler(function(settings) {
+          if (settings && settings.exists) {
+            applyUserSettings_(settings);
+            serverUserSettingsLoaded = true;
+            applyWidgetOrder();
+            if (callback) callback();
+            return;
+          }
+
+          // Migrasi satu kali: akun lama yang sudah pernah mengatur tampilan
+          // di device ini tidak kehilangan setting saat sistem server pertama kali dipakai.
+          var localSettings = readLocalSettingsForMigration_();
+          applyUserSettings_(localSettings);
+          serverUserSettingsLoaded = true;
+          persistUserSettingsToServer();
+          if (callback) callback();
+        })
+        .withFailureHandler(function(err) {
+          console.warn('Pengaturan akun gagal dimuat:', err ? err.message : 'Error');
+          applyUserSettings_(readLocalSettingsForMigration_());
+          serverUserSettingsLoaded = true;
+          applyWidgetOrder();
+          if (callback) callback();
+        })
+        .getPengaturanPengguna(userKey);
+    }
+
+    function applyWidgetOrder() {
+      var container = document.getElementById('widgetContainer');
+      if (!container) return;
+      widgetConfig.forEach(function(w) {
+        var block = container.querySelector('.widget-block[data-widget="' + w.key + '"]');
+        if (block) {
+          block.style.display = w.visible ? 'block' : 'none';
+          container.appendChild(block);
+        }
+      });
+    }
+
+    function openWidgetSettings() {
+      document.getElementById('menuDropdown').style.display = 'none';
+      var selectEl = document.getElementById('limitRiwayatSelect');
+      if (selectEl) selectEl.value = limitRiwayatUtama;
+      renderWidgetSettingsList();
+      document.getElementById('widgetSettingsModal').style.display = 'flex';
+    }
+
+    function closeWidgetSettings() {
+      document.getElementById('widgetSettingsModal').style.display = 'none';
+    }
+
+    function renderWidgetSettingsList() {
+      var listEl = document.getElementById('widgetSettingsList');
+      listEl.innerHTML = '';
+      widgetConfig.forEach(function(w, idx) {
+        var row = document.createElement('div');
+        row.className = 'widget-setting-item';
+        row.innerHTML = `
+          <div class="widget-setting-left">
+            <input type="checkbox" ${w.visible ? 'checked' : ''} onchange="toggleWidgetVisible(${idx})">
+            <span>${widgetLabels[w.key] || w.key}</span>
+          </div>
+          <div class="widget-order-btns">
+            <button ${idx === 0 ? 'disabled' : ''} onclick="moveWidget(${idx}, -1)">▲</button>
+            <button ${idx === widgetConfig.length - 1 ? 'disabled' : ''} onclick="moveWidget(${idx}, 1)">▼</button>
+          </div>
+        `;
+        listEl.appendChild(row);
+      });
+    }
+
+    function toggleWidgetVisible(idx) {
+      widgetConfig[idx].visible = !widgetConfig[idx].visible;
+    }
+
+    function moveWidget(idx, dir) {
+      var newIdx = idx + dir;
+      if (newIdx < 0 || newIdx >= widgetConfig.length) return;
+      var tmp = widgetConfig[idx];
+      widgetConfig[idx] = widgetConfig[newIdx];
+      widgetConfig[newIdx] = tmp;
+      renderWidgetSettingsList();
+    }
+
+    function applyWidgetSettings() {
+      widgetConfig = normalizeWidgetConfig(widgetConfig);
+      saveWidgetConfigToStorage();
+      applyWidgetOrder();
+      saveUserSettingsToLocal_();
+      persistUserSettingsToServer();
+      closeWidgetSettings();
+    }
+    
+
+    
+
+
+    function saveRekeningVisibilityToStorage() {
+      try { localStorage.setItem('rekeningVisibility', JSON.stringify(rekeningVisibility)); } catch (e) {}
+    }
+
+    function syncRekeningVisibility() {
+      var changed = false;
+      globalRekening.forEach(function(r) {
+        if (!(r.nama in rekeningVisibility)) {
+          rekeningVisibility[r.nama] = true;
+          changed = true;
+        }
+      });
+      if (changed) saveRekeningVisibilityToStorage();
+    }
+
+    function openRekeningVisibilitySettings() {
+      document.getElementById('menuDropdown').style.display = 'none';
+      syncRekeningVisibility();
+      renderRekeningVisibilityList();
+      document.getElementById('rekeningVisibilityModal').style.display = 'flex';
+    }
+
+    function closeRekeningVisibilitySettings() {
+      document.getElementById('rekeningVisibilityModal').style.display = 'none';
+    }
+
+    function renderRekeningVisibilityList() {
+      var listEl = document.getElementById('rekeningVisibilityList');
+      listEl.innerHTML = '';
+      if (globalRekening.length === 0) {
+        listEl.innerHTML = '<div style="color:#888; text-align:center; font-size:13px; padding:10px;">Belum ada rekening.</div>';
+        return;
+      }
+      globalRekening.forEach(function(r) {
+        var checked = rekeningVisibility[r.nama] !== false;
+        var row = document.createElement('div');
+        row.className = 'widget-setting-item';
+        var rIcon = sanitizeIcon(r.icon);
+        row.innerHTML = `
+          <div class="widget-setting-left">
+            <input type="checkbox" ${checked ? 'checked' : ''}>
+            <span>${rIcon} ${r.nama}</span>
+          </div>
+        `;
+        var checkbox = row.querySelector('input[type="checkbox"]');
+        checkbox.onchange = function() {
+          rekeningVisibility[r.nama] = checkbox.checked;
+        };
+        listEl.appendChild(row);
+      });
+    }
+
+    function applyRekeningVisibilitySettings() {
+      saveRekeningVisibilityToStorage();
+      saveUserSettingsToLocal_();
+      persistUserSettingsToServer();
+      renderSaldoWidget();
+      closeRekeningVisibilitySettings();
+    }
+</script>

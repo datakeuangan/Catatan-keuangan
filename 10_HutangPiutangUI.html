@@ -1,0 +1,798 @@
+<!-- Hutang/Piutang UI module -->
+  <!-- MODAL STANDALONE FOR HUTANG & PIUTANG -->
+  <div id="hutangPiutangModal" class="modal">
+    <div class="hp-manage-header">
+      <button type="button" class="hp-manage-back" onclick="closeHutangPiutangModal()" title="Kembali">←</button>
+      <div class="hp-manage-title-wrap">
+        <div class="hp-manage-title-icon">🤝</div>
+        <div>
+          <div class="hp-manage-title-main">Kelola Hutang/Piutang & Cicilan</div>
+          <div class="hp-manage-title-sub">Kelola catatan, pembayaran, dan cicilan dalam satu tempat</div>
+        </div>
+      </div>
+      <button type="button" class="hp-manage-add" onclick="openAddHutangPiutangModal()">＋ Tambah</button>
+    </div>
+
+    <div class="hp-manage-content">
+      <div class="hp-manage-tabs-wrap">
+        <div class="hp-manage-tabs">
+          <button type="button" class="periode-tab-btn active" id="tabHP_semua" onclick="filterHutangPiutangTab('SEMUA')">Semua</button>
+          <button type="button" class="periode-tab-btn" id="tabHP_hutang" onclick="filterHutangPiutangTab('HUTANG')">Hutang (Pinjam)</button>
+          <button type="button" class="periode-tab-btn" id="tabHP_piutang" onclick="filterHutangPiutangTab('PIUTANG')">Piutang (Pinjamkan)</button>
+        </div>
+      </div>
+
+      <div class="hp-manage-filter">
+        <label class="hp-manage-filter-label">
+          <input type="checkbox" id="hpShowLunasCheck" onchange="toggleHpLunasFilter(this.checked)">
+          <span>Tampilkan yang sudah lunas</span>
+        </label>
+        <span class="hp-manage-filter-hint">Catatan lunas akan ditampilkan jika diaktifkan</span>
+      </div>
+
+      <div id="hpModalListContainer">
+        <div class="hp-manage-empty">
+          <div class="hp-manage-empty-icon">🤝</div>
+          <div class="hp-manage-empty-title">Memuat data hutang/piutang...</div>
+          <div class="hp-manage-empty-text">Sebentar, sistem sedang mengambil catatan transaksi kamu.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🎯 MODAL TAMBAH / EDIT HUTANG PIUTANG -->
+  <div id="addHutangPiutangModal" class="popup-modal">
+    <div class="popup-box">
+      <div style="font-weight:bold; font-size:16px; margin-bottom:12px; text-align:center; flex-shrink:0;" id="hpModalTitle">Tambah Hutang / Piutang</div>
+      <input type="hidden" id="hpRowVal">
+      
+      <div class="popup-body">
+        <div class="form-group">
+          <label>Jenis Catatan:</label>
+          <select id="hpTipe" class="form-control" style="font-weight:bold;">
+            <option value="HUTANG">🔴 HUTANG (Saya Pinjam Uang dari Orang)</option>
+            <option value="PIUTANG">🟢 PIUTANG (Orang Pinjam Uang dari Saya)</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="hpMetodeGroup">
+          <label>Cara Pembayaran:</label>
+          <select id="hpMetodePembayaran" class="form-control" onchange="updateHpRekeningRequirement()">
+            <option value="TANPA_CICILAN">Tanpa Cicilan — bayar melalui Hutang & Piutang</option>
+            <option value="CICILAN">Gunakan Cicilan — lanjutkan ke pengaturan Cicilan</option>
+          </select>
+          <div style="font-size:10px; color:#777; margin-top:4px;">Jika memilih Gunakan Cicilan, setelah disimpan kamu akan langsung diarahkan ke pengaturan Cicilan.</div>
+        </div>
+
+        <div class="form-group">
+          <label>Nama Orang / Pihak <span style="color:#ff8a80;">*</span>:</label>
+          <input type="text" id="hpNama" class="form-control" placeholder="Contoh: Budi, Bank BCA, Mas Agus">
+        </div>
+
+        <div class="form-group">
+          <label>Total Pinjaman (Rp) <span style="color:#ff8a80;">*</span>:</label>
+          <input type="text" inputmode="decimal" id="hpJumlah" class="form-control" placeholder="0" style="font-size:18px; font-weight:bold;" oninput="formatNominalInput(this)">
+        </div>
+
+        <div class="form-group">
+          <label>Sudah Terbayar Awal (Rp):</label>
+          <input type="text" inputmode="decimal" id="hpTerbayar" class="form-control" placeholder="0" oninput="formatNominalInput(this)">
+        </div>
+
+        <div class="form-group">
+          <label>Batas Tanggal Jatuh Tempo (Opsional):</label>
+          <div class="date-field-wrap">
+            <input type="date" id="hpTglJatuhTempo" class="form-control" readonly onclick="bukaDatePickerUntuk('hpTglJatuhTempo')">
+            <span class="date-icon-fake">📅</span>
+          </div>
+        </div>
+
+        <div class="form-group" id="hpRekeningGroup">
+          <label id="hpRekeningLabel">Sesuaikan ke Rekening <span style="color:#ff8a80;">*</span>:</label>
+          <select id="hpRekening" class="form-control">
+            <option value="">Pilih rekening...</option>
+          </select>
+          <div id="hpRekeningHelp" style="font-size:10px; color:#777; margin-top:2px;">*Wajib dipilih untuk Hutang/Piutang tanpa Cicilan karena transaksi ini langsung menambah/mengurangi saldo rekening.</div>
+        </div>
+
+        <div id="hpFormValidationNotice" class="hp-form-validation" role="alert" aria-live="polite" style="display:none;"></div>
+
+        <div class="form-group">
+          <label>Catatan Tambahan:</label>
+          <input type="text" id="hpCatatan" class="form-control" placeholder="Keterangan pinjaman">
+        </div>
+      </div>
+
+      <div class="popup-footer">
+        <button type="button" class="form-control" style="background:#444;" onclick="closeAddHutangPiutangModal()">BATAL</button>
+        <button type="button" class="form-control" id="btnSaveHutangPiutang" style="background:#9c27b0; font-weight:bold;" onclick="simpanHutangPiutang()">SIMPAN</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL EDIT ALOKASI PEMBAYARAN MASTER HUTANG/PIUTANG TANPA CICILAN -->
+  <div id="hpPaymentAllocationModal" class="popup-modal">
+    <div class="popup-box">
+      <div style="font-weight:bold; font-size:16px; margin-bottom:6px; text-align:center; flex-shrink:0;" id="hpPaymentAllocationTitle">Edit Rekening Pembayaran</div>
+      <div id="hpPaymentAllocationSubtitle" style="font-size:11px; color:#888; text-align:center; margin-bottom:12px;"></div>
+      <input type="hidden" id="hpPaymentAllocationRow">
+      <div class="popup-body" id="hpPaymentAllocationBody">
+        <div style="background:#1e1e1e; border:1px solid #333; border-radius:8px; padding:10px; margin-bottom:10px;">
+          <div style="display:flex; justify-content:space-between; gap:10px; font-size:12px;"><span style="color:#999;">Total Master</span><strong id="hpAllocationTotal">Rp0</strong></div>
+          <div style="display:flex; justify-content:space-between; gap:10px; font-size:12px; margin-top:5px;"><span style="color:#999;">Terbayar</span><strong id="hpAllocationTerbayar">Rp0</strong></div>
+          <div style="display:flex; justify-content:space-between; gap:10px; font-size:12px; margin-top:5px;"><span style="color:#999;">Total alokasi pembayaran</span><strong id="hpAllocationTotalPayment">Rp0</strong></div>
+          <div style="display:flex; justify-content:space-between; gap:10px; font-size:12px; margin-top:5px;"><span style="color:#f0ad4e;">Belum ditentukan rekening</span><strong id="hpAllocationUnallocated">Rp0</strong></div>
+        </div>
+        <div id="hpPaymentAllocationRows"></div>
+      </div>
+      <div class="popup-footer">
+        <button type="button" class="form-control" style="background:#444;" onclick="closeHPPaymentAllocationModal()">BATAL</button>
+        <button type="button" class="form-control" id="btnSaveHPAllocation" style="background:#9c27b0; font-weight:bold;" onclick="simpanHPPaymentAllocation()">SIMPAN</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🎯 MODAL BAYAR CICILAN / PELUNASAN -->
+  <div id="bayarHutangPiutangModal" class="popup-modal">
+    <div class="popup-box">
+      <div style="font-weight:bold; font-size:16px; margin-bottom:4px; text-align:center; flex-shrink:0;" id="bayarHPTitle">Bayar Cicilan / Pelunasan</div>
+      <div style="font-size:12px; color:#888; text-align:center; margin-bottom:12px; flex-shrink:0;" id="bayarHPSubtitle"></div>
+      <input type="hidden" id="bayarHPRow">
+
+      <div class="popup-body">
+        <div class="form-group">
+          <label>Nominal Pembayaran (Rp):</label>
+          <input type="text" inputmode="decimal" id="bayarHPJumlah" class="form-control" placeholder="0" style="font-size:18px; font-weight:bold;" oninput="formatNominalInput(this)">
+        </div>
+
+        <div class="form-group">
+          <label>Hubungkan ke Rekening (Opsional):</label>
+          <select id="bayarHPRekening" class="form-control">
+            <option value="">(Jangan Ubah Saldo Rekening)</option>
+          </select>
+          <div style="font-size:10px; color:#777; margin-top:2px;">*Bayar Hutang akan mengurangi saldo, Terima Pembayaran Piutang akan menambah saldo.</div>
+        </div>
+      </div>
+
+      <div class="popup-footer">
+        <button type="button" class="form-control" style="background:#444;" onclick="closeBayarHutangPiutangModal()">BATAL</button>
+        <button type="button" class="form-control" id="btnBayarHutangPiutang" style="background:#4caf50; font-weight:bold;" onclick="prosesBayarHutangPiutang()">BAYAR / PELUNASAN</button>
+      </div>
+    </div>
+  </div>
+<script>
+    function fetchHutangPiutangData() {
+      google.script.run
+        .withSuccessHandler(function(res) {
+          globalHutangPiutang = res.list || [];
+          globalHPSummary = res.summary || { totalHutang: 0, totalPiutang: 0, sisaHutang: 0, sisaPiutang: 0 };
+          renderHutangPiutangAll();
+        })
+        .getHutangPiutangData(userKey);
+    }
+
+    function buildHPCardHtml(item) {
+      var isHutang = item.tipe === 'HUTANG';
+      var isLunas = item.status === 'LUNAS';
+      var borderClass = isHutang ? 'hutang-border' : 'piutang-border';
+      var badgeClass = isLunas ? 'lunas' : (isHutang ? 'hutang' : 'piutang');
+      var badgeText = isLunas ? '🎉 LUNAS' : (isHutang ? '🔴 HUTANG' : '🟢 PIUTANG');
+      var icon = isHutang ? '💸' : '💰';
+      var progressClass = isLunas ? 'completed' : (isHutang ? 'hutang' : 'piutang');
+      var safeNama = String(item.nama || '').replace(/'/g, "\\'");
+      var safeId = String(item.id || '').replace(/'/g, "\\'");
+      var progress = Math.max(0, Math.min(100, Number(item.persentase) || 0));
+
+      return `
+        <div class="hp-card ${borderClass}">
+          <div class="hp-header">
+            <div class="hp-left">
+              <div class="hp-icon">${icon}</div>
+              <div>
+                <div>${item.nama || '-'}</div>
+                <div style="font-size:10px; color:#888; font-weight:normal; margin-top:2px;">
+                  ${item.tglJatuhTempo ? '📅 Jatuh Tempo: ' + item.tglJatuhTempo : 'Tanpa Tenggat Waktu'}
+                </div>
+              </div>
+            </div>
+            <span class="hp-badge ${badgeClass}">${badgeText}</span>
+          </div>
+
+          <div class="hp-progress-wrap">
+            <div class="hp-progress-meta">
+              <span>Terbayar <strong>${formatRp(item.terbayar)}</strong></span>
+              <span><strong>${progress}%</strong></span>
+            </div>
+            <div class="hp-progress-bg">
+              <div class="hp-progress-fill ${progressClass}" style="width:${progress}%;"></div>
+            </div>
+          </div>
+
+          <div class="hp-balance-row">
+            <span class="hp-balance-left">Total <strong>${formatRp(item.jumlah)}</strong></span>
+            <span class="hp-balance-right" style="color:${isLunas ? '#66bb6a' : (isHutang ? '#ff8a80' : '#81c784')};">
+              ${isLunas ? 'Telah Lunas' : 'Sisa ' + formatRp(item.sisa)}
+            </span>
+          </div>
+
+          ${item.catatan ? `<div class="hp-note">📝 ${item.catatan}</div>` : ''}
+
+          ${item.riwayatPembayaran && item.riwayatPembayaran.length
+            ? `<div class="hp-payment-history" style="margin-top:9px;">
+                 <div class="hp-payment-title">📋 Riwayat Pembayaran</div>
+                 ${item.riwayatPembayaran.map(function(p) {
+                   var sign = p.tipe === '+' ? '+' : '-';
+                   var badge = p.cicilan ? ' • Cicilan' : '';
+                   var rekening = p.rekening ? ' • 🏦 ' + p.rekening : '';
+                   return `<div class="hp-payment-row">
+                     <span>${p.tanggal}${rekening}<br><span style="color:#777;">${p.subKategori}${badge}</span></span>
+                     <strong class="hp-payment-amount" style="color:${p.tipe === '+' ? '#81c784' : '#ff8a80'};">${sign}${formatRp(p.nominal)}</strong>
+                   </div>`;
+                 }).join('')}
+               </div>` : ''}
+
+          <div class="goal-actions">
+            ${item.metodePembayaran === 'CICILAN'
+              ? `<button class="btn-goal-sm btn-goal-setor" onclick="openCicilanSplitFromHutangPiutang('${safeId}')">${item.cicilanId ? '💳 Lihat Cicilan' : '➕ Atur Cicilan'}</button>`
+              : (!isLunas ? `<button class="btn-goal-sm btn-goal-setor" onclick="openBayarHutangPiutangModal(${item.row})">💳 Bayar / Terima</button>` : '')}
+            ${item.metodePembayaran !== 'CICILAN' && !item.cicilanId
+              ? `<button class="btn-goal-sm btn-goal-edit" onclick="openEditHutangPiutangModal(${item.row})">✏️ Edit</button>`
+              : ''}
+            <button class="btn-goal-sm btn-goal-edit" style="color:#f44336;" onclick="hapusHutangPiutangItem(${item.row}, '${safeNama}', '${safeId}')">🗑️</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderHutangPiutangAll() {
+      renderHutangPiutangWidget();
+      renderHutangPiutangModalList();
+    }
+
+    function renderHutangPiutangWidget() {
+      var container = document.getElementById('hpWidgetContainer');
+      if (!container) return;
+
+      document.getElementById('hpWidgetSisaHutang').innerText = formatRp(globalHPSummary.sisaHutang);
+      document.getElementById('hpWidgetSisaPiutang').innerText = formatRp(globalHPSummary.sisaPiutang);
+
+      var activeItems = globalHutangPiutang.filter(function(item) { return item.status !== 'LUNAS'; });
+      if (activeItems.length === 0) {
+        container.innerHTML = '<div style="color:#888; text-align:center; font-size:13px; padding:12px;">Tidak ada hutang/piutang aktif. Klik <b>+ Tambah</b> untuk membuat catatan baru!</div>';
+        return;
+      }
+
+      var html = '';
+      activeItems.slice(0, 3).forEach(function(item) { html += buildHPCardHtml(item); });
+      if (activeItems.length > 3) {
+        html += `<div style="text-align:center; font-size:11px; color:#888; margin-top:4px;">+ ${activeItems.length - 3} catatan lainnya...</div>`;
+      }
+      container.innerHTML = html;
+    }
+
+    function renderHutangPiutangModalList() {
+      var container = document.getElementById('hpModalListContainer');
+      if (!container) return;
+
+      var filtered = globalHutangPiutang.filter(function(item) {
+        if (!hpShowLunas && item.status === 'LUNAS') return false;
+        if (hpFilterTab === 'HUTANG' && item.tipe !== 'HUTANG') return false;
+        if (hpFilterTab === 'PIUTANG' && item.tipe !== 'PIUTANG') return false;
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<div class="hp-manage-empty"><div class="hp-manage-empty-icon">📭</div><div class="hp-manage-empty-title">Tidak ada data pada filter ini</div><div class="hp-manage-empty-text">Belum ada catatan hutang/piutang yang sesuai. Coba pilih filter lain atau tekan ＋ Tambah untuk membuat catatan baru.</div></div>';
+        return;
+      }
+
+      var html = '';
+      filtered.forEach(function(item) { html += buildHPCardHtml(item); });
+      container.innerHTML = html;
+    }
+
+    // Navigasi icon shortcut di top-bar langsung ke widget terkait pada Ikhtisar.
+    // Tidak membuka halaman/modal; hanya melakukan scroll ke posisi widget.
+    function openHutangPiutangModal() {
+      document.getElementById('menuDropdown').style.display = 'none';
+      renderHutangPiutangModalList();
+      document.getElementById('hutangPiutangModal').style.display = 'block';
+    }
+
+    function closeHutangPiutangModal() {
+      document.getElementById('hutangPiutangModal').style.display = 'none';
+    }
+
+    function filterHutangPiutangTab(tab) {
+      hpFilterTab = tab;
+      ['semua', 'hutang', 'piutang'].forEach(function(t) {
+        var btn = document.getElementById('tabHP_' + t);
+        if (btn) btn.classList.toggle('active', t.toUpperCase() === tab);
+      });
+      renderHutangPiutangModalList();
+    }
+
+    function toggleHpLunasFilter(checked) {
+      hpShowLunas = checked;
+      renderHutangPiutangModalList();
+    }
+
+    function openAddHutangPiutangModal() {
+      document.getElementById('hpModalTitle').innerText = 'Tambah Hutang / Piutang';
+      document.getElementById('hpRowVal').value = '';
+      document.getElementById('hpTipe').value = 'HUTANG';
+      document.getElementById('hpMetodePembayaran').value = 'TANPA_CICILAN';
+      document.getElementById('hpMetodePembayaran').disabled = false;
+      document.getElementById('hpNama').value = '';
+      document.getElementById('hpJumlah').value = '';
+      document.getElementById('hpTerbayar').value = '';
+      document.getElementById('hpTglJatuhTempo').value = '';
+      document.getElementById('hpCatatan').value = '';
+      var validationNotice = document.getElementById('hpFormValidationNotice');
+      if (validationNotice) {
+        validationNotice.style.display = 'none';
+        validationNotice.innerHTML = '';
+      }
+      document.getElementById('hpRekeningGroup').style.display = 'block';
+      populateHPRekeningDropdowns();
+      updateHpRekeningRequirement();
+      document.getElementById('addHutangPiutangModal').style.display = 'flex';
+    }
+
+    function openEditHutangPiutangModal(row) {
+      var item = globalHutangPiutang.find(function(it) { return it.row === row; });
+      if (!item) return;
+      if (item.metodePembayaran === 'CICILAN' || item.cicilanId) return;
+
+      document.getElementById('hpPaymentAllocationRow').value = item.row;
+      document.getElementById('hpPaymentAllocationTitle').innerText = 'Edit Alokasi Pembayaran';
+      document.getElementById('hpPaymentAllocationSubtitle').innerText =
+        (item.tipe === 'HUTANG' ? 'Hutang: ' : 'Piutang: ') + item.nama;
+      document.getElementById('hpAllocationTotal').innerText = formatRp(item.jumlah);
+      document.getElementById('hpAllocationTerbayar').innerText = formatRp(item.terbayar);
+      document.getElementById('hpAllocationTotalPayment').innerText = 'Rp0';
+      document.getElementById('hpPaymentAllocationRows').innerHTML =
+        '<div style="color:#888; text-align:center; padding:14px;">Memuat pembayaran...</div>';
+      document.getElementById('hpPaymentAllocationModal').style.display = 'flex';
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (!res || !res.success) {
+            alert('Data pembayaran tidak dapat dimuat.');
+            closeHPPaymentAllocationModal();
+            return;
+          }
+
+          document.getElementById('hpAllocationTotal').innerText = formatRp(res.jumlah);
+          document.getElementById('hpAllocationTerbayar').innerText = formatRp(res.terbayar);
+          document.getElementById('hpAllocationTotalPayment').innerText = formatRp(res.totalAlokasi);
+          var unallocatedEl = document.getElementById('hpAllocationUnallocated');
+          if (unallocatedEl) unallocatedEl.innerText = formatRp(res.belumDitentukan || 0);
+
+          var rows = res.payments || [];
+          var belumDitentukan = Number(res.belumDitentukan || 0);
+          var html = '';
+
+          rows.forEach(function(p, idx) {
+            var belumAdaRekening = !String(p.rekening || '').trim();
+            html += `
+              <div class="hp-card" style="margin-bottom:8px; padding:10px; ${belumAdaRekening ? 'border:1px dashed #ffb300;' : ''}">
+                <div style="display:flex; justify-content:space-between; gap:10px; align-items:center;">
+                  <div>
+                    <div style="font-size:11px; color:#888;">${p.tanggal || '-'}</div>
+                    <div style="font-size:13px; font-weight:bold; margin-top:2px;">${p.subKategori}</div>
+                    ${belumAdaRekening ? '<div style="font-size:11px; color:#ffb300; font-weight:700; margin-top:3px;">⚠️ Rekening belum ditentukan</div>' : ''}
+                  </div>
+                  <strong>${formatRp(p.nominal)}</strong>
+                </div>
+                <div style="margin-top:8px;">
+                  <label style="font-size:11px; color:#999;">Rekening pembayaran</label>
+                  <select id="hpAllocRekening_${idx}" class="form-control hp-allocation-rekening" data-row="${p.transactionRow}"></select>
+                </div>
+              </div>`;
+          });
+
+          if (belumDitentukan > 0) {
+            html += `
+              <div class="hp-card" style="margin-bottom:8px; padding:10px; border:1px dashed #f0ad4e;">
+                <div style="display:flex; justify-content:space-between; gap:10px; align-items:center;">
+                  <div>
+                    <div style="font-size:11px; color:#f0ad4e;">Pembayaran belum ditentukan rekening</div>
+                    <div style="font-size:12px; font-weight:bold; margin-top:2px;">Masih tercatat di Master, belum dibebankan ke rekening</div>
+                  </div>
+                  <strong>${formatRp(belumDitentukan)}</strong>
+                </div>
+                <div style="margin-top:8px;">
+                  <label style="font-size:11px; color:#999;">Tentukan rekening sekarang (opsional)</label>
+                  <select id="hpAllocUnallocatedRekening" class="form-control">
+                    <option value="">Biarkan tanpa rekening</option>
+                  </select>
+                </div>
+              </div>`;
+          }
+
+          document.getElementById('hpPaymentAllocationRows').innerHTML = html ||
+            '<div style="color:#888; text-align:center; padding:14px;">Belum ada transaksi pembayaran.</div>';
+
+          rows.forEach(function(p, idx) {
+            var select = document.getElementById('hpAllocRekening_' + idx);
+            if (!select) return;
+            var first = document.createElement('option');
+            first.value = '';
+            first.textContent = p.rekening ? 'Pilih rekening' : '⚠️ Rekening belum ditentukan';
+            select.appendChild(first);
+            globalRekening.forEach(function(r) {
+              var opt = document.createElement('option');
+              opt.value = r.nama;
+              opt.textContent = sanitizeIcon(r.icon) + ' ' + r.nama + ' (' + formatRp(r.saldoAkhir) + ')';
+              select.appendChild(opt);
+            });
+            select.value = p.rekening || '';
+          });
+
+          var unallocatedSelect = document.getElementById('hpAllocUnallocatedRekening');
+          if (unallocatedSelect) {
+            globalRekening.forEach(function(r) {
+              var opt = document.createElement('option');
+              opt.value = r.nama;
+              opt.textContent = sanitizeIcon(r.icon) + ' ' + r.nama + ' (' + formatRp(r.saldoAkhir) + ')';
+              unallocatedSelect.appendChild(opt);
+            });
+          }
+        })
+        .withFailureHandler(function(err) {
+          alert('Gagal memuat alokasi pembayaran: ' + (err && err.message ? err.message : 'Error'));
+          closeHPPaymentAllocationModal();
+        })
+        .getHutangPiutangPaymentAllocations(row, userKey);
+    }
+
+    function closeHPPaymentAllocationModal() {
+      var modal = document.getElementById('hpPaymentAllocationModal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function simpanHPPaymentAllocation() {
+      var row = Number(document.getElementById('hpPaymentAllocationRow').value || 0);
+      if (!row) return;
+
+      var selects = document.querySelectorAll('.hp-allocation-rekening');
+      var allocations = [];
+      selects.forEach(function(select) {
+        allocations.push({
+          transactionRow: Number(select.getAttribute('data-row') || 0),
+          rekening: select.value
+        });
+      });
+
+      /*
+       * Rekening kosong pada bagian "pembayaran belum ditentukan"
+       * sengaja diperbolehkan. Dengan begitu nominal tetap berada
+       * di Master dan baru bisa diarahkan ke rekening kapan saja.
+       */
+      var unallocatedSelect = document.getElementById('hpAllocUnallocatedRekening');
+      var unallocatedRekening = unallocatedSelect ? unallocatedSelect.value : '';
+
+      // Rekening kosong diperbolehkan per transaksi.
+      // Jika kosong, transaksi tetap tercatat di Riwayat dan diberi
+      // tanda ⚠️ sampai pengguna menentukan rekeningnya.
+      var btn = document.getElementById('btnSaveHPAllocation');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = 'MENYIMPAN...';
+      }
+      var selesai = false;
+      var timeoutId = setTimeout(function() {
+        if (selesai) return;
+        selesai = true;
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = 'SIMPAN';
+        }
+        alert('Tidak ada respon dari server. Coba lagi.');
+      }, 15000);
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (selesai) return;
+          selesai = true;
+          clearTimeout(timeoutId);
+          globalHutangPiutang = res.list || [];
+          globalHPSummary = res.summary || globalHPSummary;
+          renderHutangPiutangAll();
+          closeHPPaymentAllocationModal();
+          fetchRekeningData();
+          loadDashboard();
+          if (btn) {
+            btn.disabled = false;
+            btn.innerText = 'SIMPAN';
+          }
+        })
+        .withFailureHandler(function(err) {
+          if (selesai) return;
+          selesai = true;
+          clearTimeout(timeoutId);
+          if (btn) {
+            btn.disabled = false;
+            btn.innerText = 'SIMPAN';
+          }
+          alert('Gagal menyimpan alokasi pembayaran: ' + (err && err.message ? err.message : 'Error'));
+        })
+        .updateHutangPiutangPaymentAllocations(row, userKey, allocations, unallocatedRekening);
+    }
+    function closeAddHutangPiutangModal() {
+      document.getElementById('addHutangPiutangModal').style.display = 'none';
+    }
+
+    function updateHpRekeningRequirement() {
+      var metodeEl = document.getElementById('hpMetodePembayaran');
+      var rekeningEl = document.getElementById('hpRekening');
+      var labelEl = document.getElementById('hpRekeningLabel');
+      var helpEl = document.getElementById('hpRekeningHelp');
+      if (!metodeEl || !rekeningEl) return;
+
+      var isCicilan = metodeEl.value === 'CICILAN';
+      if (isCicilan) {
+        if (labelEl) labelEl.innerHTML = 'Sesuaikan ke Rekening (tidak diperlukan di tahap ini):';
+        if (helpEl) helpEl.textContent = '*Mode Cicilan tidak mengubah saldo rekening saat Master dibuat. Rekening digunakan ketika pembayaran Cicilan dilakukan.';
+      } else {
+        if (labelEl) labelEl.innerHTML = 'Sesuaikan ke Rekening <span style="color:#ff8a80;">*</span>:';
+        if (helpEl) helpEl.textContent = '*Wajib dipilih karena Hutang/Piutang tanpa Cicilan langsung menambah/mengurangi saldo rekening.';
+      }
+    }
+
+
+    function tampilkanValidasiHutangPiutang(pesan, daftar) {
+      var modal = document.getElementById('appInputWarningModal');
+      if (!modal) {
+        alert(pesan);
+        return;
+      }
+
+      var items = (daftar || []).map(function(item) { return '<li>' + item + '</li>'; }).join('');
+      var detail = items ? '<ul style="margin:6px 0 0 18px;padding:0;">' + items + '</ul>' : '';
+      tampilkanPeringatanInput(pesan, 'Hutang/Piutang', detail);
+    }
+
+    function simpanHutangPiutang() {
+      var row = document.getElementById('hpRowVal').value;
+      var tipe = document.getElementById('hpTipe').value;
+      var nama = document.getElementById('hpNama').value.trim();
+      var jumlah = parseNominalInput('hpJumlah');
+      var terbayar = parseNominalInput('hpTerbayar');
+      var tglJatuhTempo = document.getElementById('hpTglJatuhTempo').value;
+      var rekening = document.getElementById('hpRekening').value;
+      var catatan = document.getElementById('hpCatatan').value.trim();
+
+      var metodePembayaran = document.getElementById('hpMetodePembayaran').value;
+      var isNewMaster = !row;
+      var isCicilan = metodePembayaran === 'CICILAN';
+      var missing = [];
+
+      if (isNewMaster && !nama) missing.push('Nama Orang / Pihak');
+      if (isNewMaster && jumlah <= 0) missing.push('Total Pinjaman / Nominal');
+      if (isNewMaster && !isCicilan && !rekening) missing.push('Tujuan Rekening');
+
+      if (missing.length) {
+        tampilkanValidasiHutangPiutang(
+          isCicilan
+            ? 'Lengkapi data utama sebelum melanjutkan.'
+            : 'Nama, nominal, dan rekening tujuan wajib ditentukan agar saldo rekening dapat disesuaikan dengan benar.',
+          missing
+        );
+        return;
+      }
+
+      var validationNotice = document.getElementById('hpFormValidationNotice');
+      if (validationNotice) {
+        validationNotice.style.display = 'none';
+        validationNotice.innerHTML = '';
+      }
+
+      var param = {
+        row: row,
+        tipe: tipe,
+        nama: nama,
+        jumlah: jumlah,
+        terbayar: terbayar,
+        tglJatuhTempo: tglJatuhTempo,
+        rekening: rekening,
+        catatan: catatan,
+        metodePembayaran: metodePembayaran,
+        userKey: userKey
+      };
+
+      var btn = document.getElementById('btnSaveHutangPiutang');
+      btn.innerText = 'MENYIMPAN...';
+      btn.disabled = true;
+      var selesai = false;
+      var timeoutId = setTimeout(function() {
+        if (selesai) return;
+        selesai = true;
+        btn.innerText = 'SIMPAN';
+        btn.disabled = false;
+        alert('Tidak ada respon dari server. Coba lagi.');
+      }, 15000);
+
+      var handler = function(res) {
+        if (selesai) return;
+        selesai = true;
+        clearTimeout(timeoutId);
+        globalHutangPiutang = res.list || [];
+        globalHPSummary = res.summary || globalHPSummary;
+        renderHutangPiutangAll();
+        closeAddHutangPiutangModal();
+        btn.innerText = 'SIMPAN';
+        btn.disabled = false;
+        if (rekening) {
+          fetchRekeningData();
+          loadDashboard();
+        }
+        if (!row && param.metodePembayaran === 'CICILAN' && res.createdId) {
+          setTimeout(function() {
+            if (typeof openCicilanSplitFromHutangPiutang === 'function') {
+              openCicilanSplitFromHutangPiutang(res.createdId);
+            } else {
+              alert('Hutang/Piutang berhasil dibuat. Buka menu Cicilan untuk melanjutkan pengaturannya.');
+            }
+          }, 120);
+        }
+      };
+
+      var failure = function(err) {
+        if (selesai) return;
+        selesai = true;
+        clearTimeout(timeoutId);
+        btn.innerText = 'SIMPAN';
+        btn.disabled = false;
+        alert('Gagal menyimpan Hutang/Piutang: ' + (err && err.message ? err.message : 'Error'));
+      };
+
+      if (row) {
+        google.script.run.withSuccessHandler(handler).withFailureHandler(failure).updateHutangPiutangDetail(param);
+      } else {
+        google.script.run.withSuccessHandler(handler).withFailureHandler(failure).simpanHutangPiutangBaru(param);
+      }
+    }
+    function openBayarHutangPiutangModal(row) {
+      var item = globalHutangPiutang.find(function(it) { return it.row === row; });
+      if (!item) return;
+
+      var isHutang = item.tipe === 'HUTANG';
+      document.getElementById('bayarHPRow').value = item.row;
+      document.getElementById('bayarHPTitle').innerText = (isHutang ? 'Bayar Hutang: ' : 'Terima Piutang: ') + item.nama;
+      document.getElementById('bayarHPSubtitle').innerText = 'Sisa ' + (isHutang ? 'Hutang' : 'Piutang') + ': ' + formatRp(item.sisa) + ' dari Total ' + formatRp(item.jumlah);
+      document.getElementById('bayarHPJumlah').value = '';
+      populateHPRekeningDropdowns();
+      document.getElementById('bayarHutangPiutangModal').style.display = 'flex';
+    }
+
+    function closeBayarHutangPiutangModal() {
+      document.getElementById('bayarHutangPiutangModal').style.display = 'none';
+    }
+
+    function prosesBayarHutangPiutang() {
+      var row = document.getElementById('bayarHPRow').value;
+      var jumlah = parseNominalInput('bayarHPJumlah');
+      var rekening = document.getElementById('bayarHPRekening').value;
+
+      if (jumlah <= 0) return tampilkanPeringatanInput('Nominal pembayaran wajib diisi!', 'Bayar/Pelunasan', 'Isi nominal pembayaran sebelum melanjutkan.');
+
+      var btn = document.getElementById('btnBayarHutangPiutang');
+      btn.innerText = 'MEMPROSES...';
+      btn.disabled = true;
+      var selesai = false;
+      var timeoutId = setTimeout(function() {
+        if (selesai) return;
+        selesai = true;
+        btn.innerText = 'BAYAR / PELUNASAN';
+        btn.disabled = false;
+        alert('Tidak ada respon dari server. Coba lagi.');
+      }, 15000);
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (selesai) return;
+          selesai = true;
+          clearTimeout(timeoutId);
+          globalHutangPiutang = res.list || [];
+          globalHPSummary = res.summary || globalHPSummary;
+          renderHutangPiutangAll();
+          closeBayarHutangPiutangModal();
+          btn.innerText = 'BAYAR / PELUNASAN';
+          btn.disabled = false;
+          fetchRekeningData();
+          loadDashboard();
+        })
+        .withFailureHandler(function(err) {
+          if (selesai) return;
+          selesai = true;
+          clearTimeout(timeoutId);
+          btn.innerText = 'BAYAR / PELUNASAN';
+          btn.disabled = false;
+          alert('Gagal memproses pembayaran: ' + (err && err.message ? err.message : 'Error'));
+        })
+        .bayarHutangPiutang({ row: row, jumlah: jumlah, rekening: rekening, userKey: userKey });
+    }
+    function hapusHutangPiutangItem(row, nama, hpId) {
+      bukaHapusHutangPiutangModal(row, nama, hpId);
+    }
+
+    function bukaHapusHutangPiutangModal(row, nama, hpId) {
+      pendingHapusHutangPiutang = { row: row, nama: nama || '', hpId: hpId || '' };
+
+      var modal = document.getElementById('hapusHutangPiutangModal');
+      var namaEl = document.getElementById('hapusHutangPiutangNama');
+      if (!modal || !namaEl) return;
+
+      namaEl.textContent = nama || 'Catatan Hutang/Piutang';
+      modal.classList.add('show');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('hp-delete-modal-open');
+    }
+
+    function tutupHapusHutangPiutangModal() {
+      var modal = document.getElementById('hapusHutangPiutangModal');
+      if (modal) {
+        modal.classList.remove('show');
+        modal.setAttribute('aria-hidden', 'true');
+      }
+
+      // Kembalikan state tombol setiap kali modal selesai dipakai.
+      // Modal ini dipakai ulang untuk Master berikutnya, jadi jangan
+      // biarkan state "Menghapus..." terbawa ke Master berikutnya.
+      var dangerBtn = document.querySelector('#hapusHutangPiutangModal .hp-delete-btn-danger');
+      var cancelBtn = document.querySelector('#hapusHutangPiutangModal .hp-delete-btn-cancel');
+      if (dangerBtn) {
+        dangerBtn.disabled = false;
+        dangerBtn.textContent = '🗑️ Hapus';
+      }
+      if (cancelBtn) cancelBtn.disabled = false;
+
+      document.body.classList.remove('hp-delete-modal-open');
+      pendingHapusHutangPiutang = null;
+    }
+
+    function konfirmasiHapusHutangPiutang() {
+      var pending = pendingHapusHutangPiutang;
+      if (!pending) return;
+
+      var dangerBtn = document.querySelector('#hapusHutangPiutangModal .hp-delete-btn-danger');
+      var cancelBtn = document.querySelector('#hapusHutangPiutangModal .hp-delete-btn-cancel');
+      if (dangerBtn && dangerBtn.disabled) return;
+
+      if (dangerBtn) {
+        dangerBtn.disabled = true;
+        dangerBtn.textContent = 'Menghapus...';
+      }
+      if (cancelBtn) cancelBtn.disabled = true;
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          globalHutangPiutang = res.list || [];
+          globalHPSummary = res.summary || globalHPSummary;
+          renderHutangPiutangAll();
+          fetchRekeningData();
+          loadDashboard();
+          tutupHapusHutangPiutangModal();
+        })
+        .withFailureHandler(function(err) {
+          if (dangerBtn) {
+            dangerBtn.disabled = false;
+            dangerBtn.textContent = '🗑️ Hapus';
+          }
+          if (cancelBtn) cancelBtn.disabled = false;
+          alert('Gagal menghapus Hutang/Piutang: ' + (err && err.message ? err.message : 'Error'));
+        })
+        .hapusHutangPiutang(pending.row, userKey, pending.hpId || '');
+    }
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        var modal = document.getElementById('hapusHutangPiutangModal');
+        if (modal && modal.classList.contains('show')) {
+          tutupHapusHutangPiutangModal();
+        }
+      }
+    });
+</script>

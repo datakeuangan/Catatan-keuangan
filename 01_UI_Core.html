@@ -1,0 +1,60 @@
+<!-- 01_UI_Core.html
+     Shared frontend helpers. Generated from Form(20260815-174521).html baseline.
+     No business feature logic belongs here.
+-->
+<script>
+
+    function sanitizeIcon(iconStr) {
+      if (!iconStr) return '📁';
+      var cleaned = String(iconStr).replace(/<ctrl\d+>/gi, '').trim();
+      return cleaned || '📁';
+    }
+
+    function formatRp(num) {
+      if (num === null || num === undefined || isNaN(num)) return 'Rp0';
+      return 'Rp' + Number(num).toLocaleString('id-ID', { maximumFractionDigits: 2 });
+    }
+
+    function tanggalHariIniLocalStr() {
+      var d = new Date();
+      var bulan = String(d.getMonth() + 1).padStart(2, '0');
+      var tgl = String(d.getDate()).padStart(2, '0');
+      return d.getFullYear() + '-' + bulan + '-' + tgl;
+    }
+
+    function setInputTanggalHariIni(id) {
+      var el = document.getElementById(id);
+      if (el) el.value = tanggalHariIniLocalStr();
+    }
+
+    function tampilkanPeringatanInput(pesan, menu, detail) {
+      var modal = document.getElementById('appInputWarningModal');
+      if (!modal) {
+        alert(pesan);
+        return;
+      }
+
+      var titleEl = document.getElementById('appInputWarningTitle');
+      var subtitleEl = document.getElementById('appInputWarningSubtitle');
+      var nameEl = document.getElementById('appInputWarningName');
+      var warningEl = document.getElementById('appInputWarningMessage');
+
+      if (titleEl) titleEl.textContent = 'Data belum lengkap';
+      if (subtitleEl) subtitleEl.textContent = menu ? ('Periksa kembali data pada menu ' + menu + '.') : 'Periksa kembali data yang kamu masukkan.';
+      if (nameEl) nameEl.textContent = menu || 'Validasi Data';
+      if (warningEl) warningEl.innerHTML = '⚠️ <strong>' + pesan + '</strong>' + (detail ? '<br>' + detail : '');
+
+      modal.classList.add('show');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('hp-delete-modal-open');
+    }
+
+    function tutupPeringatanInput() {
+      var modal = document.getElementById('appInputWarningModal');
+      if (modal) {
+        modal.classList.remove('show');
+        modal.setAttribute('aria-hidden', 'true');
+      }
+      document.body.classList.remove('hp-delete-modal-open');
+    }
+</script>

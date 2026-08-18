@@ -1,0 +1,2290 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <!-- ===== SHARED CORE ===== -->
+  <?!= include('01_UI_Core'); ?>
+  <?!= include('02_DataShared'); ?>
+
+
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, Roboto, sans-serif; }
+    body { background-color: #121212; color: #e0e0e0; padding-bottom: 80px; }
+
+    .container { padding: 10px; }
+    .card { background: #1e1e1e; border-radius: 12px; padding: 12px; margin-bottom: 12px; border: 1px solid #2c2c2c; }
+    .card-title { font-size: 14px; font-weight: bold; text-align: center; color: #fff; margin-bottom: 10px; }
+    .card-title-wrap { position: relative; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid #2c2c2c; padding-bottom: 8px; margin-bottom: 8px; font-size: 14px; font-weight: bold; color: #fff; }
+    .card-title-wrap .side-action { position: absolute; right: 0; font-size: 12px; font-weight: bold; cursor: pointer; }
+    
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 7px;
+      align-items: stretch;
+    }
+    .box-summary {
+      position: relative;
+      width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+      background: linear-gradient(145deg, #292929 0%, #222 100%);
+      padding: 13px 15px 12px;
+      border-radius: 10px;
+      font-size: 11px;
+      border: 1px solid #333;
+      box-shadow: 0 4px 12px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.025);
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    }
+    .box-summary:hover {
+      transform: translateY(-2px);
+      border-color: #444;
+      box-shadow: 0 7px 18px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.035);
+    }
+    .box-summary .title {
+      font-weight: 800;
+      color: #f0f0f0;
+      text-align: center;
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.15;
+      letter-spacing: .1px;
+    }
+    .summary-heading {
+      min-height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin: 0 0 7px;
+      width: 100%;
+    }
+    .summary-heading .summary-mood {
+      position: static;
+      width: auto;
+      height: auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      flex: 0 0 auto;
+    }
+    .box-summary .row-val {
+      min-height: 14px;
+      align-items: center;
+      margin-bottom: 1px;
+      gap: 5px;
+      line-height: 1.05;
+    }
+    .row-val { display: flex; justify-content: space-between; margin-bottom: 1px; gap: 5px; line-height: 1.05; }
+    .val-in { color: #4caf50; }
+    .val-out { color: #f44336; }
+    .val-diff {
+      font-weight: 700;
+      font-size: 11px;
+    }
+    .val-diff.positive { color: #4caf50; }
+    .val-diff.negative { color: #f44336; }
+    .val-diff.zero { color: #aaa; }
+
+    .tx-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #2c2c2c; }
+    .tx-item:last-child { border-bottom: none; }
+    .tx-item.clickable { cursor: pointer; border-radius: 8px; padding-left: 6px; padding-right: 6px; margin: 0 -6px; }
+    .tx-item.clickable:active { background: #262626; }
+    .tx-left { display: flex; align-items: center; gap: 10px; }
+    .tx-icon { width: 36px; height: 36px; border-radius: 50%; background: #262626; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+    .tx-info .title { font-size: 13px; font-weight: bold; color: #fff; }
+    .tx-info .subtitle { font-size: 11px; color: #888; margin-top: 2px; }
+    .tx-right { text-align: right; }
+    .tx-amount { font-size: 13px; font-weight: bold; }
+    .tx-amount.in { color: #4caf50; }
+    .tx-amount.out { color: #f44336; }
+    .tx-date { font-size: 10px; color: #777; margin-top: 2px; }
+
+    /* STYLES WIDGET GOAL / TARGET TABUNGAN */
+    .goal-card { background: #242424; border: 1px solid #333; border-radius: 10px; padding: 12px; margin-bottom: 10px; }
+    .goal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .goal-left { display: flex; align-items: center; gap: 10px; font-weight: bold; font-size: 14px; }
+    .goal-icon { width: 36px; height: 36px; border-radius: 50%; background: #333; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .goal-badge { font-size: 11px; font-weight: bold; padding: 3px 8px; border-radius: 12px; background: #9c27b0; color: #fff; }
+    .goal-badge.done { background: #4caf50; }
+    
+    .goal-progress-bg { background: #1a1a1a; height: 10px; border-radius: 5px; overflow: hidden; margin: 8px 0; border: 1px solid #333; }
+    .goal-progress-fill { background: linear-gradient(90deg, #ff9800, #4caf50); height: 100%; border-radius: 5px; transition: width 0.3s ease; }
+    .goal-progress-fill.completed { background: #4caf50; }
+    
+    .goal-numbers { display: flex; justify-content: space-between; font-size: 11px; color: #aaa; }
+    .goal-numbers strong { color: #fff; }
+
+    .goal-actions { display: flex; gap: 6px; margin-top: 10px; padding-top: 6px; border-top: 1px solid #333; }
+    .btn-goal-sm { flex: 1; padding: 7px; border: none; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; text-align: center; }
+    .btn-goal-setor { background: #2e7d32; color: white; }
+    .btn-goal-tarik { background: #d32f2f; color: white; }
+    .btn-goal-edit { background: #333; color: #aaa; }
+
+    /* STYLES WIDGET HUTANG & PIUTANG */
+    .hp-card { background: #242424; border: 1px solid #333; border-radius: 10px; padding: 12px; margin-bottom: 10px; }
+    .hp-card.hutang-border { border-left: 4px solid #f44336; }
+    .hp-card.piutang-border { border-left: 4px solid #4caf50; }
+    .hp-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .hp-left { display: flex; align-items: center; gap: 10px; font-weight: bold; font-size: 14px; }
+    .hp-icon { width: 36px; height: 36px; border-radius: 50%; background: #333; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .hp-badge { font-size: 10px; font-weight: bold; padding: 3px 8px; border-radius: 12px; color: #fff; }
+    .hp-badge.hutang { background: #d32f2f; }
+    .hp-badge.piutang { background: #2e7d32; }
+    .hp-badge.lunas { background: #4caf50; }
+
+    /* POLISH UI HUTANG / PIUTANG */
+    .hp-dashboard-summary {
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;
+      margin-bottom:12px;
+    }
+    .hp-summary-card {
+      position:relative;
+      overflow:hidden;
+      min-height:72px;
+      padding:12px 14px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.08);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
+    }
+    .hp-summary-card::after {
+      content:'';
+      position:absolute;
+      width:70px; height:70px;
+      right:-24px; top:-28px;
+      border-radius:50%;
+      background:rgba(255,255,255,.035);
+      pointer-events:none;
+    }
+    .hp-summary-card.hutang { background:linear-gradient(135deg,#2b1b1b,#241919); border-color:rgba(244,67,54,.20); }
+    .hp-summary-card.piutang { background:linear-gradient(135deg,#1b2b1e,#19241b); border-color:rgba(76,175,80,.20); }
+    .hp-summary-label { display:flex; align-items:center; gap:7px; font-size:11px; color:#aaa; margin-bottom:6px; }
+    .hp-summary-label .hp-summary-icon { width:24px; height:24px; border-radius:8px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,.06); font-size:13px; }
+    .hp-summary-name { font-weight:700; }
+    .hp-summary-value { font-size:16px; font-weight:800; letter-spacing:.1px; }
+    .hp-summary-card.hutang .hp-summary-value { color:#ff8a80; }
+    .hp-summary-card.piutang .hp-summary-value { color:#81c784; }
+
+    .hp-card {
+      position:relative;
+      overflow:hidden;
+      background:linear-gradient(145deg,#262626,#202020);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:13px;
+      padding:13px;
+      margin-bottom:10px;
+      box-shadow:0 5px 16px rgba(0,0,0,.12);
+      transition:transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+    }
+    .hp-card:hover { transform:translateY(-1px); border-color:rgba(255,255,255,.14); box-shadow:0 8px 20px rgba(0,0,0,.18); }
+    .hp-card.hutang-border { border-left:4px solid #f44336; }
+    .hp-card.piutang-border { border-left:4px solid #4caf50; }
+    .hp-header { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:9px; }
+    .hp-left { display:flex; align-items:center; gap:10px; min-width:0; font-weight:bold; font-size:14px; }
+    .hp-left > div:last-child { min-width:0; }
+    .hp-left > div:last-child > div:first-child { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .hp-icon { width:38px; height:38px; flex:0 0 38px; border-radius:11px; background:linear-gradient(145deg,#343434,#292929); border:1px solid rgba(255,255,255,.06); display:flex; align-items:center; justify-content:center; font-size:18px; box-shadow:inset 0 1px 0 rgba(255,255,255,.04); }
+    .hp-badge { font-size:10px; font-weight:bold; padding:4px 8px; border-radius:999px; color:#fff; white-space:nowrap; }
+    .hp-badge.hutang { background:#b83232; }
+    .hp-badge.piutang { background:#2e7d32; }
+    .hp-badge.lunas { background:#4caf50; }
+    .hp-progress-wrap { margin:8px 0 7px; }
+    .hp-progress-meta { display:flex; justify-content:space-between; gap:8px; margin-bottom:5px; font-size:10px; color:#888; }
+    .hp-progress-meta strong { color:#ddd; }
+    .hp-progress-bg { background:#171717; height:7px; border-radius:999px; overflow:hidden; border:1px solid rgba(255,255,255,.06); }
+    .hp-progress-fill { height:100%; border-radius:999px; transition:width .3s ease; }
+    .hp-progress-fill.hutang { background:linear-gradient(90deg,#d32f2f,#ff6b61); }
+    .hp-progress-fill.piutang { background:linear-gradient(90deg,#2e7d32,#66bb6a); }
+    .hp-progress-fill.completed { background:linear-gradient(90deg,#388e3c,#66bb6a); }
+    .hp-balance-row { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-top:7px; font-size:11px; }
+    .hp-balance-left { color:#aaa; }
+    .hp-balance-left strong { color:#fff; }
+    .hp-balance-right { font-weight:800; text-align:right; }
+    .hp-note { margin-top:7px; padding:7px 8px; border-radius:8px; background:rgba(255,255,255,.025); color:#777; font-size:10px; border:1px solid rgba(255,255,255,.045); }
+    .hp-payment-history { background:rgba(0,0,0,.10); border-radius:9px; padding:8px 9px; }
+    .hp-payment-title { color:#ddd; font-size:10px; font-weight:800; margin-bottom:4px; }
+    .hp-payment-row { display:flex; justify-content:space-between; gap:8px; padding:5px 0; border-top:1px solid rgba(255,255,255,.05); font-size:10px; color:#aaa; }
+    .hp-payment-row:first-of-type { border-top:none; }
+    .hp-payment-amount { white-space:nowrap; font-weight:800; }
+    .hp-card .goal-actions { margin-top:10px; padding-top:8px; gap:7px; border-top:1px solid rgba(255,255,255,.07); }
+    .hp-card .btn-goal-sm { min-height:30px; border:1px solid rgba(255,255,255,.05); border-radius:8px; }
+    .hp-card .btn-goal-setor { background:linear-gradient(135deg,#2e7d32,#388e3c); }
+    .hp-card .btn-goal-edit { background:#303030; }
+    @media (max-width:600px) {
+      .hp-dashboard-summary { grid-template-columns:1fr; }
+      .hp-header { align-items:flex-start; }
+    }
+
+
+    /* ===== POLISH UI MENU GOALS / TARGET TABUNGAN ===== */
+    #goalsModal {
+      background:
+        radial-gradient(circle at 50% -12%, rgba(255,193,7,.14), transparent 34%),
+        linear-gradient(180deg, #151515 0%, #101010 100%);
+    }
+    .goals-manage-header {
+      position:sticky;
+      top:0;
+      z-index:3;
+      min-height:64px;
+      padding:10px 14px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      width:100%;
+      box-sizing:border-box;
+      background:linear-gradient(135deg, rgba(78,54,0,.98), rgba(48,38,18,.98));
+      border-bottom:1px solid rgba(255,193,7,.28);
+      box-shadow:0 7px 22px rgba(0,0,0,.28);
+      backdrop-filter:blur(10px);
+      -webkit-backdrop-filter:blur(10px);
+    }
+    .goals-manage-back {
+      width:38px;
+      height:38px;
+      flex:0 0 38px;
+      border:1px solid rgba(255,193,7,.22);
+      border-radius:10px;
+      background:rgba(255,193,7,.09);
+      color:#ffe08a;
+      font-size:20px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+    }
+    .goals-manage-back:hover {
+      background:rgba(255,193,7,.16);
+      border-color:rgba(255,193,7,.38);
+    }
+    .goals-manage-title-wrap {
+      min-width:0;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .goals-manage-title-icon {
+      width:36px;
+      height:36px;
+      flex:0 0 36px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:10px;
+      background:linear-gradient(145deg, rgba(255,193,7,.24), rgba(255,193,7,.08));
+      border:1px solid rgba(255,193,7,.30);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.06), 0 4px 12px rgba(0,0,0,.14);
+      font-size:18px;
+    }
+    .goals-manage-title-main {
+      font-size:15px;
+      line-height:1.2;
+      font-weight:800;
+      color:#fff;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .goals-manage-title-sub {
+      margin-top:2px;
+      font-size:10px;
+      color:#c9b98d;
+      font-weight:500;
+    }
+    .goals-manage-add {
+      margin-left:auto;
+      min-height:36px;
+      padding:0 13px;
+      border:1px solid rgba(255,193,7,.42);
+      border-radius:10px;
+      background:linear-gradient(135deg,#9a6b00,#765000);
+      color:#fff3c4;
+      font-size:12px;
+      font-weight:800;
+      cursor:pointer;
+      box-shadow:0 4px 13px rgba(255,193,7,.12);
+      white-space:nowrap;
+    }
+    .goals-manage-add:hover { filter:brightness(1.08); transform:translateY(-1px); }
+    .goals-manage-content {
+      width:100%;
+      max-width:980px;
+      margin:0 auto;
+      padding:14px 12px 28px;
+      box-sizing:border-box;
+    }
+    .goals-manage-empty {
+      min-height:210px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      padding:24px;
+      box-sizing:border-box;
+      border:1px dashed rgba(255,193,7,.20);
+      border-radius:15px;
+      background:linear-gradient(145deg, rgba(255,193,7,.035), rgba(255,255,255,.012));
+      box-shadow:0 5px 16px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.02);
+    }
+    .goals-manage-empty-icon {
+      width:52px;
+      height:52px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:15px;
+      margin-bottom:10px;
+      background:linear-gradient(145deg, rgba(255,193,7,.18), rgba(255,193,7,.06));
+      border:1px solid rgba(255,193,7,.24);
+      font-size:24px;
+    }
+    @media (max-width:600px) {
+      .goals-manage-header { padding:9px 10px; }
+      .goals-manage-title-main { font-size:14px; }
+      .goals-manage-title-sub { font-size:9px; }
+      .goals-manage-add { padding:0 10px; }
+    }
+
+    /* ===== POLISH UI MENU KELOLA HUTANG / PIUTANG ===== */
+    #hutangPiutangModal {
+      background:
+        radial-gradient(circle at 50% -10%, rgba(156,39,176,.13), transparent 34%),
+        linear-gradient(180deg, #151515 0%, #101010 100%);
+    }
+    .hp-manage-header {
+      position:sticky;
+      top:0;
+      z-index:3;
+      min-height:62px;
+      padding:10px 14px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      width:100%;
+      background:rgba(28,28,28,.96);
+      border-bottom:1px solid rgba(255,255,255,.08);
+      box-shadow:0 6px 20px rgba(0,0,0,.22);
+      backdrop-filter:blur(10px);
+      -webkit-backdrop-filter:blur(10px);
+    }
+    .hp-manage-back {
+      width:38px;
+      height:38px;
+      flex:0 0 38px;
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:10px;
+      background:#242424;
+      color:#fff;
+      font-size:20px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+    }
+    .hp-manage-back:hover { background:#303030; border-color:rgba(156,39,176,.45); }
+    .hp-manage-title-wrap { min-width:0; display:flex; align-items:center; gap:10px; }
+    .hp-manage-title-icon {
+      width:36px;
+      height:36px;
+      flex:0 0 36px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:10px;
+      background:linear-gradient(145deg,rgba(156,39,176,.28),rgba(156,39,176,.10));
+      border:1px solid rgba(156,39,176,.35);
+      font-size:18px;
+    }
+    .hp-manage-title-main { font-size:15px; line-height:1.2; font-weight:800; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .hp-manage-title-sub { margin-top:2px; font-size:10px; color:#888; font-weight:500; }
+    .hp-manage-add {
+      margin-left:auto;
+      min-height:36px;
+      padding:0 12px;
+      border:1px solid rgba(156,39,176,.42);
+      border-radius:10px;
+      background:linear-gradient(135deg,#9c27b0,#8e24aa);
+      color:#fff;
+      font-size:12px;
+      font-weight:800;
+      cursor:pointer;
+      box-shadow:0 4px 12px rgba(156,39,176,.20);
+      white-space:nowrap;
+    }
+    .hp-manage-add:hover { filter:brightness(1.08); transform:translateY(-1px); }
+
+    .hp-manage-content {
+      width:100%;
+      max-width:980px;
+      margin:0 auto;
+      padding:14px 12px 28px;
+      box-sizing:border-box;
+    }
+    .hp-manage-tabs-wrap {
+      padding:4px;
+      margin-bottom:12px;
+      border:1px solid rgba(255,255,255,.07);
+      border-radius:13px;
+      background:#1a1a1a;
+      box-shadow:0 4px 14px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.02);
+    }
+    .hp-manage-tabs {
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:4px;
+      background:transparent;
+      border:0;
+    }
+    .hp-manage-tabs .periode-tab-btn {
+      min-height:40px;
+      padding:8px 6px;
+      border:1px solid transparent;
+      border-radius:9px;
+      background:transparent;
+      color:#999;
+      font-size:12px;
+      font-weight:800;
+      transition:background .18s ease,color .18s ease,border-color .18s ease,transform .18s ease;
+    }
+    .hp-manage-tabs .periode-tab-btn:hover { background:#242424; color:#ddd; }
+    .hp-manage-tabs .periode-tab-btn.active {
+      background:linear-gradient(135deg,#9c27b0,#8e24aa);
+      color:#fff;
+      border-color:rgba(255,255,255,.08);
+      box-shadow:0 4px 12px rgba(156,39,176,.18);
+    }
+
+    .hp-manage-filter {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      min-height:48px;
+      margin-bottom:12px;
+      padding:9px 12px;
+      border:1px solid rgba(255,255,255,.07);
+      border-radius:12px;
+      background:linear-gradient(145deg,#202020,#1b1b1b);
+      box-shadow:0 4px 14px rgba(0,0,0,.15), inset 0 1px 0 rgba(255,255,255,.02);
+    }
+    .hp-manage-filter-label { display:flex; align-items:center; gap:9px; min-width:0; color:#aaa; font-size:11px; font-weight:700; }
+    .hp-manage-filter-label input { width:17px !important; height:17px !important; margin:0; accent-color:#9c27b0; cursor:pointer; }
+    .hp-manage-filter-hint { color:#666; font-size:10px; text-align:right; }
+
+    #hpModalListContainer {
+      min-height:120px;
+      padding:2px;
+    }
+    #hpModalListContainer > .hp-card {
+      margin-bottom:10px;
+    }
+    .hp-manage-empty {
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      min-height:210px;
+      padding:24px 16px;
+      border:1px dashed rgba(255,255,255,.10);
+      border-radius:14px;
+      background:rgba(255,255,255,.018);
+      text-align:center;
+    }
+    .hp-manage-empty-icon {
+      width:52px;
+      height:52px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      margin-bottom:10px;
+      border-radius:15px;
+      background:#242424;
+      border:1px solid rgba(156,39,176,.22);
+      font-size:24px;
+    }
+    .hp-manage-empty-title { color:#ddd; font-size:13px; font-weight:800; }
+    .hp-manage-empty-text { max-width:420px; margin-top:5px; color:#777; font-size:11px; line-height:1.5; }
+    @media (max-width:600px) {
+      .hp-manage-header { padding:9px 10px; gap:8px; }
+      .hp-manage-title-main { font-size:14px; }
+      .hp-manage-title-sub { display:none; }
+      .hp-manage-content { padding:10px 8px 24px; }
+      .hp-manage-filter-hint { display:none; }
+      .hp-manage-tabs .periode-tab-btn { font-size:11px; }
+    }
+
+    /* STYLES WIDGET BULAT (DONUT CHART ANALISIS) */
+    .donut-control-bar { display: flex; gap: 6px; margin-bottom: 10px; }
+    .donut-btn-group { display: flex; flex: 1; background: #1a1a1a; border-radius: 6px; padding: 2px; border: 1px solid #2c2c2c; }
+    .donut-btn-opt { flex: 1; padding: 6px 4px; border: none; background: none; color: #aaa; font-size: 11px; font-weight: bold; border-radius: 4px; cursor: pointer; text-align: center; }
+    .donut-btn-opt.active { background: #9c27b0; color: #fff; }
+    .donut-btn-opt.out.active { background: #d32f2f; color: #fff; }
+    .donut-btn-opt.in.active { background: #2e7d32; color: #fff; }
+
+    .donut-chart-box { position: relative; width: 100%; display: flex; flex-direction: column; align-items: center; margin: 10px 0; }
+    .donut-center-info { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; }
+    .donut-center-percent { font-size: 20px; font-weight: bold; color: #fff; }
+    .donut-center-label { font-size: 10px; color: #aaa; margin-top: 2px; }
+
+    .donut-legend-list { width: 100%; margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+    .donut-legend-item { display: flex; align-items: center; justify-content: space-between; background: #262626; padding: 8px 10px; border-radius: 8px; font-size: 12px; border: 1px solid #2c2c2c; }
+    .donut-legend-left { display: flex; align-items: center; gap: 8px; }
+    .donut-color-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .donut-legend-title { font-weight: bold; color: #fff; }
+    .donut-legend-right { text-align: right; }
+    .donut-legend-percent { font-weight: bold; color: #9c27b0; font-size: 12px; }
+    .donut-legend-amount { font-size: 10px; color: #aaa; margin-top: 1px; }
+
+    .donut-bar-wrap { background: #1a1a1a; height: 5px; border-radius: 3px; overflow: hidden; margin-top: 4px; border: 1px solid #333; }
+    .donut-bar-fill { height: 100%; border-radius: 3px; transition: width 0.3s ease; }
+
+    .total-banner { background: #262626; border-radius: 10px; padding: 12px; text-align: center; font-size: 16px; font-weight: bold; margin-bottom: 12px; border: 1px solid #333; }
+    .total-banner span { color: #4caf50; }
+    .rek-card { background: #1e1e1e; border-radius: 10px; padding: 14px; margin-bottom: 10px; border: 1px solid #2c2c2c; display: flex; justify-content: space-between; align-items: center; }
+    .rek-card .left { display: flex; align-items: center; gap: 12px; font-weight: bold; font-size: 15px; }
+    .rek-card .right { text-align: right; }
+    .rek-card .balance { font-weight: bold; color: #4caf50; font-size: 15px; }
+
+    .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #121212; z-index: 100; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .modal-header { background: #9c27b0; color: white; padding: 15px; font-weight: bold; display: flex; align-items: center; gap: 15px; font-size: 16px; }
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 12px; color: #888; margin-bottom: 4px; }
+    .form-control { width: 100%; background: #262626; border: 1px solid #333; color: white; padding: 12px; border-radius: 8px; font-size: 14px; }
+
+    .date-field-wrap { position: relative; }
+    .date-field-wrap input[type="date"].form-control { padding-left: 40px; }
+    .date-field-wrap .date-icon-fake { position: absolute; top: 50%; left: 12px; transform: translateY(-50%); pointer-events: none; font-size: 16px; opacity: 0.85; }
+    input[type="date"].form-control { cursor: pointer; }
+    input[type="date"].form-control::-webkit-calendar-picker-indicator { opacity: 0; }
+
+    .btn-submit { width: 100%; padding: 14px; background: #9c27b0; color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; margin-top: 15px; cursor: pointer; }
+    
+    .cat-selector-btn {
+      --selected-cat-accent: #777;
+      width: 100%; background: #262626; color: white; padding: 10px 12px; border-radius: 8px;
+      text-align: left; font-size: 14px; display: flex; align-items: center; justify-content: space-between; cursor: pointer;
+      border: 1px solid color-mix(in srgb, var(--selected-cat-accent) 38%, #333);
+      box-shadow: inset 3px 0 0 var(--selected-cat-accent), 0 0 0 1px color-mix(in srgb, var(--selected-cat-accent) 7%, transparent);
+      background: linear-gradient(90deg, color-mix(in srgb, var(--selected-cat-accent) 10%, #262626), #262626 55%);
+      transition: background .18s ease, border-color .18s ease, box-shadow .18s ease;
+    }
+    .cat-selector-btn:hover {
+      border-color: color-mix(in srgb, var(--selected-cat-accent) 58%, #444);
+      background: linear-gradient(90deg, color-mix(in srgb, var(--selected-cat-accent) 14%, #292929), #292929 55%);
+    }
+    .cat-selector-btn .selected-val { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .cat-selector-btn .selected-val > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .cat-selector-btn .selected-cat-icon {
+      width: 28px; height: 28px; border-radius: 50%; flex: 0 0 28px;
+      display: inline-flex; align-items: center; justify-content: center; font-size: 13px;
+      background: var(--selected-cat-accent); color: #fff;
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--selected-cat-accent) 14%, transparent);
+    }
+
+    /* REVISI RESPONSIVE MODAL UTAMA AGAR BISA SCROLLING DI HP */
+    .popup-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 120; align-items: center; justify-content: center; padding: 15px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .popup-box { background: #262626; border-radius: 14px; padding: 18px; width: 100%; max-width: 420px; border: 1px solid #444; max-height: 85vh; max-height: 85dvh; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.6); margin: auto; }
+    .popup-body { overflow-y: auto; flex: 1; min-height: 0; padding-right: 4px; -webkit-overflow-scrolling: touch; }
+    .popup-footer { display: flex; gap: 10px; margin-top: 15px; flex-shrink: 0; padding-top: 10px; border-top: 1px solid #333; }
+.action-sheet-item { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px; background: none; border: none; color: white; font-size: 14px; font-weight: bold; text-align: left; cursor: pointer; border-bottom: 1px solid #333; }
+    .action-sheet-item:last-child { border: none; }
+
+    .widget-setting-item { display:flex; align-items:center; justify-content:space-between; padding:10px; background:#1e1e1e; border-radius:8px; margin-bottom:8px; border:1px solid #2c2c2c; }
+    .widget-setting-left { display:flex; align-items:center; gap:10px; font-size:14px; font-weight:bold; }
+    .widget-setting-left input[type="checkbox"] { width:18px; height:18px; accent-color:#9c27b0; }
+    .widget-order-btns { display:flex; gap:4px; }
+    .widget-order-btns button { background:#333; border:none; color:white; width:30px; height:30px; border-radius:6px; font-size:13px; cursor:pointer; }
+    .widget-order-btns button:disabled { opacity:0.3; cursor:default; }
+
+    .periode-tabs { display:flex; background:#1a1a1a; border-bottom:1px solid #2c2c2c; }
+    .periode-tab-btn { flex:1; padding:11px 6px; border:none; color:#fff; font-weight:bold; font-size:13px; background:#2a2a2a; cursor:pointer; }
+    .periode-tab-btn.active { background:#9c27b0; }
+    .periode-nav { display:flex; align-items:center; justify-content:space-between; background:#1e1e1e; padding:10px 6px; border-bottom:1px solid #2c2c2c; }
+    .periode-nav-btn { background:#262626; border:1px solid #333; color:#fff; font-size:18px; width:38px; height:38px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .periode-nav-btn:active { background:#333; }
+    .periode-label { font-weight:bold; font-size:15px; color:#fff; text-align:center; flex:1; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:6px; border-bottom:1px dashed #9c27b0; padding-bottom:2px; }
+    .periode-label::after { content:'📅'; font-size:12px; opacity:0.85; }
+    .periode-label:active { opacity:0.7; }
+    .periode-today-btn { background:none; border:none; color:#9c27b0; font-size:11px; font-weight:bold; cursor:pointer; padding:4px 6px; }
+
+    .kal-grid-day { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+    .kal-grid-blok { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+    .kal-weekday-hd { text-align:center; font-size:11px; color:#888; font-weight:bold; padding-bottom:4px; }
+    .kal-cell { text-align:center; padding:9px 2px; border-radius:8px; cursor:pointer; font-size:13px; }
+    .kal-cell:hover { background:#333; }
+    .kal-cell.today { border:1px solid #9c27b0; }
+    .kal-grid-blok .kal-cell { background:#1a1a1a; padding:12px 4px; }
+
+    /* ===== TEMA SHADOW SERAGAM UNTUK SEMUA KOTAK / WIDGET ===== */
+    .card,
+    .goal-card,
+    .hp-card,
+    .rek-card,
+    .total-banner,
+    .donut-legend-item,
+    .box-summary,
+    .widget-setting-item {
+      box-shadow: 0 4px 12px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.025);
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    }
+
+    .card:hover,
+    .goal-card:hover,
+    .hp-card:hover,
+    .rek-card:hover,
+    .total-banner:hover,
+    .donut-legend-item:hover,
+    .box-summary:hover,
+    .widget-setting-item:hover {
+      transform: translateY(-2px);
+      border-color: #444;
+      box-shadow: 0 7px 18px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.035);
+    }
+
+    /* Kotak kecil dan elemen informasi mengikuti kedalaman yang sama */
+    .donut-btn-group,
+    .periode-nav,
+    .hp-card .box-summary,
+    .icon-grid,
+    .custom-icon-preview,
+    .form-control,
+    .cat-selector-btn {
+      box-shadow: 0 3px 9px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.02);
+    }
+
+
+  
+    /* ==========================================
+       ANIMASI MOOD UNTUK SEMUA KARTU RINGKASAN
+       Visual saja; tidak mengubah data/perhitungan.
+       ========================================== */
+    .box-summary {
+      position: relative;
+      overflow: hidden;
+      min-height: 82px;
+    }
+    .summary-mood {
+      position: static;
+      width: auto;
+      height: 26px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-select: none;
+      z-index: 2;
+    }
+    .summary-mood-face {
+      width: 25px;
+      height: 25px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 21px;
+      line-height: 1;
+      filter: drop-shadow(0 3px 5px rgba(0,0,0,.28));
+      transform-origin: 50% 80%;
+    }
+    .summary-mood-caption {
+      font-size: 7px;
+      line-height: 1.05;
+      font-weight: 700;
+      white-space: nowrap;
+      opacity: .85;
+    }
+    .summary-mood.happy .summary-mood-face { animation: financeMoodHappy 2.1s ease-in-out infinite; }
+    .summary-mood.sad .summary-mood-face { animation: financeMoodSad 2.8s ease-in-out infinite; }
+    .summary-mood.neutral .summary-mood-face { animation: financeMoodNeutral 3.2s ease-in-out infinite; }
+
+    /* ===== RINGKASAN: SATU ANIMASI GLOBAL ===== */
+    .summary-global-mood-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      margin: 2px 0 10px;
+    }
+
+    .summary-global-mood-wrap .summary-mood {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: auto;
+      height: 34px;
+      padding: 4px 10px;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .summary-global-mood-wrap .summary-mood-face {
+      width: 30px;
+      height: 30px;
+      font-size: 25px;
+    }
+
+    .summary-global-mood-wrap .summary-mood-caption {
+      font-size: 11px;
+      line-height: 1;
+      font-weight: 800;
+      white-space: nowrap;
+      opacity: .92;
+    }
+
+    .summary-global-mood-wrap .summary-sparkle,
+    .summary-global-mood-wrap .summary-cloud {
+      position: absolute;
+      pointer-events: none;
+    }
+
+    .summary-global-mood-wrap .summary-sparkle {
+      left: -9px;
+      top: 0;
+    }
+
+    .summary-global-mood-wrap .summary-cloud {
+      right: -9px;
+      top: 1px;
+    }
+
+    .summary-mood.happy .summary-mood-caption { color:#4caf50; }
+    .summary-mood.sad .summary-mood-caption { color:#f44336; }
+    .summary-mood.neutral .summary-mood-caption { color:#aaa; }
+
+    .summary-sparkle,
+    .summary-cloud {
+      position:absolute;
+      pointer-events:none;
+      opacity:0;
+      font-size:8px;
+    }
+    .summary-sparkle { color:#ffd54f; right:24px; top:-1px; }
+    .summary-cloud { color:#90a4ae; right:25px; top:1px; }
+    .summary-mood.happy .summary-sparkle { animation:financeSparkle 2.1s ease-in-out infinite; }
+    .summary-mood.sad .summary-cloud { animation:financeCloud 2.8s ease-in-out infinite; }
+
+    @keyframes financeMoodHappy {
+      0%,100% { transform:translateY(0) rotate(0deg) scale(1); }
+      15% { transform:translateY(-3px) rotate(-3deg) scale(1.02); }
+      30% { transform:translateY(-8px) rotate(3deg) scale(1.06); }
+      45% { transform:translateY(-2px) rotate(-2deg) scale(1.02); }
+      60% { transform:translateY(-6px) rotate(2deg) scale(1.04); }
+      75% { transform:translateY(0) rotate(0deg) scale(1); }
+    }
+    @keyframes financeMoodSad {
+      0%,100% { transform:translateY(0) rotate(0deg); }
+      35% { transform:translateY(3px) rotate(-3deg); }
+      55% { transform:translateY(5px) rotate(2deg); }
+      75% { transform:translateY(2px) rotate(-1deg); }
+    }
+    @keyframes financeMoodNeutral {
+      0%,100% { transform:translateY(0); }
+      50% { transform:translateY(-3px); }
+    }
+    .finance-mood-sparkles,
+    .finance-mood-cloud {
+      position:absolute;
+      pointer-events:none;
+      opacity:.0;
+      font-size:12px;
+    }
+    .finance-mood-sparkles { color:#ffd54f; }
+    .finance-mood-cloud { color:#90a4ae; }
+    .finance-mood-wrap.happy .finance-mood-sparkles {
+      animation:financeSparkle 2.1s ease-in-out infinite;
+    }
+    .finance-mood-wrap.sad .finance-mood-cloud {
+      animation:financeCloud 2.8s ease-in-out infinite;
+    }
+    @keyframes financeSparkle {
+      0%,100% { opacity:0; transform:translateY(5px) scale(.7); }
+      25% { opacity:.9; transform:translate(-28px,-3px) scale(1); }
+      50% { opacity:.75; transform:translate(29px,-12px) scale(.9); }
+      75% { opacity:.95; transform:translate(-20px,-19px) scale(1.05); }
+    }
+    @keyframes financeCloud {
+      0%,100% { opacity:0; transform:translateY(-1px); }
+      35% { opacity:.55; transform:translateY(2px); }
+      65% { opacity:.3; transform:translateY(5px); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .finance-mood,
+      .finance-mood-sparkles,
+      .finance-mood-cloud,
+      .summary-mood-face,
+      .summary-mood-sparkle,
+      .summary-mood-cloud { animation:none !important; }
+    }
+
+    /* RINCIAN INTERAKTIF ANALISIS PERSENTASE BULANAN */
+    .donut-legend-item.donut-detail-clickable {
+      cursor: pointer;
+      transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+    .donut-legend-item.donut-detail-clickable:hover {
+      transform: translateY(-1px);
+      background: #2b2b2b;
+      border-color: #7b1fa2;
+      box-shadow: 0 6px 18px rgba(0,0,0,.28);
+    }
+    .donut-legend-item.donut-detail-clickable:active {
+      transform: translateY(0);
+    }
+    .donut-click-hint {
+      font-size: 9px;
+      color: #777;
+      margin-left: 6px;
+      white-space: nowrap;
+    }
+
+    #donutDetailModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: #121212;
+      z-index: 250;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    #donutDetailModal .donut-detail-header {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: #9c27b0;
+      color: #fff;
+      padding: 13px 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 4px 16px rgba(0,0,0,.35);
+    }
+    #donutDetailModal .donut-detail-title-wrap {
+      flex: 1;
+      min-width: 0;
+    }
+    #donutDetailModal .donut-detail-title {
+      font-size: 15px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    #donutDetailModal .donut-detail-subtitle {
+      font-size: 10px;
+      opacity: .78;
+      margin-top: 2px;
+    }
+    #donutDetailModal .donut-detail-close {
+      width: 34px;
+      height: 34px;
+      border: 1px solid rgba(255,255,255,.28);
+      border-radius: 9px;
+      background: rgba(0,0,0,.18);
+      color: #fff;
+      font-size: 20px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    #donutDetailModal .donut-detail-body {
+      padding: 12px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .donut-detail-summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .donut-detail-summary-card {
+      background: #242424;
+      border: 1px solid #333;
+      border-radius: 10px;
+      padding: 10px;
+      text-align: center;
+      box-shadow: 0 5px 16px rgba(0,0,0,.22);
+    }
+    .donut-detail-summary-label {
+      color: #888;
+      font-size: 10px;
+      margin-bottom: 4px;
+    }
+    .donut-detail-summary-value {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      word-break: break-word;
+    }
+    .donut-detail-list {
+      background: #1e1e1e;
+      border: 1px solid #303030;
+      border-radius: 11px;
+      padding: 6px 10px;
+      box-shadow: 0 7px 20px rgba(0,0,0,.24);
+    }
+    .donut-detail-section-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #ddd;
+      padding: 6px 2px 8px;
+    }
+    .donut-detail-empty {
+      color: #888;
+      text-align: center;
+      font-size: 12px;
+      padding: 28px 12px;
+    }
+    .donut-detail-loading {
+      color: #aaa;
+      text-align: center;
+      font-size: 12px;
+      padding: 35px 12px;
+    }
+    @media (max-width: 520px) {
+      .donut-detail-summary {
+        grid-template-columns: 1fr;
+      }
+      #donutDetailModal .donut-detail-title {
+        font-size: 14px;
+      }
+    }
+
+<style>
+.cat-select-arrow-hidden{display:none!important;}
+
+    @media (max-width: 700px) {
+      .grid-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
+      }
+      .box-summary {
+        padding: 9px 8px 8px;
+        border-radius: 8px;
+        font-size: 10px;
+      }
+      .box-summary .title {
+        font-size: 11px;
+      }
+      .summary-global-mood-wrap {
+        min-height: 38px;
+        margin: 1px 0 8px;
+      }
+      .summary-global-mood-wrap .summary-mood {
+        height: 30px;
+        padding: 3px 8px;
+        gap: 5px;
+      }
+      .summary-global-mood-wrap .summary-mood-face {
+        width: 25px;
+        height: 25px;
+        font-size: 21px;
+      }
+      .summary-global-mood-wrap .summary-mood-caption {
+        font-size: 9px;
+      }
+      .box-summary .row-val,
+      .row-val {
+        min-height: 13px;
+        margin-bottom: 0;
+        gap: 3px;
+        line-height: 1;
+      }
+    }
+
+    /* ===== RINGKASAN V6: JUDUL + KETERANGAN | ANIMASI | NOMINAL ===== */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      align-items: stretch;
+    }
+    .box-summary {
+      position: relative;
+      width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+      background: linear-gradient(145deg, #292929 0%, #222 100%);
+      padding: 11px 10px 10px;
+      border-radius: 10px;
+      font-size: 11px;
+      border: 1px solid #333;
+      box-shadow: 0 4px 12px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.025);
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    }
+    .box-summary:hover {
+      transform: translateY(-2px);
+      border-color: #444;
+      box-shadow: 0 7px 18px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.035);
+    }
+    .box-summary .title {
+      font-weight: 800;
+      color: #f0f0f0;
+      text-align: center;
+      margin: 0 0 8px;
+      font-size: 13px;
+      line-height: 1.15;
+      white-space: nowrap;
+    }
+    .summary-data-grid {
+      display: grid;
+      grid-template-columns: minmax(0,1fr) 42px minmax(0,1.35fr);
+      align-items: center;
+      column-gap: 5px;
+      min-height: 58px;
+    }
+    .summary-labels,
+    .summary-values {
+      display: grid;
+      grid-template-rows: repeat(3, minmax(15px, auto));
+      align-items: center;
+      min-width: 0;
+    }
+    .summary-labels {
+      color: #aaa;
+      text-align: left;
+      font-size: 10px;
+      line-height: 1.05;
+    }
+    .summary-values {
+      text-align: right;
+      font-size: 10px;
+      line-height: 1.05;
+      font-weight: 700;
+      overflow: hidden;
+    }
+    .summary-values > div {
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .summary-logo-column {
+      height: 100%;
+      min-height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: visible;
+    }
+    .summary-mood {
+      position: relative;
+      width: 38px;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-select: none;
+      z-index: 2;
+    }
+    .summary-mood-face {
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      line-height: 1;
+      filter: drop-shadow(0 3px 5px rgba(0,0,0,.28));
+      transform-origin: 50% 80%;
+    }
+    .summary-mood-caption {
+      position: absolute;
+      left: 50%;
+      top: calc(100% + 1px);
+      transform: translateX(-50%);
+      font-size: 6px;
+      line-height: 1;
+      font-weight: 700;
+      white-space: nowrap;
+      opacity: .82;
+    }
+    .summary-mood.happy .summary-mood-face { animation: financeMoodHappy 2.1s ease-in-out infinite; }
+    .summary-mood.sad .summary-mood-face { animation: financeMoodSad 2.8s ease-in-out infinite; }
+    .summary-mood.neutral .summary-mood-face { animation: financeMoodNeutral 3.2s ease-in-out infinite; }
+    .summary-mood.happy .summary-mood-caption { color:#4caf50; }
+    .summary-mood.sad .summary-mood-caption { color:#f44336; }
+    .summary-mood.neutral .summary-mood-caption { color:#aaa; }
+    .summary-sparkle,
+    .summary-cloud {
+      position:absolute;
+      pointer-events:none;
+      font-size:7px;
+      opacity:0;
+    }
+    .summary-sparkle { color:#ffd54f; right:-1px; top:0; }
+    .summary-cloud { color:#90a4ae; right:-1px; top:0; }
+    .summary-mood.happy .summary-sparkle { animation:financeSparkle 2.1s ease-in-out infinite; }
+    .summary-mood.sad .summary-cloud { animation:financeCloud 2.8s ease-in-out infinite; }
+
+    @media (max-width: 700px) {
+      .grid-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
+      }
+      .box-summary {
+        padding: 8px 7px 8px;
+        border-radius: 8px;
+        font-size: 10px;
+      }
+      .box-summary .title {
+        font-size: 11px;
+        margin-bottom: 6px;
+      }
+      .summary-data-grid {
+        grid-template-columns: minmax(0,1fr) 34px minmax(0,1.25fr);
+        column-gap: 3px;
+        min-height: 50px;
+      }
+      .summary-labels,
+      .summary-values {
+        grid-template-rows: repeat(3, minmax(13px, auto));
+      }
+      .summary-labels,
+      .summary-values {
+        font-size: 9px;
+      }
+      .summary-logo-column {
+        min-height: 50px;
+      }
+      .summary-mood {
+        width: 31px;
+        height: 36px;
+      }
+      .summary-mood-face {
+        width: 29px;
+        height: 29px;
+        font-size: 23px;
+      }
+      .summary-mood-caption {
+        font-size: 5px;
+      }
+      .summary-sparkle,
+      .summary-cloud {
+        display: none;
+      }
+    }
+</style>
+</style>
+
+<style id="ringkasan-responsive-v2">
+  /* =========================================================
+     RINGKASAN V2
+     DESKTOP : logo di bawah judul, status di kanan,
+               6 kartu = 3 kolom x 2 baris
+     MOBILE  : logo di bawah judul, status di bawah logo,
+               6 kartu = 2 kolom x 3 baris
+     ========================================================= */
+
+  .widget-block[data-widget="ringkasan"] .card {
+    overflow: hidden;
+  }
+
+  .widget-block[data-widget="ringkasan"] .card-title {
+    font-size: 15px;
+    margin-bottom: 2px;
+  }
+
+  .widget-block[data-widget="ringkasan"] .summary-overview {
+    display: grid;
+    grid-template-columns: minmax(230px, 0.9fr) minmax(300px, 1.1fr);
+    align-items: center;
+    gap: 18px;
+    min-height: 125px;
+    margin: 0 2px 12px;
+    padding: 4px 18px 10px;
+    border-bottom: 1px solid #2c2c2c;
+  }
+
+  .widget-block[data-widget="ringkasan"] .summary-logo-area {
+    min-height: 105px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .widget-block[data-widget="ringkasan"] .summary-logo-area .summary-mood {
+    width: 100px;
+    height: 100px;
+  }
+
+  .widget-block[data-widget="ringkasan"] .summary-logo-area .summary-mood-face {
+    width: 86px;
+    height: 86px;
+    font-size: 72px;
+    filter: drop-shadow(0 6px 10px rgba(0,0,0,.30));
+  }
+
+  .widget-block[data-widget="ringkasan"] .summary-logo-area .summary-sparkle,
+  .widget-block[data-widget="ringkasan"] .summary-logo-area .summary-cloud {
+    font-size: 15px;
+  }
+
+  .widget-block[data-widget="ringkasan"] .summary-logo-area .summary-sparkle {
+    left: 2px;
+    top: 4px;
+  }
+
+  .widget-block[data-widget="ringkasan"] .summary-logo-area .summary-cloud {
+    right: 2px;
+    top: 8px;
+  }
+
+  .widget-block[data-widget="ringkasan"] .summary-status-panel {
+    min-width: 0;
+    padding: 8px 8px 8px 22px;
+    border-left: 1px solid #333;
+  }
+
+  .widget-block[data-widget="ringkasan"] .summary-status-label {
+    color: #aaa;
+    font-size: 12px;
+    margin-bottom: 3px;
+  }
+
+  .widget-block[data-widget="ringkasan"] .summary-status-value {
+    font-size: 27px;
+    line-height: 1.05;
+    font-weight: 900;
+    margin-bottom: 8px;
+  }
+
+  .widget-block[data-widget="ringkasan"] .summary-status-description {
+    color: #ddd;
+    font-size: 12px;
+    line-height: 1.55;
+    max-width: 560px;
+  }
+
+  .widget-block[data-widget="ringkasan"] #moodRingkasan.happy ~ .summary-status-panel .summary-status-value {
+    color: #4caf50;
+  }
+
+  .widget-block[data-widget="ringkasan"] #moodRingkasan.sad ~ .summary-status-panel .summary-status-value {
+    color: #f44336;
+  }
+
+  .widget-block[data-widget="ringkasan"] #moodRingkasan.neutral ~ .summary-status-panel .summary-status-value {
+    color: #aaa;
+  }
+
+  .widget-block[data-widget="ringkasan"] .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 9px;
+    align-items: stretch;
+  }
+
+  .widget-block[data-widget="ringkasan"] .summary-grid .box-summary {
+    min-width: 0;
+  }
+
+  .widget-block[data-widget="ringkasan"] .summary-grid .box-summary .title {
+    text-align: center;
+    margin-bottom: 9px;
+  }
+
+  .widget-block[data-widget="ringkasan"] .summary-grid .summary-data-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+    align-items: center;
+    column-gap: 10px;
+    min-height: 58px;
+  }
+
+  .widget-block[data-widget="ringkasan"] .summary-grid .summary-labels,
+  .widget-block[data-widget="ringkasan"] .summary-grid .summary-values {
+    display: grid;
+    grid-template-rows: repeat(3, minmax(17px, auto));
+    align-items: center;
+    min-width: 0;
+  }
+
+  .widget-block[data-widget="ringkasan"] .summary-grid .summary-labels {
+    text-align: left;
+  }
+
+  .widget-block[data-widget="ringkasan"] .summary-grid .summary-values {
+    text-align: right;
+  }
+
+  @media (max-width: 700px) {
+    .widget-block[data-widget="ringkasan"] .card-title {
+      font-size: 14px;
+      margin-bottom: 1px;
+    }
+
+    .widget-block[data-widget="ringkasan"] .summary-overview {
+      grid-template-columns: 1fr;
+      gap: 3px;
+      min-height: auto;
+      margin: 0 0 9px;
+      padding: 2px 8px 10px;
+    }
+
+    .widget-block[data-widget="ringkasan"] .summary-logo-area {
+      min-height: 78px;
+    }
+
+    .widget-block[data-widget="ringkasan"] .summary-logo-area .summary-mood {
+      width: 76px;
+      height: 76px;
+    }
+
+    .widget-block[data-widget="ringkasan"] .summary-logo-area .summary-mood-face {
+      width: 66px;
+      height: 66px;
+      font-size: 56px;
+    }
+
+    .widget-block[data-widget="ringkasan"] .summary-logo-area .summary-sparkle,
+    .widget-block[data-widget="ringkasan"] .summary-logo-area .summary-cloud {
+      font-size: 11px;
+    }
+
+    .widget-block[data-widget="ringkasan"] .summary-status-panel {
+      border-left: 0;
+      border-top: 0;
+      padding: 0 7px 2px;
+      text-align: center;
+    }
+
+    .widget-block[data-widget="ringkasan"] .summary-status-label {
+      font-size: 10px;
+      margin-bottom: 2px;
+    }
+
+    .widget-block[data-widget="ringkasan"] .summary-status-value {
+      font-size: 21px;
+      margin-bottom: 4px;
+    }
+
+    .widget-block[data-widget="ringkasan"] .summary-status-description {
+      font-size: 10px;
+      line-height: 1.4;
+      max-width: 420px;
+      margin: 0 auto;
+    }
+
+    /* Smartphone: tepat 2 kolom x 3 baris */
+    .widget-block[data-widget="ringkasan"] .summary-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .widget-block[data-widget="ringkasan"] .summary-grid .box-summary {
+      padding: 9px 8px 8px;
+      border-radius: 8px;
+    }
+
+    .widget-block[data-widget="ringkasan"] .summary-grid .box-summary .title {
+      font-size: 11px;
+      margin-bottom: 6px;
+    }
+
+    .widget-block[data-widget="ringkasan"] .summary-grid .summary-data-grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+      column-gap: 5px;
+      min-height: 50px;
+    }
+
+    .widget-block[data-widget="ringkasan"] .summary-grid .summary-labels,
+    .widget-block[data-widget="ringkasan"] .summary-grid .summary-values {
+      grid-template-rows: repeat(3, minmax(14px, auto));
+      font-size: 9px;
+      line-height: 1.05;
+    }
+
+    .widget-block[data-widget="ringkasan"] #rataHarianKeterangan {
+      font-size: 9px !important;
+    }
+
+    .widget-block[data-widget="ringkasan"] > .card > div[style*="Rata-rata"] {
+      gap: 6px;
+    }
+  }
+
+  @media (max-width: 380px) {
+    .widget-block[data-widget="ringkasan"] .summary-grid .summary-labels,
+    .widget-block[data-widget="ringkasan"] .summary-grid .summary-values {
+      font-size: 8px;
+    }
+
+    .widget-block[data-widget="ringkasan"] .summary-grid .box-summary .title {
+      font-size: 10px;
+    }
+  }
+</style>
+
+
+<style id="ringkasan-desktop-revisi-1">
+  /*
+   * REVISI 1 - RINGKASAN DESKTOP
+   * - Animasi/icon tetap menggunakan ukuran dan animasi yang sudah ada.
+   * - Hanya tampilan desktop (>700px) yang diubah.
+   * - Smartphone/mobile tetap mengikuti CSS asli.
+   * - Tidak mengubah HTML, JavaScript, perhitungan, atau data.
+   */
+  @media (min-width: 701px) {
+    .widget-block[data-widget="ringkasan"] .summary-overview {
+      /*
+       * Desktop kembali 2 kolom:
+       * kiri = logo/animasi, kanan = status keuangan.
+       * Judul "Ringkasan" tetap mengikuti posisi center dari .card-title.
+       */
+      grid-template-columns: minmax(280px, 1fr) minmax(420px, 1fr);
+      justify-items: stretch;
+      align-items: center;
+      gap: 18px;
+      min-height: 0;
+      padding: 4px 18px 12px;
+      text-align: left;
+    }
+
+    .widget-block[data-widget="ringkasan"] .summary-logo-area {
+      width: 100%;
+      min-height: 105px;
+      justify-content: center;
+    }
+
+    .widget-block[data-widget="ringkasan"] .summary-status-panel {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 4px 12px 2px;
+      border-left: 1px solid rgba(255,255,255,.10);
+
+      /* Tetap berada di kolom kanan, tetapi isi di dalamnya center. */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .widget-block[data-widget="ringkasan"] .summary-status-label {
+      font-size: 11px;
+      margin-bottom: 2px;
+    }
+
+    .widget-block[data-widget="ringkasan"] .summary-status-value {
+      font-size: 23px;
+      line-height: 1.05;
+      margin-bottom: 5px;
+    }
+
+    .widget-block[data-widget="ringkasan"] .summary-status-description {
+      max-width: 760px;
+      margin: 0 auto;
+      font-size: 11px;
+      line-height: 1.45;
+    }
+    .widget-block[data-widget="ringkasan"] .summary-status-panel .summary-status-description {
+      width: 100%;
+      max-width: 760px;
+      margin-left: auto;
+      margin-right: auto;
+      text-align: center;
+    }
+  }
+</style>
+
+
+<style id="all-widget-titles-center-revisi-4">
+  /*
+   * REVISI 4 - SEMUA JUDUL UTAMA WIDGET
+   * Berlaku untuk widget yang sedang tampil maupun yang disembunyikan.
+   * Hanya posisi judul yang diubah; isi, data, tombol, dan fungsi tetap.
+   */
+  .widget-block > .card > .card-title,
+  .widget-block > .card > .card-title-wrap {
+    text-align: center !important;
+    justify-content: center !important;
+  }
+
+  /* Judul pada kotak ringkasan/sub-kartu yang memang berfungsi sebagai heading. */
+  .widget-block .box-summary > .title {
+    text-align: center !important;
+  }
+
+  /*
+   * Tetap pertahankan tombol/aksi di sisi kanan pada card-title-wrap.
+   * Karena .side-action sudah absolute, centering judul tidak memindahkannya.
+   */
+  .widget-block > .card > .card-title-wrap .side-action {
+    position: absolute;
+    right: 0;
+  }
+</style>
+
+
+<style id="widget-title-center-complete-revisi-5">
+  /*
+   * REVISI 5 - PEMERIKSAAN MENYELURUH JUDUL WIDGET
+   *
+   * Tujuan:
+   * 1. Semua heading utama widget di-dashboard benar-benar center.
+   * 2. Struktur heading berbeda (card-title, card-title-wrap, dan heading
+   *    custom seperti widget 7 hari) ditangani secara terpisah.
+   * 3. Widget yang hidden tetap ikut karena selector berdasarkan data-widget.
+   * 4. Tombol/aksi di kanan tetap di kanan.
+   * 5. Isi transaksi/rekening tidak ikut di-center.
+   */
+
+  /* ===== Heading standar ===== */
+  .widget-block > .card > .card-title {
+    text-align: center !important;
+  }
+
+  .widget-block > .card > .card-title-wrap {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .widget-block > .card > .card-title-wrap > span:first-child {
+    text-align: center !important;
+  }
+
+  /* Tombol/aksi tetap menempel di kanan heading. */
+  .widget-block > .card > .card-title-wrap > .side-action {
+    position: absolute !important;
+    right: 0 !important;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  /* ===== Widget "Transaksi - 7 hari terakhir" =====
+     Heading-nya bukan card-title/card-title-wrap, melainkan div flex custom. */
+  .widget-block[data-widget="p_7hari"] > .card > div:first-child {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+  }
+
+  .widget-block[data-widget="p_7hari"] > .card > div:first-child > span:first-child {
+    flex: 1 1 auto !important;
+    text-align: center !important;
+  }
+
+  .widget-block[data-widget="p_7hari"] > .card > div:first-child > span:last-child {
+    position: absolute !important;
+    right: 0 !important;
+  }
+
+  /* ===== Judul kartu ringkasan/sub-widget =====
+     Hari ini, Kemarin, 7 hari terakhir, Bulan Ini, Tahun Ini, Total,
+     Hutang, Piutang, dan kartu ringkasan lain. */
+  .widget-block .box-summary > .title {
+    text-align: center !important;
+  }
+
+  /* ===== Tiga judul status pada Ringkasan ===== */
+  .widget-block[data-widget="ringkasan"] .summary-status-panel {
+    align-items: center !important;
+    text-align: center !important;
+  }
+
+  .widget-block[data-widget="ringkasan"] .summary-status-panel > * {
+    text-align: center !important;
+  }
+
+  /* ===== Widget periode yang saat ini hidden ===== */
+  .widget-block[data-widget="p_bulan_lalu"] > .card > .card-title,
+  .widget-block[data-widget="p_tahun_ini"] > .card > .card-title,
+  .widget-block[data-widget="p_tahun_lalu"] > .card > .card-title {
+    text-align: center !important;
+  }
+
+  /* ===== Jika ada heading standar tambahan yang langsung menjadi child card ===== */
+  .widget-block > .card > h1,
+  .widget-block > .card > h2,
+  .widget-block > .card > h3,
+  .widget-block > .card > h4,
+  .widget-block > .card > h5,
+  .widget-block > .card > h6 {
+    text-align: center !important;
+  }
+</style>
+
+
+<style id="modern-hutang-piutang-delete-modal">
+  body.hp-delete-modal-open { overflow: hidden; }
+
+  .hp-delete-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .18s ease, visibility .18s ease;
+  }
+
+  .hp-delete-modal.show {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .hp-delete-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,.62);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+  }
+
+  .hp-delete-dialog {
+    position: relative;
+    z-index: 1;
+    width: min(430px, calc(100vw - 40px));
+    box-sizing: border-box;
+    padding: 22px 22px 18px;
+    border: 1px solid rgba(156,39,176,.38);
+    border-radius: 18px;
+    background: linear-gradient(145deg, #242424 0%, #1b1b1b 100%);
+    box-shadow: 0 22px 65px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.035);
+    transform: translateY(10px) scale(.97);
+    transition: transform .18s ease;
+  }
+
+  .hp-delete-modal.show .hp-delete-dialog {
+    transform: translateY(0) scale(1);
+  }
+
+  .hp-delete-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .hp-delete-icon {
+    width: 46px;
+    height: 46px;
+    flex: 0 0 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 13px;
+    background: rgba(244,67,54,.13);
+    border: 1px solid rgba(244,67,54,.18);
+    color: #ff6b61;
+    font-size: 21px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.035);
+  }
+
+  .hp-delete-title {
+    color: #fff;
+    font-size: 17px;
+    font-weight: 800;
+    line-height: 1.3;
+    margin-top: 2px;
+  }
+
+  .hp-delete-subtitle {
+    color: #888;
+    font-size: 11px;
+    line-height: 1.45;
+    margin-top: 4px;
+  }
+
+  .hp-delete-name {
+    margin-top: 16px;
+    padding: 11px 12px;
+    border-radius: 10px;
+    background: #292929;
+    border: 1px solid #383838;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 800;
+    word-break: break-word;
+  }
+
+  .hp-delete-warning {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: rgba(244,67,54,.075);
+    border: 1px solid rgba(244,67,54,.14);
+    color: #bbb;
+    font-size: 11px;
+    line-height: 1.55;
+  }
+
+  .hp-delete-warning strong { color: #ff8a80; }
+
+  .hp-form-validation {
+    margin: 10px 0 0;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: rgba(244,67,54,.075);
+    border: 1px solid rgba(244,67,54,.20);
+    color: #d7d7d7;
+    font-size: 11px;
+    line-height: 1.55;
+  }
+
+  .hp-form-validation strong { color: #ff8a80; }
+  .hp-form-validation ul { margin: 5px 0 0 18px; padding: 0; }
+  .hp-form-validation li { margin: 2px 0; }
+
+  .hp-delete-actions {
+    display: flex;
+    gap: 9px;
+    margin-top: 18px;
+  }
+
+  .hp-delete-btn {
+    flex: 1;
+    min-height: 40px;
+    border: 0;
+    border-radius: 10px;
+    padding: 0 14px;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform .12s ease, opacity .12s ease, background .12s ease;
+  }
+
+  .hp-delete-btn:hover { transform: translateY(-1px); }
+  .hp-delete-btn:active { transform: translateY(0); }
+
+  .hp-delete-btn-cancel {
+    background: #333;
+    color: #ddd;
+    border: 1px solid #414141;
+  }
+
+  .hp-delete-btn-cancel:hover { background: #3a3a3a; }
+
+  .hp-delete-btn-danger {
+    background: #d32f2f;
+    color: #fff;
+  }
+
+  .hp-delete-btn-danger:hover { background: #e53935; }
+    .hp-delete-btn-success {
+      background: #4caf50;
+      color: #fff;
+    }
+
+    .hp-delete-btn-success:hover {
+      background: #5cbf60;
+    }
+
+
+  @media (max-width: 520px) {
+    .hp-delete-dialog { padding: 19px 17px 16px; border-radius: 15px; }
+    .hp-delete-title { font-size: 16px; }
+    .hp-delete-actions { flex-direction: column-reverse; }
+    .hp-delete-btn { width: 100%; }
+  }
+</style>
+
+</head>
+<body>
+
+  <!-- ===== FEATURE MODULES ===== -->
+  <?!= include('03_AuthUI'); ?>
+  <?!= include('12_AppShellUI'); ?>
+  <?!= include('13_IconUI'); ?>
+
+  <?!= include('04_DashboardUI'); ?>
+  <?!= include('05_RekeningUI'); ?>
+  <?!= include('06_TransferUI'); ?>
+  <?!= include('07_KategoriUI'); ?>
+  <?!= include('08_TransaksiUI'); ?>
+  <?!= include('09_GoalsUI'); ?>
+  <?!= include('10_HutangPiutangUI'); ?>
+  <?!= include('CicilanUI'); ?>
+  <?!= include('11_SettingsUI'); ?>
+
+  <!-- MODAL STANDALONE FOR GOALS / TARGET TABUNGAN -->
+  
+
+  <!-- WIZARD TRANSAKSI BARU: KATEGORI -> REKENING -> FORM -->
+  
+
+  
+
+  <!-- MODAL TAMBAH / EDIT TRANSAKSI -->
+  <div id="formModal" class="modal">
+    <div class="modal-header" id="modalHeader">
+      <span style="cursor:pointer;" onclick="closeForm()">←</span>
+      <span id="modalTitle">Baru Transaksi</span>
+      <span id="editModeBadge" style="display:none; margin-left:auto; background:#ffb300; color:#000; font-size:10px; font-weight:bold; padding:3px 8px; border-radius:10px; letter-spacing:0.5px;">MODE EDIT</span>
+    </div>
+    <div id="editModeBanner" style="display:none; background:#3a2f00; color:#ffca28; font-size:12px; padding:10px 15px; border-bottom:1px solid #5c4a00;">
+      ✏️ Kamu sedang mengedit transaksi ini. Perubahan akan menyesuaikan saldo rekening secara otomatis.
+    </div>
+    <div class="container" style="padding-top: 15px;">
+      
+    </div>
+  </div>
+
+  <!-- 🎯 MODAL TAMBAH / EDIT GOAL -->
+  
+
+  <!-- 🎯 MODAL SETOR / NABUNG KE GOAL -->
+  
+
+  <!-- 🎯 MODAL TARIK DARI GOAL -->
+  
+
+  <!-- MODAL DIVERSE LAINNYA -->
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+  <script>
+    var STORAGE_KEY_USERKEY = 'financeUserKey';
+    var STORAGE_KEY_NAMA = 'financeNamaPengguna';
+
+    // KEAMANAN LOGIN:
+    // Identitas autentikasi TIDAK dipulihkan dari localStorage.
+    // Setiap pembukaan/reload aplikasi harus melalui login manual.
+    var userKey = '';
+    var namaPengguna = '';
+
+    // Helper Pembersih Icon dari String Erroneous Tag (<ctrl42>, dll)
+
+    // Custom limit riwayat transaksi di menu utama (1 - 25 items).
+    // Nilai final dimuat dari pengaturan akun setelah sesi tervalidasi.
+
+
+
+    
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+
+// Rekening UI state is owned by 05_RekeningUI.html.
+
+    
+
+    
+
+    
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+
+    
+
+    
+
+
+    
+
+    
+
+    
+
+// ==========================================
+    // HELPER PENGETIKAN OTOMATIS: PEMISAH RIBUAN (.) & DESIMAL (,)
+    // ==========================================
+    function populateGoalRekeningDropdowns() {
+      var selects = ['setorGoalRekening', 'tarikGoalRekening'];
+      selects.forEach(function(sId) {
+        var el = document.getElementById(sId);
+        if (!el) return;
+        var firstOpt = el.options[0];
+        el.innerHTML = '';
+        el.appendChild(firstOpt);
+        globalRekening.forEach(function(r) {
+          var opt = document.createElement('option');
+          opt.value = r.nama;
+          var rIcon = sanitizeIcon(r.icon);
+          opt.innerText = rIcon + ' ' + r.nama + ' (' + formatRp(r.saldoAkhir) + ')';
+          el.appendChild(opt);
+        });
+      });
+    }
+
+    function populateHPRekeningDropdowns() {
+      var selects = ['hpRekening', 'bayarHPRekening'];
+      selects.forEach(function(sId) {
+        var el = document.getElementById(sId);
+        if (!el) return;
+        var firstOpt = el.options[0];
+        el.innerHTML = '';
+        el.appendChild(firstOpt);
+        globalRekening.forEach(function(r) {
+          var opt = document.createElement('option');
+          opt.value = r.nama;
+          var rIcon = sanitizeIcon(r.icon);
+          opt.innerText = rIcon + ' ' + r.nama + ' (' + formatRp(r.saldoAkhir) + ')';
+          el.appendChild(opt);
+        });
+      });
+    }
+    // ==========================================
+    // MOOD UNTUK SEMUA KARTU RINGKASAN
+    // Visual saja; tidak mengubah data/server.
+    // ==========================================
+    
+
+    
+
+    
+
+    
+
+    // ==========================================
+    // 📊 LOGIKA WIDGET BULAT (% DONUT BREAKDOWN)
+    // ==========================================
+
+    
+
+    
+
+    
+
+    
+
+    
+
+
+    // Menyimpan item grafik yang sedang tampil agar setiap bagian bisa dibuka.
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    // ==========================================
+    // 🤝 LOGIKA FITUR HUTANG & PIUTANG
+    // ==========================================
+
+    
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    var periodeMode = 'hari';      
+    var periodeDate = new Date();  
+
+    var namaHariPeriode = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+    var namaBulanPeriode = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+
+    var kal = {
+      granularity: 'day',  
+      refDate: new Date(), 
+      onSelect: null,       
+      targetInputId: null   
+    };
+
+    var globalRiwayatSemua = [];
+
+    // ============================================================
+    // KONFIRMASI KHUSUS MASTER HUTANG/PIUTANG DARI RIWAYAT
+    //
+    // Dipisahkan dari warning transaksi/rincian supaya klik pembuka
+    // tidak pernah bisa menjalankan tombol konfirmasi secara otomatis.
+    // ============================================================
+
+
+
+    // ===== URUTAN KATEGORI UTAMA =====
+    // Urutan disimpan per user + tipe transaksi di browser. Handle geser
+    // sengaja dipisahkan dari tombol segitiga agar membuka/tutup subkategori
+    // tetap aman dan tidak ikut terpicu saat kategori digeser.
+
+
+    
+
+    document.addEventListener('pointermove', function(e) {
+      var drag = activeCategoryPointerDrag;
+      if (!drag || e.pointerId !== drag.pointerId) return;
+
+      e.preventDefault();
+      var target = document.elementFromPoint(e.clientX, e.clientY);
+      var targetGroup = target && target.closest ? target.closest('.cat-group') : null;
+      if (!targetGroup || targetGroup === drag.groupDiv || targetGroup.parentElement !== drag.listContainer) return;
+
+      var rect = targetGroup.getBoundingClientRect();
+      var insertBefore = e.clientY < rect.top + rect.height / 2;
+      if (insertBefore) {
+        if (drag.groupDiv !== targetGroup.previousElementSibling) {
+          drag.listContainer.insertBefore(drag.groupDiv, targetGroup);
+        }
+      } else {
+        if (drag.groupDiv !== targetGroup.nextElementSibling) {
+          drag.listContainer.insertBefore(drag.groupDiv, targetGroup.nextSibling);
+        }
+      }
+    }, {passive:false});
+
+    document.addEventListener('pointerup', function(e) {
+      var drag = activeCategoryPointerDrag;
+      if (!drag || e.pointerId !== drag.pointerId) return;
+
+      var ordered = [];
+      drag.listContainer.querySelectorAll('.cat-group').forEach(function(el) {
+        if (el.dataset.categoryName) ordered.push(el.dataset.categoryName);
+        el.classList.remove('cat-drag-over');
+        el.classList.remove('cat-dragging');
+      });
+      saveCategoryOrder(drag.tipe, ordered);
+      activeCategoryPointerDrag = null;
+    });
+
+    
+
+    // ===== WARNA KATEGORI UTAMA =====
+    // Disimpan terpisah untuk Pemasukan (+) dan Pengeluaran (-).
+    // Hanya memengaruhi tampilan kategori utama di picker, bukan menu utama,
+    // bukan subkategori, dan bukan data transaksi.
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+</script>
+
+
+  <!-- Modal konfirmasi khusus Master Hutang/Piutang dari Riwayat -->
+  
+
+  <!-- Modal konfirmasi Riwayat Transfer / Transaksi -->
+  
+
+  <script>
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape') {
+        var inputWarningModal = document.getElementById('appInputWarningModal');
+        if (inputWarningModal && inputWarningModal.classList.contains('show')) {
+          tutupPeringatanInput();
+          return;
+        }
+        var logoutModal = document.getElementById('logoutWarningModal');
+        if (logoutModal && logoutModal.classList.contains('show')) {
+          tutupLogoutWarningModal();
+          return;
+        }
+        var gantiKodeModal = document.getElementById('gantiKodeAksesModal');
+        if (gantiKodeModal && gantiKodeModal.classList.contains('show')) {
+          tutupGantiKodeAksesModal();
+          return;
+        }
+        var modal = document.getElementById('warningRiwayatModal');
+        if (modal && modal.classList.contains('show')) {
+          tutupWarningRiwayatModal();
+        }
+      }
+    });
+  </script>
+
+  <script>
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape') {
+        var modal = document.getElementById('hapusGoalModal');
+        if (modal && modal.classList.contains('show')) {
+          tutupHapusGoalModal();
+        }
+      }
+    });
+  </script>
+  <script>
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape') {
+        var modal = document.getElementById('editGoalRekeningModal');
+        if (modal && modal.classList.contains('show')) {
+          closeEditGoalRekeningModal();
+        }
+      }
+    });
+  </script>
+
+
+  <!-- Modal konfirmasi hapus Hutang/Piutang - hanya mengganti tampilan confirm() -->
+  <div id="hapusHutangPiutangModal" class="hp-delete-modal" aria-hidden="true">
+    <div class="hp-delete-backdrop" onclick="tutupHapusHutangPiutangModal()"></div>
+    <div class="hp-delete-dialog" role="dialog" aria-modal="true" aria-labelledby="hapusHutangPiutangTitle">
+      <div class="hp-delete-top">
+        <div class="hp-delete-icon">🗑️</div>
+        <div>
+          <div id="hapusHutangPiutangTitle" class="hp-delete-title">Hapus Hutang/Piutang?</div>
+          <div class="hp-delete-subtitle">Periksa kembali catatan yang akan dihapus.</div>
+        </div>
+      </div>
+
+      <div id="hapusHutangPiutangNama" class="hp-delete-name">Catatan Hutang/Piutang</div>
+
+      <div class="hp-delete-warning">
+        ⚠️ <strong>Tindakan ini tidak dapat dibatalkan.</strong><br>
+        Catatan Hutang/Piutang ini akan dihapus dari akun kamu.
+      </div>
+
+      <div class="hp-delete-actions">
+        <button type="button" class="hp-delete-btn hp-delete-btn-cancel" onclick="tutupHapusHutangPiutangModal()">Batal</button>
+        <button type="button" class="hp-delete-btn hp-delete-btn-danger" onclick="konfirmasiHapusHutangPiutang()">🗑️ Hapus</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal pemulihan rekening transaksi Goal -->
+  
+
+  <!-- Modal konfirmasi hapus Goal - menggunakan pola UI yang sama dengan Hutang/Piutang -->
+  
+
+  
+
+
+  <!-- ===== SAMBUTAN PEMBUKA APLIKASI ===== -->
+  
+
+  <!-- ===== TUTORIAL APLIKASI ===== -->
+  
+
+
+  <!-- MENU TOMBOL + KIRI -->
+  
+
+
+  <!-- Modal warning input/validasi - memakai tema tombol warning yang sama -->
+  <div id="appInputWarningModal" class="hp-delete-modal" aria-hidden="true">
+    <div class="hp-delete-backdrop" onclick="tutupPeringatanInput()"></div>
+    <div class="hp-delete-dialog" role="dialog" aria-modal="true" aria-labelledby="appInputWarningTitle">
+      <div class="hp-delete-top">
+        <div class="hp-delete-icon">⚠️</div>
+        <div>
+          <div id="appInputWarningTitle" class="hp-delete-title">Data belum lengkap</div>
+          <div id="appInputWarningSubtitle" class="hp-delete-subtitle">Periksa kembali data yang kamu masukkan.</div>
+        </div>
+      </div>
+
+      <div id="appInputWarningName" class="hp-delete-name">Validasi Data</div>
+
+      <div id="appInputWarningMessage" class="hp-delete-warning">
+        ⚠️ <strong>Data belum lengkap.</strong>
+      </div>
+
+      <div class="hp-delete-actions">
+        <button type="button" class="hp-delete-btn hp-delete-btn-cancel" onclick="tutupPeringatanInput()">Mengerti</button>
+      </div>
+    </div>
+  </div>
+
+  
+
+</body>
+</html>

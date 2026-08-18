@@ -1,0 +1,1226 @@
+<!-- ===== AUTH UI MODULE ===== -->
+<style id="auth-ui-styles">
+  #loginScreen { display:flex; min-height:100vh; align-items:center; justify-content:center; padding:20px; }
+  .login-box { background:#1e1e1e; border:1px solid #2c2c2c; border-radius:14px; padding:24px; width:100%; max-width:360px; }
+  .login-title { font-size:20px; font-weight:bold; text-align:center; color:#fff; margin-bottom:4px; }
+  .login-subtitle { font-size:12px; color:#888; text-align:center; margin-bottom:16px; }
+  .auth-tabs { display:flex; background:#262626; border-radius:8px; padding:3px; margin-bottom:20px; }
+  .auth-tab-btn { flex:1; padding:9px; border:none; background:none; color:#aaa; font-weight:bold; font-size:13px; border-radius:6px; cursor:pointer; text-align:center; }
+  .auth-tab-btn.active { background:#9c27b0; color:#fff; }
+  .login-error { display:none; background:#3a1414; color:#ff8a80; font-size:12px; padding:10px 12px; border-radius:8px; margin-bottom:14px; text-align:center; line-height:1.4; }
+  .login-success { display:none; background:#1b381e; color:#81c784; font-size:12px; padding:10px 12px; border-radius:8px; margin-bottom:14px; text-align:center; line-height:1.4; }
+  .forgot-link { display:block; width:100%; margin-top:10px; padding:5px 0; border:none; background:none; color:#c56be0; font-size:12px; font-weight:700; cursor:pointer; text-align:center; }
+  .forgot-link:hover { color:#e2a3ef; text-decoration:underline; }
+  .forgot-modal { display:none; position:fixed; inset:0; z-index:10000; align-items:center; justify-content:center; padding:18px; background:rgba(0,0,0,.72); backdrop-filter:blur(7px); }
+  .forgot-card { width:100%; max-width:410px; background:#1e1e1e; border:1px solid #7b2a8d; border-radius:16px; box-shadow:0 18px 55px rgba(0,0,0,.65); padding:20px; }
+  .forgot-head { display:flex; align-items:center; gap:12px; margin-bottom:8px; }
+  .forgot-icon { width:42px; height:42px; border-radius:12px; display:flex; align-items:center; justify-content:center; background:#2a202c; border:1px solid #71317f; font-size:22px; flex:none; }
+  .forgot-title { color:#fff; font-size:18px; font-weight:800; }
+  .forgot-subtitle { color:#999; font-size:12px; line-height:1.5; margin-bottom:16px; }
+  .forgot-note { background:#252525; border:1px solid #353535; color:#aaa; border-radius:10px; padding:10px 12px; font-size:11px; line-height:1.5; margin-bottom:14px; }
+  .forgot-step { display:none; }
+  .forgot-step.active { display:block; }
+  .forgot-actions { display:flex; gap:8px; margin-top:14px; }
+  .forgot-actions button { flex:1; min-height:42px; border-radius:9px; border:1px solid #3a3a3a; font-weight:800; cursor:pointer; }
+  .forgot-btn-cancel { background:#333; color:#eee; }
+  .forgot-btn-primary { background:#9c27b0; color:#fff; border-color:#9c27b0 !important; }
+  .forgot-btn-primary:disabled { opacity:.65; cursor:wait; }
+  .forgot-close { margin-left:auto; border:none; background:none; color:#aaa; font-size:20px; cursor:pointer; padding:3px 6px; }
+  .forgot-status { display:none; border-radius:9px; padding:10px 12px; font-size:12px; line-height:1.45; margin-bottom:12px; }
+  .forgot-status.error { background:#3a1414; color:#ff9c96; border:1px solid #6d2722; }
+  .forgot-status.success { background:#18321c; color:#8be28f; border:1px solid #2f6c35; }
+  .forgot-timer { color:#888; font-size:11px; text-align:center; margin-top:9px; }
+  @media (max-width:480px) { .forgot-card { padding:16px; border-radius:14px; } .forgot-title { font-size:17px; } }
+
+  .remember-login {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 10px 0 14px;
+    font-size: 13px;
+    color: #aaa;
+    cursor: pointer;
+    user-select: none;
+  }
+  .remember-login input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    accent-color: #4caf50;
+    cursor: pointer;
+    flex: 0 0 auto;
+  }
+  .remember-login span {
+    line-height: 1.35;
+  }
+
+</style>
+
+  <!-- ===== Layar Login / Registrasi ===== -->
+  <div id="loginScreen">
+    <div class="login-box">
+      <div class="login-title">💰 Catatan Keuangan</div>
+      <div class="login-subtitle">Masuk ke akun kamu atau buat akun baru</div>
+
+      <div class="auth-tabs">
+        <button type="button" id="tabLoginBtn" class="auth-tab-btn active" onclick="switchAuthTab('login')">MASUK</button>
+        <button type="button" id="tabRegisterBtn" class="auth-tab-btn" onclick="switchAuthTab('register')">DAFTAR</button>
+      </div>
+
+      <div class="login-error" id="loginError"></div>
+      <div class="login-success" id="loginSuccess"></div>
+
+      <!-- Form 1: LOGIN -->
+      <form id="loginForm" onsubmit="prosesLogin(); return false;">
+        <div class="form-group">
+          <label>Nama</label>
+          <input type="text" id="loginNama" class="form-control" placeholder="Nama kamu" required autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>Kode Akses</label>
+          <input type="password" id="loginKode" class="form-control" placeholder="Kode akses" required autocomplete="off">
+        </div>
+        <label class="remember-login" for="ingatSayaLogin">
+          <input type="checkbox" id="ingatSayaLogin">
+          <span>Tetap masuk di perangkat ini</span>
+        </label>
+        <button type="submit" class="btn-submit" id="btnLogin">MASUK</button>
+        <button type="button" class="forgot-link" onclick="openLupaKodeAksesModal()">🔑 Lupa Kode Akses?</button>
+      </form>
+
+      <!-- Form 2: REGISTRASI -->
+      <form id="registerForm" style="display:none;" onsubmit="prosesRegister(); return false;">
+        <div class="form-group">
+          <label>Nama Kamu</label>
+          <input type="text" id="regNama" class="form-control" placeholder="Contoh: Budi" required autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>Buat Kode Akses (PIN/Password)</label>
+          <input type="password" id="regKode" class="form-control" placeholder="Contoh: 1234" required autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>Email Kamu (Wajib)</label>
+          <input type="email" id="regEmail" class="form-control" placeholder="Wajib — untuk konfirmasi & pemulihan akun" required autocomplete="email">
+          <div style="margin-top:6px;font-size:12px;color:#888;">📧 Email wajib diisi. Digunakan untuk konfirmasi akun dan pemulihan kode akses.</div>
+        </div>
+        <button type="submit" class="btn-submit" id="btnRegister" style="background:#4caf50;">DAFTAR AKUN</button>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- ===== Lupa Kode Akses — khusus halaman login ===== -->
+  <div id="lupaKodeAksesModal" class="forgot-modal" onclick="if(event.target===this) closeLupaKodeAksesModal();">
+    <div class="forgot-card">
+      <div class="forgot-head">
+        <div class="forgot-icon">🔐</div>
+        <div>
+          <div class="forgot-title">Lupa Kode Akses</div>
+        </div>
+        <button type="button" class="forgot-close" onclick="closeLupaKodeAksesModal()">×</button>
+      </div>
+      <div class="forgot-subtitle">Gunakan <b>Nama Akun + email</b> yang terdaftar untuk menentukan akun yang ingin dipulihkan. Satu email tetap boleh digunakan oleh beberapa akun.</div>
+
+      <div id="lupaKodeStatus" class="forgot-status"></div>
+
+      <div id="lupaKodeStepEmail" class="forgot-step active">
+        <div class="forgot-note">📧 Masukkan <b>Nama Akun + email</b>. Kami akan mengirim <b>kode verifikasi 6 angka</b> ke email tersebut. Kode berlaku selama 10 menit.</div>
+        <div class="form-group">
+          <label>Nama Akun</label>
+          <input type="text" id="lupaKodeNama" class="form-control" placeholder="Nama akun kamu" autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label>Email Akun</label>
+          <input type="email" id="lupaKodeEmail" class="form-control" placeholder="contoh@email.com" autocomplete="email">
+        </div>
+        <div class="forgot-actions">
+          <button type="button" class="forgot-btn-cancel" onclick="closeLupaKodeAksesModal()">BATAL</button>
+          <button type="button" class="forgot-btn-primary" id="btnKirimLupaKode" onclick="kirimOTP_LupaKode()">KIRIM KODE</button>
+        </div>
+      </div>
+
+      <div id="lupaKodeStepVerify" class="forgot-step">
+        <div class="forgot-note">📨 Kode verifikasi sudah dikirim. Masukkan kode tersebut, lalu buat kode akses baru untuk akun kamu.</div>
+        <div class="form-group">
+          <label>Kode Verifikasi</label>
+          <input type="text" id="lupaKodeOtp" class="form-control" placeholder="6 angka" inputmode="numeric" maxlength="6" autocomplete="one-time-code">
+        </div>
+        <div class="form-group">
+          <label>Kode Akses Baru</label>
+          <input type="password" id="lupaKodeBaru" class="form-control" placeholder="Kode akses baru" autocomplete="new-password">
+        </div>
+        <div class="form-group">
+          <label>Konfirmasi Kode Akses Baru</label>
+          <input type="password" id="lupaKodeBaruKonfirmasi" class="form-control" placeholder="Ulangi kode akses baru" autocomplete="new-password">
+        </div>
+        <div class="forgot-timer" id="lupaKodeTimer">Kode berlaku selama 10:00</div>
+        <div class="forgot-actions">
+          <button type="button" class="forgot-btn-cancel" onclick="kembaliLupaKodeEmail()">KEMBALI</button>
+          <button type="button" class="forgot-btn-primary" id="btnVerifikasiLupaKode" onclick="verifikasiLupaKode()">PULIHKAN AKSES</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Konten Utama App ===== -->
+<div id="appContent" style="display:none;">
+
+
+  <div id="kelolaPenggunaModal" class="modal">
+    <div class="modal-header" style="background:#1e1e1e;">
+      <span style="cursor:pointer;" onclick="closeKelolaPengguna()">←</span>
+      <span>Kelola Pengguna</span>
+    </div>
+    <div class="container" style="padding-top: 12px;">
+      
+      <div class="card" id="cardPendingPengguna">
+        <div class="card-title" style="text-align:left; border-bottom:1px solid #2c2c2c; padding-bottom:8px; color:#ffb300;">
+          ⏳ Permintaan Pendaftaran (Pending)
+        </div>
+        <div id="daftarPendingContainer">
+          <div style="color:#888; text-align:center; font-size:13px; padding:10px;">Memuat...</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="text-align:left; border-bottom:1px solid #2c2c2c; padding-bottom:8px;">Tambah Pengguna Langsung</div>
+        <div class="form-group">
+          <label>Nama</label>
+          <input type="text" id="newUserNama" class="form-control" placeholder="Nama pengguna baru" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>Kode Akses</label>
+          <input type="text" id="newUserKode" class="form-control" placeholder="Contoh: 1234" autocomplete="off">
+        </div>
+        <button type="button" class="btn-submit" id="btnTambahUser" style="background:#4caf50;" onclick="tambahPenggunaBaru()">+ TAMBAH PENGGUNA</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="text-align:left; border-bottom:1px solid #2c2c2c; padding-bottom:8px;">Daftar Pengguna Aktif</div>
+        <div id="daftarPenggunaContainer">
+          <div style="color:#888; text-align:center; font-size:13px; padding:10px;">Memuat...</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Modal warning Kelola Pengguna: Setujui / Tolak -->
+  <div id="penggunaActionWarningModal" class="hp-delete-modal" aria-hidden="true">
+    <div class="hp-delete-backdrop" onclick="tutupPeringatanPenggunaAction()"></div>
+    <div class="hp-delete-dialog" role="dialog" aria-modal="true" aria-labelledby="penggunaActionWarningTitle">
+      <div class="hp-delete-top">
+        <div id="penggunaActionWarningIcon" class="hp-delete-icon">⚠️</div>
+        <div>
+          <div id="penggunaActionWarningTitle" class="hp-delete-title">Konfirmasi pendaftaran?</div>
+          <div id="penggunaActionWarningSubtitle" class="hp-delete-subtitle">Periksa kembali tindakan yang akan dilakukan.</div>
+        </div>
+      </div>
+
+      <div id="penggunaActionWarningName" class="hp-delete-name">Pengguna</div>
+
+      <div id="penggunaActionWarningMessage" class="hp-delete-warning">
+        ⚠️ <strong>Periksa kembali sebelum melanjutkan.</strong>
+      </div>
+
+      <div class="hp-delete-actions">
+        <button type="button" class="hp-delete-btn hp-delete-btn-cancel" onclick="tutupPeringatanPenggunaAction()">Batal</button>
+        <button id="penggunaActionWarningConfirm" type="button" class="hp-delete-btn hp-delete-btn-danger" onclick="konfirmasiPenggunaAction()">Ya, Lanjutkan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal warning Kelola Pengguna: Hapus -->
+  <div id="hapusPenggunaWarningModal" class="hp-delete-modal" aria-hidden="true">
+    <div class="hp-delete-backdrop" onclick="tutupHapusPenggunaWarningModal()"></div>
+    <div class="hp-delete-dialog" role="dialog" aria-modal="true" aria-labelledby="hapusPenggunaWarningTitle">
+      <div class="hp-delete-top">
+        <div class="hp-delete-icon">🗑️</div>
+        <div>
+          <div id="hapusPenggunaWarningTitle" class="hp-delete-title">Hapus pengguna?</div>
+          <div class="hp-delete-subtitle">Periksa kembali pengguna yang akan dihapus.</div>
+        </div>
+      </div>
+
+      <div id="hapusPenggunaWarningName" class="hp-delete-name">Pengguna</div>
+
+      <div class="hp-delete-warning">
+        ⚠️ <strong>Tindakan ini tidak dapat dibatalkan.</strong><br>
+        SEMUA data milik pengguna ini (transaksi, rekening, kategori, riwayat transfer, dan hutang piutang) akan ikut terhapus permanen.
+      </div>
+
+      <div class="hp-delete-actions">
+        <button type="button" class="hp-delete-btn hp-delete-btn-cancel" onclick="tutupHapusPenggunaWarningModal()">Batal</button>
+        <button type="button" class="hp-delete-btn hp-delete-btn-danger" onclick="konfirmasiHapusPengguna()">🗑️ Ya, Hapus</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Ganti Kode Akses -->
+  <div id="gantiKodeAksesModal" class="hp-delete-modal" aria-hidden="true">
+    <div class="hp-delete-backdrop" onclick="tutupGantiKodeAksesModal()"></div>
+    <div class="hp-delete-dialog" role="dialog" aria-modal="true" aria-labelledby="gantiKodeAksesTitle">
+      <div class="hp-delete-top">
+        <div class="hp-delete-icon">🔐</div>
+        <div>
+          <div id="gantiKodeAksesTitle" class="hp-delete-title">Ganti Kode Akses</div>
+          <div class="hp-delete-subtitle">Perubahan ini hanya berlaku untuk akun yang sedang kamu gunakan.</div>
+        </div>
+      </div>
+
+      <div id="gantiKodeAksesNama" class="hp-delete-name">Akun yang sedang digunakan</div>
+
+      <div style="display:grid; gap:10px; margin-top:12px;">
+        <div>
+          <label style="display:block; font-size:11px; color:#aaa; margin-bottom:5px;">Kode Akses Saat Ini</label>
+          <input id="kodeAksesSaatIni" type="password" autocomplete="current-password" class="form-control" placeholder="Masukkan kode saat ini">
+        </div>
+        <div>
+          <label style="display:block; font-size:11px; color:#aaa; margin-bottom:5px;">Kode Akses Baru</label>
+          <input id="kodeAksesBaru" type="password" autocomplete="new-password" class="form-control" placeholder="Masukkan kode baru">
+        </div>
+        <div>
+          <label style="display:block; font-size:11px; color:#aaa; margin-bottom:5px;">Konfirmasi Kode Baru</label>
+          <input id="konfirmasiKodeAksesBaru" type="password" autocomplete="new-password" class="form-control" placeholder="Ulangi kode baru">
+        </div>
+      </div>
+
+      <div id="gantiKodeAksesError" class="hp-form-validation" style="display:none; margin-top:10px;"></div>
+      <div id="gantiKodeAksesSuccess" style="display:none; margin-top:10px; padding:10px 12px; border-radius:10px; background:rgba(76,175,80,.10); border:1px solid rgba(76,175,80,.22); color:#b9e7bd; font-size:11px;"></div>
+
+      <div class="hp-delete-warning">
+        🔒 <strong>Kode akses adalah kunci masuk akun kamu.</strong><br>
+        Kamu harus mengetahui kode akses saat ini untuk menggantinya. Setelah berhasil, kamu akan diminta masuk kembali menggunakan kode baru.
+      </div>
+
+      <div class="hp-delete-actions">
+        <button type="button" class="hp-delete-btn hp-delete-btn-cancel" onclick="tutupGantiKodeAksesModal()">Batal</button>
+        <button type="button" id="btnGantiKodeAkses" class="hp-delete-btn" style="background:#1976d2;color:#fff;" onclick="submitGantiKodeAkses()">Simpan Kode Baru</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal konfirmasi keluar akun -->
+  <div id="logoutWarningModal" class="hp-delete-modal" aria-hidden="true">
+    <div class="hp-delete-backdrop" onclick="tutupLogoutWarningModal()"></div>
+    <div class="hp-delete-dialog" role="dialog" aria-modal="true" aria-labelledby="logoutWarningTitle">
+      <div class="hp-delete-top">
+        <div class="hp-delete-icon">🚪</div>
+        <div>
+          <div id="logoutWarningTitle" class="hp-delete-title">Keluar dari akun?</div>
+          <div class="hp-delete-subtitle">Kamu akan keluar dari sesi akun yang sedang digunakan.</div>
+        </div>
+      </div>
+
+      <div id="logoutWarningName" class="hp-delete-name">Akun yang sedang digunakan</div>
+
+      <div class="hp-delete-warning">
+        ⚠️ <strong>Pastikan kamu memang ingin keluar.</strong><br>
+        Data akun tetap tersimpan. Kamu hanya akan kembali ke halaman masuk dan perlu masuk kembali untuk melanjutkan.
+      </div>
+
+      <div class="hp-delete-actions">
+        <button type="button" class="hp-delete-btn hp-delete-btn-cancel" onclick="tutupLogoutWarningModal()">Batal</button>
+        <button type="button" class="hp-delete-btn hp-delete-btn-danger" onclick="konfirmasiLogout()">🚪 Ya, Keluar</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // ===== AUTH UI MODULE =====
+  var lupaKodeResetToken = '';
+  var lupaKodeTimerHandle = null;
+  var lupaKodeExpiresAt = 0;
+  var penggunaActionWarningState = { action: '', row: null, nama: '' };
+  var hapusPenggunaWarningState = { row: null, nama: '' };
+
+function switchAuthTab(type) {
+      var errBox = document.getElementById('loginError');
+      var succBox = document.getElementById('loginSuccess');
+      errBox.style.display = 'none';
+      succBox.style.display = 'none';
+
+      if (type === 'login') {
+        document.getElementById('tabLoginBtn').classList.add('active');
+        document.getElementById('tabRegisterBtn').classList.remove('active');
+        document.getElementById('loginForm').style.display = 'block';
+        document.getElementById('registerForm').style.display = 'none';
+      } else {
+        document.getElementById('tabRegisterBtn').classList.add('active');
+        document.getElementById('tabLoginBtn').classList.remove('active');
+        document.getElementById('registerForm').style.display = 'block';
+        document.getElementById('loginForm').style.display = 'none';
+      }
+    }
+
+function setLupaKodeStatus(message, type) {
+      var box = document.getElementById('lupaKodeStatus');
+      if (!box) return;
+      box.className = 'forgot-status ' + (type || 'error');
+      box.textContent = message || '';
+      box.style.display = message ? 'block' : 'none';
+    }
+
+function openLupaKodeAksesModal() {
+      var modal = document.getElementById('lupaKodeAksesModal');
+      if (!modal) return;
+      setLupaKodeStatus('', 'error');
+      document.getElementById('lupaKodeStepEmail').classList.add('active');
+      document.getElementById('lupaKodeStepVerify').classList.remove('active');
+      document.getElementById('lupaKodeNama').value = '';
+      document.getElementById('lupaKodeEmail').value = '';
+      document.getElementById('lupaKodeOtp').value = '';
+      document.getElementById('lupaKodeBaru').value = '';
+      document.getElementById('lupaKodeBaruKonfirmasi').value = '';
+      modal.style.display = 'flex';
+      setTimeout(function() {
+        var nama = document.getElementById('lupaKodeNama');
+        if (nama) nama.focus();
+      }, 80);
+    }
+
+function closeLupaKodeAksesModal() {
+      var modal = document.getElementById('lupaKodeAksesModal');
+      if (modal) modal.style.display = 'none';
+      lupaKodeResetToken = '';
+      lupaKodeExpiresAt = 0;
+      if (lupaKodeTimerHandle) {
+        clearInterval(lupaKodeTimerHandle);
+        lupaKodeTimerHandle = null;
+      }
+    }
+
+function mulaiTimerLupaKode() {
+      if (lupaKodeTimerHandle) clearInterval(lupaKodeTimerHandle);
+      lupaKodeExpiresAt = Date.now() + (10 * 60 * 1000);
+      var timer = document.getElementById('lupaKodeTimer');
+      function tick() {
+        var left = Math.max(0, lupaKodeExpiresAt - Date.now());
+        var sec = Math.floor(left / 1000);
+        var min = Math.floor(sec / 60);
+        sec = sec % 60;
+        if (timer) timer.textContent = left > 0
+          ? 'Kode berlaku selama ' + String(min).padStart(2, '0') + ':' + String(sec).padStart(2, '0')
+          : 'Kode sudah kedaluwarsa. Silakan minta kode baru.';
+        if (left <= 0 && lupaKodeTimerHandle) {
+          clearInterval(lupaKodeTimerHandle);
+          lupaKodeTimerHandle = null;
+        }
+      }
+      tick();
+      lupaKodeTimerHandle = setInterval(tick, 1000);
+    }
+
+function kembaliLupaKodeEmail() {
+      document.getElementById('lupaKodeStepVerify').classList.remove('active');
+      document.getElementById('lupaKodeStepEmail').classList.add('active');
+      setLupaKodeStatus('', 'error');
+      lupaKodeResetToken = '';
+      if (lupaKodeTimerHandle) clearInterval(lupaKodeTimerHandle);
+      lupaKodeTimerHandle = null;
+    }
+
+function kirimOTP_LupaKode() {
+      var nama = document.getElementById('lupaKodeNama').value.trim();
+      var email = document.getElementById('lupaKodeEmail').value.trim();
+      var btn = document.getElementById('btnKirimLupaKode');
+
+      setLupaKodeStatus('', 'error');
+
+      if (!nama) {
+        setLupaKodeStatus('Masukkan Nama Akun terlebih dahulu.', 'error');
+        return;
+      }
+      if (!email) {
+        setLupaKodeStatus('Masukkan email akun terlebih dahulu.', 'error');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = 'MENGIRIM...';
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          btn.disabled = false;
+          btn.innerText = 'KIRIM KODE';
+
+          if (res && res.sukses && res.dikirim && res.token) {
+            lupaKodeResetToken = res.token;
+            document.getElementById('lupaKodeStepEmail').classList.remove('active');
+            document.getElementById('lupaKodeStepVerify').classList.add('active');
+            setLupaKodeStatus(res.pesan || 'Kode verifikasi telah dikirim ke email akun kamu.', 'success');
+            mulaiTimerLupaKode();
+            document.getElementById('lupaKodeOtp').focus();
+          } else if (res && res.sukses) {
+            setLupaKodeStatus(
+              res.pesan || 'Jika kombinasi Nama Akun dan email terdaftar, kode verifikasi akan dikirim.',
+              'success'
+            );
+          } else {
+            setLupaKodeStatus(res && res.pesan ? res.pesan : 'Gagal mengirim kode verifikasi.', 'error');
+          }
+        })
+        .withFailureHandler(function(err) {
+          btn.disabled = false;
+          btn.innerText = 'KIRIM KODE';
+          setLupaKodeStatus('Gagal mengirim kode verifikasi: ' + (err ? err.message : 'Error'), 'error');
+        })
+        .lupaKodeAksesKirimOTP(nama, email);
+    }
+
+function verifikasiLupaKode() {
+      var otp = document.getElementById('lupaKodeOtp').value.trim();
+      var baru = document.getElementById('lupaKodeBaru').value.trim();
+      var konfirmasi = document.getElementById('lupaKodeBaruKonfirmasi').value.trim();
+      var btn = document.getElementById('btnVerifikasiLupaKode');
+
+      setLupaKodeStatus('', 'error');
+      if (!lupaKodeResetToken) {
+        setLupaKodeStatus('Sesi pemulihan tidak tersedia. Silakan minta kode baru.', 'error');
+        return;
+      }
+      if (!/^\d{6}$/.test(otp)) {
+        setLupaKodeStatus('Kode verifikasi harus terdiri dari 6 angka.', 'error');
+        return;
+      }
+      if (baru.length < 4) {
+        setLupaKodeStatus('Kode akses baru minimal 4 karakter.', 'error');
+        return;
+      }
+      if (baru !== konfirmasi) {
+        setLupaKodeStatus('Konfirmasi kode akses baru tidak sama.', 'error');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = 'MEMPROSES...';
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          btn.disabled = false;
+          btn.innerText = 'PULIHKAN AKSES';
+          if (res && res.sukses) {
+            closeLupaKodeAksesModal();
+            var errBox = document.getElementById('loginError');
+            var succBox = document.getElementById('loginSuccess');
+            if (errBox) { errBox.style.display = 'none'; errBox.textContent = ''; }
+            if (succBox) {
+              succBox.textContent = res.pesan || 'Kode akses berhasil dipulihkan. Silakan login kembali.';
+              succBox.style.display = 'block';
+            }
+            switchAuthTab('login');
+            var namaInput = document.getElementById('loginNama');
+            var kodeInput = document.getElementById('loginKode');
+            if (namaInput && res.nama) namaInput.value = res.nama;
+            if (kodeInput) {
+              kodeInput.value = '';
+              kodeInput.focus();
+            }
+          } else {
+            setLupaKodeStatus(res && res.pesan ? res.pesan : 'Kode akses belum berhasil dipulihkan.', 'error');
+          }
+        })
+        .withFailureHandler(function(err) {
+          btn.disabled = false;
+          btn.innerText = 'PULIHKAN AKSES';
+          setLupaKodeStatus('Gagal memproses pemulihan: ' + (err ? err.message : 'Error'), 'error');
+        })
+        .lupaKodeAksesVerifikasiOTP(lupaKodeResetToken, otp, baru);
+    }
+
+var STORAGE_KEY_REMEMBER_TOKEN = 'catatanKeuanganRememberToken';
+var rememberLoginInProgress = false;
+
+function simpanSesiIngatSaya(token) {
+      if (!token) {
+        localStorage.removeItem(STORAGE_KEY_REMEMBER_TOKEN);
+        return;
+      }
+      localStorage.setItem(STORAGE_KEY_REMEMBER_TOKEN, token);
+    }
+
+function hapusSesiIngatSayaLokal() {
+      localStorage.removeItem(STORAGE_KEY_REMEMBER_TOKEN);
+    }
+
+function cekSesiIngatSaya() {
+      if (rememberLoginInProgress) return;
+      var token = localStorage.getItem(STORAGE_KEY_REMEMBER_TOKEN);
+      if (!token) return;
+
+      rememberLoginInProgress = true;
+      var btn = document.getElementById('btnLogin');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = 'MEMULIHKAN SESI...';
+      }
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          rememberLoginInProgress = false;
+          if (btn) {
+            btn.disabled = false;
+            btn.innerText = 'MASUK';
+          }
+
+          if (res && res.sukses) {
+            userKey = res.userKey;
+            namaPengguna = res.nama;
+            tampilkanApp();
+            return;
+          }
+
+          hapusSesiIngatSayaLokal();
+          tampilkanLogin();
+        })
+        .withFailureHandler(function() {
+          rememberLoginInProgress = false;
+          if (btn) {
+            btn.disabled = false;
+            btn.innerText = 'MASUK';
+          }
+          hapusSesiIngatSayaLokal();
+          tampilkanLogin();
+        })
+        .validasiSesiIngatSaya(token);
+    }
+
+function prosesLogin() {
+      var nama = document.getElementById('loginNama').value.trim();
+      var kode = document.getElementById('loginKode').value.trim();
+      var rememberCheckbox = document.getElementById('ingatSayaLogin');
+      var ingatSaya = !!(rememberCheckbox && rememberCheckbox.checked);
+      var errBox = document.getElementById('loginError');
+      var succBox = document.getElementById('loginSuccess');
+      var btn = document.getElementById('btnLogin');
+
+      errBox.style.display = 'none';
+      succBox.style.display = 'none';
+      if (!nama || !kode) return;
+
+      btn.innerText = 'MEMERIKSA...';
+      btn.disabled = true;
+
+      google.script.run
+        .withSuccessHandler(function(hasil) {
+          btn.innerText = 'MASUK';
+          btn.disabled = false;
+          if (hasil && hasil.sukses) {
+            userKey = hasil.userKey;
+            namaPengguna = hasil.nama;
+
+            localStorage.removeItem(STORAGE_KEY_USERKEY);
+            localStorage.removeItem(STORAGE_KEY_NAMA);
+
+            if (ingatSaya) {
+              google.script.run
+                .withSuccessHandler(function(sesi) {
+                  if (sesi && sesi.sukses && sesi.token) {
+                    simpanSesiIngatSaya(sesi.token);
+                  } else {
+                    hapusSesiIngatSayaLokal();
+                  }
+                  tampilkanApp();
+                })
+                .withFailureHandler(function() {
+                  hapusSesiIngatSayaLokal();
+                  tampilkanApp();
+                })
+                .buatSesiIngatSaya(userKey);
+            } else {
+              hapusSesiIngatSayaLokal();
+              tampilkanApp();
+            }
+          } else {
+            errBox.innerText = hasil.pesan || 'Nama atau Kode Akses salah.';
+            errBox.style.display = 'block';
+          }
+        })
+        .withFailureHandler(function(err) {
+          btn.innerText = 'MASUK';
+          btn.disabled = false;
+          errBox.innerText = 'Gagal memeriksa login: ' + (err ? err.message : 'Error');
+          errBox.style.display = 'block';
+        })
+        .cekLogin(nama, kode);
+    }
+
+function prosesRegister() {
+      var nama = document.getElementById('regNama').value.trim();
+      var kode = document.getElementById('regKode').value.trim();
+      var email = document.getElementById('regEmail').value.trim();
+
+      var errBox = document.getElementById('loginError');
+      var succBox = document.getElementById('loginSuccess');
+      var btn = document.getElementById('btnRegister');
+
+      errBox.style.display = 'none';
+      succBox.style.display = 'none';
+
+      if (!nama || !kode) {
+        errBox.innerText = 'Nama dan Kode Akses wajib diisi!';
+        errBox.style.display = 'block';
+        return;
+      }
+
+      if (!email) {
+        errBox.innerText = 'Email wajib diisi untuk membuat akun. Email digunakan untuk konfirmasi dan pemulihan kode akses.';
+        errBox.style.display = 'block';
+        document.getElementById('regEmail').focus();
+        return;
+      }
+
+      if (!/^\S+@\S+\.\S+$/.test(email)) {
+        errBox.innerText = 'Masukkan alamat email yang valid.';
+        errBox.style.display = 'block';
+        document.getElementById('regEmail').focus();
+        return;
+      }
+
+      btn.innerText = 'MENDAFTAR...';
+      btn.disabled = true;
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          btn.innerText = 'DAFTAR AKUN';
+          btn.disabled = false;
+          if (res && res.sukses) {
+            succBox.innerText = res.pesan;
+            succBox.style.display = 'block';
+            document.getElementById('regNama').value = '';
+            document.getElementById('regKode').value = '';
+            document.getElementById('regEmail').value = '';
+            setTimeout(function() { switchAuthTab('login'); }, 3000);
+          } else {
+            errBox.innerText = res.pesan || 'Gagal mendaftar.';
+            errBox.style.display = 'block';
+          }
+        })
+        .withFailureHandler(function(err) {
+          btn.innerText = 'DAFTAR AKUN';
+          btn.disabled = false;
+          errBox.innerText = 'Terjadi kesalahan: ' + (err ? err.message : 'Error');
+          errBox.style.display = 'block';
+        })
+        .daftarPenggunaBaru(nama, kode, email);
+    }
+
+function openGantiKodeAksesModal() {
+      var menu = document.getElementById('menuDropdown');
+      if (menu) menu.style.display = 'none';
+
+      var modal = document.getElementById('gantiKodeAksesModal');
+      if (!modal) return;
+
+      var form = document.getElementById('gantiKodeAksesForm');
+      var err = document.getElementById('gantiKodeAksesError');
+      var success = document.getElementById('gantiKodeAksesSuccess');
+      if (form) form.reset();
+      if (err) { err.style.display = 'none'; err.textContent = ''; }
+      if (success) { success.style.display = 'none'; success.textContent = ''; }
+
+      var namaEl = document.getElementById('gantiKodeAksesNama');
+      if (namaEl) namaEl.textContent = namaPengguna ? ('Akun: ' + namaPengguna) : 'Akun yang sedang digunakan';
+
+      modal.classList.add('show');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('hp-delete-modal-open');
+
+      var oldEl = document.getElementById('kodeAksesSaatIni');
+      if (oldEl) setTimeout(function() { oldEl.focus(); }, 80);
+    }
+
+function tutupGantiKodeAksesModal() {
+      var modal = document.getElementById('gantiKodeAksesModal');
+      if (modal) {
+        modal.classList.remove('show');
+        modal.setAttribute('aria-hidden', 'true');
+      }
+      document.body.classList.remove('hp-delete-modal-open');
+    }
+
+function tampilkanErrorGantiKodeAkses(pesan) {
+      var err = document.getElementById('gantiKodeAksesError');
+      var success = document.getElementById('gantiKodeAksesSuccess');
+      if (success) success.style.display = 'none';
+      if (err) {
+        err.textContent = pesan || 'Kode akses gagal diubah.';
+        err.style.display = 'block';
+      }
+    }
+
+function submitGantiKodeAkses() {
+      var oldEl = document.getElementById('kodeAksesSaatIni');
+      var newEl = document.getElementById('kodeAksesBaru');
+      var confirmEl = document.getElementById('konfirmasiKodeAksesBaru');
+      var btn = document.getElementById('btnGantiKodeAkses');
+
+      var oldCode = oldEl ? oldEl.value.trim() : '';
+      var newCode = newEl ? newEl.value.trim() : '';
+      var confirmCode = confirmEl ? confirmEl.value.trim() : '';
+
+      if (!oldCode || !newCode || !confirmCode) {
+        tampilkanPeringatanInput(
+          'Semua kode wajib diisi!',
+          'Keamanan Akun',
+          'Isi kode akses saat ini, kode akses baru, dan konfirmasi kode baru.'
+        );
+        return;
+      }
+
+      if (newCode !== confirmCode) {
+        tampilkanPeringatanInput(
+          'Konfirmasi kode akses baru tidak sama.',
+          'Keamanan Akun',
+          'Pastikan kode akses baru dan konfirmasinya benar-benar sama.'
+        );
+        return;
+      }
+
+      if (oldCode === newCode) {
+        tampilkanPeringatanInput(
+          'Kode akses baru harus berbeda.',
+          'Keamanan Akun',
+          'Gunakan kode akses baru yang berbeda dari kode saat ini.'
+        );
+        return;
+      }
+
+      var err = document.getElementById('gantiKodeAksesError');
+      var success = document.getElementById('gantiKodeAksesSuccess');
+      if (err) { err.style.display = 'none'; err.textContent = ''; }
+      if (success) { success.style.display = 'none'; success.textContent = ''; }
+
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'MEMPROSES...';
+      }
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (btn) {
+            btn.disabled = false;
+            btn.textContent = 'Simpan Kode Baru';
+          }
+
+          if (!res || !res.sukses) {
+            tampilkanErrorGantiKodeAkses(res && res.pesan ? res.pesan : 'Kode akses gagal diubah.');
+            return;
+          }
+
+          // Jangan meneruskan sesi lama karena userKey memang berubah.
+          // Kembalikan user ke layar login secara live agar kode baru langsung diuji.
+          tutupGantiKodeAksesModal();
+          localStorage.removeItem(STORAGE_KEY_USERKEY);
+          localStorage.removeItem(STORAGE_KEY_NAMA);
+          userKey = '';
+          namaPengguna = '';
+
+          var loginSuccess = document.getElementById('loginSuccess');
+          var loginError = document.getElementById('loginError');
+          if (loginError) { loginError.style.display = 'none'; loginError.textContent = ''; }
+          if (loginSuccess) {
+            loginSuccess.textContent = 'Kode akses berhasil diubah. Silakan masuk kembali menggunakan kode baru.';
+            loginSuccess.style.display = 'block';
+          }
+
+          tampilkanLogin();
+          switchAuthTab('login');
+          var loginNama = document.getElementById('loginNama');
+          var loginKode = document.getElementById('loginKode');
+          if (loginNama) {
+            loginNama.value = res.nama || '';
+            loginNama.focus();
+          }
+          if (loginKode) loginKode.value = '';
+        })
+        .withFailureHandler(function(errObj) {
+          if (btn) {
+            btn.disabled = false;
+            btn.textContent = 'Simpan Kode Baru';
+          }
+          tampilkanErrorGantiKodeAkses(
+            errObj && errObj.message ? errObj.message : 'Terjadi kesalahan saat mengubah kode akses.'
+          );
+        })
+        .gantiKodeAkses(userKey, oldCode, newCode);
+    }
+
+function logout() {
+      var modal = document.getElementById('logoutWarningModal');
+      if (!modal) {
+        // Fallback aman jika modal belum tersedia.
+        if (!confirm('Keluar dari akun ini?')) return;
+        prosesLogout();
+        return;
+      }
+
+      var nameEl = document.getElementById('logoutWarningName');
+      if (nameEl) {
+        nameEl.textContent = namaPengguna ? ('Akun: ' + namaPengguna) : 'Akun yang sedang digunakan';
+      }
+
+      modal.classList.add('show');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('hp-delete-modal-open');
+    }
+
+function tutupLogoutWarningModal() {
+      var modal = document.getElementById('logoutWarningModal');
+      if (modal) {
+        modal.classList.remove('show');
+        modal.setAttribute('aria-hidden', 'true');
+      }
+      document.body.classList.remove('hp-delete-modal-open');
+    }
+
+function prosesLogout() {
+      var rememberToken = localStorage.getItem(STORAGE_KEY_REMEMBER_TOKEN);
+      hapusSesiIngatSayaLokal();
+
+      if (rememberToken) {
+        google.script.run
+          .withSuccessHandler(function() {})
+          .withFailureHandler(function() {})
+          .cabutSesiIngatSaya(rememberToken);
+      }
+
+      localStorage.removeItem(STORAGE_KEY_USERKEY);
+      localStorage.removeItem(STORAGE_KEY_NAMA);
+      try {
+        sessionStorage.clear();
+      } catch (e) {}
+
+      userKey = '';
+      namaPengguna = '';
+
+      var loginNama = document.getElementById('loginNama');
+      var loginKode = document.getElementById('loginKode');
+      var rememberCheckbox = document.getElementById('ingatSayaLogin');
+      var loginError = document.getElementById('loginError');
+      var loginSuccess = document.getElementById('loginSuccess');
+
+      if (loginNama) loginNama.value = '';
+      if (loginKode) loginKode.value = '';
+      if (rememberCheckbox) rememberCheckbox.checked = false;
+      if (loginError) {
+        loginError.style.display = 'none';
+        loginError.textContent = '';
+      }
+      if (loginSuccess) {
+        loginSuccess.style.display = 'none';
+        loginSuccess.textContent = '';
+      }
+
+      tampilkanLogin();
+      switchAuthTab('login');
+    }
+
+function konfirmasiLogout() {
+      tutupLogoutWarningModal();
+      prosesLogout();
+    }
+
+function tampilkanApp() {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('appContent').style.display = 'block';
+      document.getElementById('namaPenggunaLabel').innerText = namaPengguna;
+      inisialisasiApp();
+
+      // Sambutan muncul setiap kali aplikasi dibuka, kecuali pengguna
+      // sudah memilih "Jangan tampilkan lagi" untuk akun ini di browser ini.
+      if (shouldShowWelcomeApp()) {
+        setTimeout(showWelcomeApp, 120);
+      }
+    }
+
+function tampilkanLogin() {
+      document.getElementById('appContent').style.display = 'none';
+      document.getElementById('loginScreen').style.display = 'flex';
+    }
+
+setTimeout(cekSesiIngatSaya, 0);
+
+function openKelolaPengguna() {
+      document.getElementById('menuDropdown').style.display = 'none';
+
+      if (!isAdmin) {
+        alert('Hanya admin yang bisa mengakses fitur Kelola Pengguna.');
+        return;
+      }
+
+      document.getElementById('newUserNama').value = '';
+      document.getElementById('newUserKode').value = '';
+      document.getElementById('kelolaPenggunaModal').style.display = 'block';
+      muatDaftarPending();
+      muatDaftarPengguna();
+    }
+
+function closeKelolaPengguna() {
+      document.getElementById('kelolaPenggunaModal').style.display = 'none';
+    }
+
+function muatDaftarPending() {
+      var container = document.getElementById('daftarPendingContainer');
+      container.innerHTML = '<div style="color:#888; text-align:center; font-size:13px; padding:10px;">Memuat...</div>';
+
+      google.script.run
+        .withSuccessHandler(function(list) {
+          if (!list || list.length === 0) {
+            container.innerHTML = '<div style="color:#888; text-align:center; font-size:13px; padding:10px;">Tidak ada permintaan pendaftaran pending.</div>';
+            return;
+          }
+          container.innerHTML = '';
+          list.forEach(function(u) {
+            var row = document.createElement('div');
+            row.className = 'tx-item';
+            row.style.background = '#282415';
+            row.style.padding = '10px';
+            row.style.borderRadius = '8px';
+            row.style.marginBottom = '6px';
+            row.innerHTML = `
+              <div class="tx-left">
+                <div class="tx-icon">⏳</div>
+                <div class="tx-info">
+                  <div class="title">${u.nama}</div>
+                  <div class="subtitle">Kode: ${u.kode} • ${u.email ? u.email : 'Tanpa Email'}</div>
+                  <div style="font-size:10px; color:#777; margin-top:2px;">Tgl: ${u.tanggal}</div>
+                </div>
+              </div>
+              <div class="tx-right" style="display:flex; gap:6px;">
+                <button style="background:#4caf50; border:none; color:white; padding:6px 10px; border-radius:6px; font-weight:bold; font-size:12px; cursor:pointer;">Setujui</button>
+                <button style="background:#f44336; border:none; color:white; padding:6px 10px; border-radius:6px; font-weight:bold; font-size:12px; cursor:pointer;">Tolak</button>
+              </div>
+            `;
+            var btns = row.querySelectorAll('button');
+            btns[0].onclick = function() { setujuiPenggunaItem(u.row, u.nama); };
+            btns[1].onclick = function() { tolakPenggunaItem(u.row, u.nama); };
+            container.appendChild(row);
+          });
+        })
+        .withFailureHandler(function(err) {
+          container.innerHTML = '<div style="color:#f44336; text-align:center; font-size:13px; padding:10px;">Gagal memuat: ' + (err ? err.message : 'Error') + '</div>';
+        })
+        .getDaftarPenggunaPending(userKey);
+    }
+
+function setujuiPenggunaItem(row, nama) {
+      bukaPeringatanPenggunaAction('setujui', row, nama);
+    }
+
+function tolakPenggunaItem(row, nama) {
+      bukaPeringatanPenggunaAction('tolak', row, nama);
+    }
+
+function bukaPeringatanPenggunaAction(action, row, nama) {
+      penggunaActionWarningState = { action: action, row: row, nama: nama };
+
+      var modal = document.getElementById('penggunaActionWarningModal');
+      if (!modal) return;
+
+      var iconEl = document.getElementById('penggunaActionWarningIcon');
+      var titleEl = document.getElementById('penggunaActionWarningTitle');
+      var subtitleEl = document.getElementById('penggunaActionWarningSubtitle');
+      var nameEl = document.getElementById('penggunaActionWarningName');
+      var warningEl = document.getElementById('penggunaActionWarningMessage');
+      var confirmBtn = document.getElementById('penggunaActionWarningConfirm');
+
+      var isSetujui = action === 'setujui';
+
+      if (iconEl) iconEl.textContent = isSetujui ? '✓' : '⚠️';
+      if (titleEl) titleEl.textContent = isSetujui ? 'Setujui pendaftaran?' : 'Tolak pendaftaran?';
+      if (subtitleEl) {
+        subtitleEl.textContent = isSetujui
+          ? 'Pastikan data pengguna ini memang sudah siap untuk disetujui.'
+          : 'Pastikan kamu memang ingin menolak permintaan pendaftaran ini.';
+      }
+      if (nameEl) nameEl.textContent = nama || 'Pengguna';
+      if (warningEl) {
+        warningEl.innerHTML = isSetujui
+          ? '✓ <strong>Akun akan menjadi pengguna aktif.</strong><br>Setelah disetujui, pengguna dapat masuk dan menggunakan aplikasi sesuai hak aksesnya.'
+          : '⚠️ <strong>Pendaftaran ini akan ditolak.</strong><br>Permintaan pendaftaran tidak akan diproses menjadi akun aktif.';
+      }
+      if (confirmBtn) {
+        confirmBtn.textContent = isSetujui ? '✓ Ya, Setujui' : '✕ Ya, Tolak';
+        confirmBtn.classList.toggle('hp-delete-btn-success', isSetujui);
+        confirmBtn.classList.toggle('hp-delete-btn-danger', !isSetujui);
+      }
+
+      modal.classList.add('show');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('hp-delete-modal-open');
+    }
+
+function tutupPeringatanPenggunaAction() {
+      var modal = document.getElementById('penggunaActionWarningModal');
+      if (modal) {
+        modal.classList.remove('show');
+        modal.setAttribute('aria-hidden', 'true');
+      }
+      document.body.classList.remove('hp-delete-modal-open');
+      penggunaActionWarningState = { action: '', row: null, nama: '' };
+    }
+
+function konfirmasiPenggunaAction() {
+      var state = penggunaActionWarningState;
+      if (!state || !state.action || state.row === null || !state.nama) return;
+
+      tutupPeringatanPenggunaAction();
+
+      if (state.action === 'setujui') {
+        google.script.run
+          .withSuccessHandler(function() {
+            alert('Akun "' + state.nama + '" telah DISETUJUI.');
+            muatDaftarPending();
+            muatDaftarPengguna();
+          })
+          .withFailureHandler(function(err) {
+            alert('Gagal menyetujui: ' + (err ? err.message : 'Error'));
+          })
+          .setujuiPengguna(state.row, userKey);
+        return;
+      }
+
+      google.script.run
+        .withSuccessHandler(function() {
+          alert('Pendaftaran akun "' + state.nama + '" ditolak.');
+          muatDaftarPending();
+        })
+        .withFailureHandler(function(err) {
+          alert('Gagal menolak: ' + (err ? err.message : 'Error'));
+        })
+        .tolakPengguna(state.row, userKey);
+    }
+
+function muatDaftarPengguna() {
+      var container = document.getElementById('daftarPenggunaContainer');
+      container.innerHTML = '<div style="color:#888; text-align:center; font-size:13px; padding:10px;">Memuat...</div>';
+
+      google.script.run
+        .withSuccessHandler(function(list) {
+          if (!list || list.length === 0) {
+            container.innerHTML = '<div style="color:#888; text-align:center; font-size:13px; padding:10px;">Belum ada pengguna aktif.</div>';
+            return;
+          }
+          container.innerHTML = '';
+          list.forEach(function(u) {
+            var row = document.createElement('div');
+            row.className = 'tx-item';
+            row.innerHTML = `
+              <div class="tx-left">
+                <div class="tx-icon">${u.admin ? '👑' : '👤'}</div>
+                <div class="tx-info">
+                  <div class="title">${u.nama}${u.nama === namaPengguna ? ' (kamu)' : ''}</div>
+                  <div class="subtitle">Kode akses: ${u.kode}</div>
+                </div>
+              </div>
+              <div class="tx-right">
+                <button class="menu-dots-btn" style="color:#f44336; font-size:13px; font-weight:bold;">🗑️ Hapus</button>
+              </div>
+            `;
+            var btnHapus = row.querySelector('button');
+            btnHapus.onclick = function() { hapusPenggunaItem(u.row, u.nama); };
+            container.appendChild(row);
+          });
+        })
+        .withFailureHandler(function(err) {
+          container.innerHTML = '<div style="color:#f44336; text-align:center; font-size:13px; padding:10px;">Gagal memuat: ' + (err ? err.message : 'Error') + '</div>';
+        })
+        .getDaftarPengguna(userKey);
+    }
+
+function tambahPenggunaBaru() {
+      var nama = document.getElementById('newUserNama').value.trim();
+      var kode = document.getElementById('newUserKode').value.trim();
+      if (!nama || !kode) return tampilkanPeringatanInput('Nama dan Kode Akses wajib diisi!', 'Kelola Pengguna', 'Isi nama pengguna dan kode akses sebelum menekan tombol Simpan.');
+
+      var btn = document.getElementById('btnTambahUser');
+      btn.innerText = 'MENYIMPAN...';
+      btn.disabled = true;
+
+      google.script.run
+        .withSuccessHandler(function(hasil) {
+          btn.innerText = '+ TAMBAH PENGGUNA';
+          btn.disabled = false;
+          if (hasil === 'Ditolak') {
+            alert('Kamu tidak punya izin untuk menambah pengguna.');
+            return;
+          }
+          document.getElementById('newUserNama').value = '';
+          document.getElementById('newUserKode').value = '';
+          muatDaftarPengguna();
+        })
+        .withFailureHandler(function(err) {
+          btn.innerText = '+ TAMBAH PENGGUNA';
+          btn.disabled = false;
+          alert('Gagal menambah pengguna: ' + (err ? err.message : 'Error'));
+        })
+        .tambahPengguna(nama, kode, userKey);
+    }
+
+function hapusPenggunaItem(row, nama) {
+      if (nama === namaPengguna) {
+        tampilkanPeringatanInput(
+          'Akun yang sedang digunakan tidak dapat dihapus.',
+          'Kelola Pengguna',
+          'Keluar terlebih dahulu dari akun ini, lalu gunakan akun Admin lain untuk menghapus pengguna tersebut.'
+        );
+        return;
+      }
+
+      hapusPenggunaWarningState = { row: row, nama: nama };
+
+      var modal = document.getElementById('hapusPenggunaWarningModal');
+      if (!modal) return;
+
+      var nameEl = document.getElementById('hapusPenggunaWarningName');
+      if (nameEl) nameEl.textContent = nama || 'Pengguna';
+
+      modal.classList.add('show');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('hp-delete-modal-open');
+    }
+
+function tutupHapusPenggunaWarningModal() {
+      var modal = document.getElementById('hapusPenggunaWarningModal');
+      if (modal) {
+        modal.classList.remove('show');
+        modal.setAttribute('aria-hidden', 'true');
+      }
+      document.body.classList.remove('hp-delete-modal-open');
+      hapusPenggunaWarningState = { row: null, nama: '' };
+    }
+
+function konfirmasiHapusPengguna() {
+      var state = hapusPenggunaWarningState;
+      if (!state || state.row === null || !state.nama) return;
+
+      tutupHapusPenggunaWarningModal();
+
+      google.script.run
+        .withSuccessHandler(function(hasil) {
+          if (hasil === 'Ditolak') {
+            alert('Kamu tidak punya izin untuk menghapus pengguna.');
+            return;
+          }
+          muatDaftarPengguna();
+        })
+        .withFailureHandler(function(err) {
+          alert('Gagal menghapus pengguna: ' + (err ? err.message : 'Error'));
+        })
+        .hapusPengguna(state.row, userKey);
+    }
+
+function cekStatusAdmin() {
+      google.script.run
+        .withSuccessHandler(function(adminStatus) {
+          isAdmin = !!adminStatus;
+          document.getElementById('menuKelolaPenggunaBtn').style.display = isAdmin ? 'flex' : 'none';
+        })
+        .withFailureHandler(function() {
+          isAdmin = false;
+          document.getElementById('menuKelolaPenggunaBtn').style.display = 'none';
+        })
+        .cekApakahAdmin(userKey);
+    }
+</script>

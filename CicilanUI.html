@@ -1,0 +1,1467 @@
+<!--
+CicilanUI.html
+MODUL UI CICILAN TERPISAH
+Dipanggil dari Form.html menggunakan:
+-->
+
+<style id="cicilan-ui-style">
+  #cicilanModalSplit{display:none;position:fixed;inset:0;z-index:10050;background:#121212;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  #cicilanModalSplit .cicilan-shell{min-height:100%;max-width:860px;margin:0 auto;background:#121212}
+  #cicilanModalSplit .cicilan-header{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;padding:14px 18px;background:#1b1b1b;border-bottom:1px solid #303030;color:#fff;box-shadow:0 4px 18px rgba(0,0,0,.18)}
+  #cicilanModalSplit .cicilan-back{border:0;background:transparent;color:#fff;font-size:24px;cursor:pointer;padding:2px 8px;line-height:1}
+  #cicilanModalSplit .cicilan-title{font-size:17px;font-weight:800;flex:1;text-align:center;letter-spacing:.1px}
+  #cicilanModalSplit .cicilan-add{border:0;background:#a925bd;color:#fff;border-radius:10px;padding:9px 14px;font-weight:800;cursor:pointer;box-shadow:0 5px 14px rgba(169,37,189,.22)}
+  #cicilanModalSplit .cicilan-body{padding:14px}
+  #cicilanModalSplit .cicilan-card{background:linear-gradient(180deg,#1e1e1e,#1b1b1b);border:1px solid #303030;border-radius:15px;padding:14px;margin-bottom:12px;box-shadow:0 8px 24px rgba(0,0,0,.14)}
+  #cicilanModalSplit .cicilan-card-title{display:flex;align-items:center;justify-content:space-between;gap:10px;font-weight:800;color:#fff;margin-bottom:12px;font-size:17px}
+  #cicilanModalSplit .cicilan-badge{font-size:11px;border-radius:999px;padding:5px 9px;background:#203323;color:#72e184;white-space:nowrap;font-weight:800}
+  #cicilanModalSplit .cicilan-badge.late{background:#3a1717;color:#ff8a80}.cicilan-badge.today{background:#3a2c17;color:#ffcc80}
+  #cicilanModalSplit .cicilan-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  #cicilanModalSplit .cicilan-item{background:#242424;border-radius:10px;padding:10px 11px;min-width:0}
+  #cicilanModalSplit .cicilan-label{color:#858585;font-size:11px}.cicilan-value{color:#fff;font-size:13px;font-weight:800;margin-top:4px;overflow:hidden;text-overflow:ellipsis}
+  #cicilanModalSplit .cicilan-due{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;padding:10px 11px;background:#202020;border-radius:10px}
+  #cicilanModalSplit .cicilan-due-main{display:flex;align-items:center;gap:9px;min-width:0}.cicilan-calendar-icon{color:#c13bd1;font-size:18px;line-height:1}.cicilan-due-label{color:#858585;font-size:10px}.cicilan-due-value{color:#fff;font-size:13px;font-weight:800;margin-top:2px}
+  #cicilanModalSplit .cicilan-empty{text-align:center;color:#888;padding:30px 12px;border:1px dashed #333;border-radius:12px}
+  .cicilan-notification-info{display:flex;align-items:center;gap:10px;margin:0 0 14px;padding:10px 12px;background:linear-gradient(180deg,#202020,#1b1b1b);border:1px solid #343434;border-radius:12px;box-sizing:border-box;min-width:0}
+  .cicilan-notification-icon{width:32px;height:32px;flex:0 0 32px;display:flex;align-items:center;justify-content:center;border-radius:9px;background:#2a2030;border:1px solid #49364f;font-size:16px}
+  .cicilan-notification-main{min-width:0;flex:1}
+  .cicilan-notification-label{color:#858585;font-size:10px;margin-bottom:3px}
+  .cicilan-notification-email{color:#fff;font-size:12px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cicilan-notification-status{color:#74e487;font-size:10px;font-weight:800;white-space:nowrap}
+  .cicilan-notification-status.off{color:#999}
+  #cicilanNotificationSettingsSplit{display:none;margin:0 0 14px;padding:14px;background:linear-gradient(180deg,#202020,#1b1b1b);border:1px solid #343434;border-radius:14px}
+  .notif-schedule-notice{margin-top:9px;padding:9px 11px;background:#1d1d1d;border:1px solid #303030;border-radius:9px;color:#777;font-size:9px;line-height:1.45}
+  .notif-schedule-notice-title{color:#aaa;font-size:10px;font-weight:800;margin-bottom:3px}
+  .notif-schedule-notice-text{color:#666}.notif-schedule-notice-text b{color:#858585;font-weight:700}
+  .cicilan-notification-settings-in-form{margin:0 0 14px}
+  #cicilanNotificationSettingsSplit h3{margin:0 0 12px;color:#fff;font-size:15px}.notif-setting-field{margin-bottom:11px}.notif-setting-field label{display:block;color:#aaa;font-size:11px;margin-bottom:6px}.notif-setting-field input[type="email"],.notif-setting-field input[type="time"]{width:100%;box-sizing:border-box;border:1px solid #3b3b3b;background:#252525;color:#fff;border-radius:9px;padding:10px 11px;outline:none;font:inherit}.notif-setting-field input:focus{border-color:#c02bd1;box-shadow:0 0 0 3px rgba(169,37,189,.12)}.notif-setting-hint{margin-top:5px;color:#666;font-size:9px;line-height:1.4}.notif-setting-toggle{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 11px;background:#252525;border:1px solid #303030;border-radius:9px;color:#ddd;font-size:11px;font-weight:700}.notif-setting-toggle input{width:18px;height:18px;accent-color:#a925bd}.notif-setting-actions{display:flex;gap:8px;margin-top:12px}.notif-setting-actions button{flex:1;border:0;border-radius:9px;padding:10px;font-weight:800;cursor:pointer}#cicilanNotificationSaveSplit{background:#a925bd;color:#fff}#cicilanNotificationCancelSplit{background:#333;color:#ddd}.notif-setting-message{display:none;margin-bottom:10px;padding:8px 10px;border-radius:9px;font-size:11px}.notif-setting-message.error{display:block;background:#3a1717;color:#ff8a80}.notif-setting-message.success{display:block;background:#173a1b;color:#81c784}
+  .notif-time-control{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:48px;box-sizing:border-box;padding:8px 10px 8px 12px;border:1px solid #3b3b3b;background:linear-gradient(180deg,#292929,#242424);color:#fff;border-radius:11px;cursor:pointer;transition:.16s ease;user-select:none}.notif-time-control:hover{border-color:#5a3b61;background:#2d2a2e}.notif-time-control:focus{outline:none;border-color:#c02bd1;box-shadow:0 0 0 3px rgba(169,37,189,.12)}.notif-time-left{display:flex;align-items:center;gap:10px;min-width:0}.notif-time-icon{width:31px;height:31px;display:flex;align-items:center;justify-content:center;border-radius:9px;background:#302033;border:1px solid #4a2a51;font-size:15px}.notif-time-value{font-size:19px;font-weight:900;letter-spacing:.8px;font-variant-numeric:tabular-nums}.notif-time-caption{color:#888;font-size:9px;margin-top:1px}.notif-time-chevron{color:#c995d1;font-size:18px}.notif-time-hidden{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important}.notif-time-picker{display:none;position:fixed;z-index:120000;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:16px;box-sizing:border-box}.notif-time-picker.open{display:flex}.notif-time-dialog{width:min(360px,100%);background:linear-gradient(180deg,#232323,#181818);border:1px solid #414141;border-radius:20px;box-shadow:0 24px 80px rgba(0,0,0,.7);padding:16px;color:#fff}.notif-time-dialog-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:13px}.notif-time-dialog-title{font-size:15px;font-weight:900}.notif-time-dialog-sub{font-size:9px;color:#777;margin-top:3px}.notif-time-close{width:34px;height:34px;border:1px solid #3a3a3a;background:#292929;color:#aaa;border-radius:9px;font-size:20px;cursor:pointer}.notif-time-close:hover{background:#353535;color:#fff}.notif-time-preview{display:flex;align-items:center;justify-content:center;gap:8px;margin:8px 0 15px}.notif-time-preview-box{min-width:86px;text-align:center;padding:12px 9px;border-radius:13px;background:#2b202d;border:1px solid #5a3461;color:#f2c8f5;font-size:29px;font-weight:900;font-variant-numeric:tabular-nums}.notif-time-preview-colon{font-size:26px;color:#aaa;font-weight:900}.notif-time-section-label{color:#888;font-size:10px;font-weight:800;margin:10px 0 7px}.notif-time-manual{display:flex;align-items:center;gap:8px;margin:0 0 10px}.notif-time-manual input{flex:1;min-width:0;height:42px;box-sizing:border-box;border:1px solid #4b3a50;background:#211d22;color:#fff;border-radius:10px;padding:0 12px;font:900 16px inherit;text-align:center;outline:none}.notif-time-manual input:focus{border-color:#c02bd1;box-shadow:0 0 0 3px rgba(169,37,189,.12)}.notif-time-manual button{height:42px;padding:0 14px;border:1px solid #6d3d76;background:#a925bd;color:#fff;border-radius:10px;font-weight:900;cursor:pointer;white-space:nowrap}.notif-time-manual button:hover{background:#b82bc9}.notif-time-manual-hint{color:#777;font-size:9px;margin:-4px 0 9px}.notif-time-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.notif-time-option{min-height:40px;border:1px solid #343434;background:#252525;color:#ddd;border-radius:10px;font-weight:800;font-size:12px;cursor:pointer}.notif-time-option:hover{background:#333;color:#fff;border-color:#4a4a4a}.notif-time-option.selected{background:#a925bd;color:#fff;border-color:#c24dd1;box-shadow:0 5px 16px rgba(169,37,189,.2)}.notif-time-footer{display:grid;grid-template-columns:1fr 1.25fr;gap:8px;margin-top:15px}.notif-time-footer button{min-height:43px;border:0;border-radius:10px;font-weight:900;cursor:pointer}.notif-time-cancel{background:#333;color:#ddd}.notif-time-apply{background:linear-gradient(180deg,#b82bc9,#9f20b5);color:#fff;box-shadow:0 7px 18px rgba(169,37,189,.22)}.notif-time-picker-hint{text-align:center;color:#666;font-size:9px;margin-top:9px}@media(max-width:600px){.notif-time-dialog{padding:14px;border-radius:18px}.notif-time-option{min-height:43px}.notif-time-preview-box{font-size:27px}}
+  @media(max-width:600px){.cicilan-notification-info{padding:9px 10px}.cicilan-notification-email{font-size:11px}.cicilan-notification-status{font-size:9px}}
+  #cicilanFormSplit{display:none;margin-bottom:14px;background:linear-gradient(180deg,#1f1f1f,#1b1b1b);border:1px solid #343434;border-radius:15px;padding:16px}
+  #cicilanFormSplit h3{margin:0 0 14px;color:#fff;text-align:center;font-size:16px}.cicilan-field{margin-bottom:11px}
+  #cicilanFormSplit label{display:block;color:#aaa;font-size:12px;margin-bottom:6px}#cicilanFormSplit input,#cicilanFormSplit select,#cicilanFormSplit textarea{width:100%;box-sizing:border-box;border:1px solid #3b3b3b;background:#252525;color:#fff;border-radius:9px;padding:10px 11px;outline:none;font:inherit}
+  #cicilanFormSplit input:focus,#cicilanFormSplit select:focus,#cicilanFormSplit textarea:focus,#cicilanPaymentModalSplit input:focus,#cicilanPaymentModalSplit textarea:focus{border-color:#c02bd1;box-shadow:0 0 0 3px rgba(169,37,189,.12)}
+  #cicilanFormSplit textarea{min-height:76px;resize:vertical}.cicilan-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+  #cicilanFormSplit .cicilan-form-actions,#cicilanModalSplit .payment-actions{display:flex;gap:9px;margin-top:13px}.cicilan-form-actions button,#cicilanModalSplit .payment-actions button{flex:1;border:0;border-radius:9px;padding:11px;font-weight:800;cursor:pointer}
+  #cicilanSaveSplit,#cicilanPaymentSaveSplit{background:#a925bd;color:#fff;box-shadow:0 5px 14px rgba(169,37,189,.18)}#cicilanCancelSplit,#cicilanPaymentCancelSplit{background:#333;color:#fff}
+  #cicilanMessageSplit,#cicilanPaymentMessageSplit{display:none;padding:9px 10px;border-radius:9px;margin-bottom:10px;font-size:12px}.cicilanMessageSplit.error,.cicilanPaymentMessageSplit.error{display:block;background:#3a1717;color:#ff8a80}.cicilanMessageSplit.success,.cicilanPaymentMessageSplit.success{display:block;background:#173a1b;color:#81c784}
+  #cicilanModalSplit .cicilan-actions{display:flex;gap:8px;margin-top:10px}.cicilan-action-btn{border:0;border-radius:9px;padding:10px 11px;font-weight:800;cursor:pointer}.cicilan-pay-btn{flex:1;background:#a925bd;color:#fff}.cicilan-history-btn{flex:1;background:#333;color:#ddd}
+  .cicilan-delete-confirm-overlay{display:none;position:fixed;inset:0;z-index:130000;background:rgba(0,0,0,.72);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:16px;box-sizing:border-box}
+  .cicilan-delete-confirm-overlay.open{display:flex}
+  .cicilan-delete-confirm-box{width:min(390px,100%);background:linear-gradient(180deg,#242424,#191919);border:1px solid #414141;border-radius:18px;box-shadow:0 24px 80px rgba(0,0,0,.72);padding:17px;color:#fff}
+  .cicilan-delete-confirm-head{display:flex;align-items:center;gap:11px}
+  .cicilan-delete-confirm-icon{width:40px;height:40px;flex:0 0 40px;border-radius:11px;background:#3a1717;border:1px solid #5a2525;display:flex;align-items:center;justify-content:center;font-size:19px}
+  .cicilan-delete-confirm-title{font-size:15px;font-weight:900}
+  .cicilan-delete-confirm-sub{font-size:10px;color:#888;margin-top:3px}
+  .cicilan-delete-confirm-target{margin-top:13px;padding:11px 12px;border-radius:10px;background:#252525;border:1px solid #303030;color:#ddd;font-size:12px;font-weight:800}
+  .cicilan-delete-confirm-message{margin-top:10px;color:#aaa;font-size:11px;line-height:1.5}
+  .cicilan-delete-confirm-warning{display:flex;gap:8px;margin-top:10px;padding:9px 10px;border-radius:9px;background:#302516;border:1px solid #4d3a21;color:#d8b878;font-size:10px;line-height:1.4}
+  .cicilan-delete-confirm-actions{display:grid;grid-template-columns:1fr 1.2fr;gap:8px;margin-top:14px}
+  .cicilan-delete-confirm-actions button{min-height:42px;border:0;border-radius:10px;font-weight:900;cursor:pointer}
+  .cicilan-delete-confirm-cancel{background:#333;color:#ddd}
+  .cicilan-delete-confirm-ok{background:linear-gradient(180deg,#c23b3b,#a52626);color:#fff}
+  #cicilanModalSplit .cicilan-delete-btn{flex:0 0 auto;background:#3a1717;color:#ff8a80;border:1px solid #5a2525}
+  #cicilanModalSplit .cicilan-delete-btn:hover{background:#4a1d1d;color:#fff}
+  #cicilanModalSplit .history-delete-btn{border:0;background:none;color:#ff8a80;cursor:pointer;font-size:12px;padding:0 0 0 7px;line-height:1}
+  #cicilanModalSplit .history-delete-btn:hover{color:#fff}
+  #cicilanModalSplit .cicilan-history-placeholder{display:none;margin-top:10px;background:#191919;border:1px solid #303030;border-radius:12px;overflow:hidden}
+  #cicilanModalSplit .history-title{display:flex;align-items:center;gap:7px;padding:11px 12px;color:#fff;font-size:13px;font-weight:800;border-bottom:1px solid #303030}.history-title-icon{color:#c13bd1}
+  #cicilanModalSplit .history-item{display:grid;grid-template-columns:minmax(120px,1fr) auto;align-items:center;gap:4px 12px;padding:12px 13px;border-bottom:1px solid #2b2b2b;background:linear-gradient(180deg,#1d1d1d,#1a1a1a)}.history-item:last-child{border-bottom:0}.history-date{color:#a8a8a8;font-size:11px;white-space:nowrap}.history-number{color:#e9e9e9;font-size:12px;font-weight:800;white-space:nowrap}.history-nominal{grid-column:2;grid-row:1 / span 2;color:#74e487;font-size:13px;font-weight:900;white-space:nowrap;text-align:right}.history-note{font-size:10px;color:#858585;padding:8px 13px 9px;border-bottom:1px solid #292929;background:#191919}.history-note:last-child{border-bottom:0}
+  #cicilanPaymentModalSplit{display:none;position:fixed;inset:0;z-index:10070;background:rgba(0,0,0,.78);align-items:center;justify-content:center;padding:14px;box-sizing:border-box;backdrop-filter:blur(2px)}
+  #cicilanPaymentModalSplit .payment-shell{width:min(500px,100%);max-height:calc(100vh - 28px);overflow:auto;background:linear-gradient(180deg,#222,#1a1a1a);border:1px solid #3a3a3a;border-radius:18px;box-shadow:0 24px 70px rgba(0,0,0,.65);padding:18px;color:#fff}
+  #cicilanPaymentModalSplit .payment-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}.payment-title-wrap{display:flex;align-items:center;gap:10px;min-width:0}.payment-icon{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:#302033;border:1px solid #4a2a51;font-size:18px}.payment-title{font-size:18px;font-weight:900;line-height:1.1}.payment-subtitle{text-align:left;color:#9c9c9c;font-size:11px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:360px}.payment-close{width:34px;height:34px;border:1px solid #3a3a3a;background:#262626;color:#aaa;font-size:21px;line-height:1;border-radius:9px;cursor:pointer}.payment-close:hover{background:#303030;color:#fff}
+  #cicilanPaymentModalSplit .payment-summary{display:grid;grid-template-columns:1fr 1.35fr;gap:9px;margin-bottom:15px}.payment-info-item{background:#252525;border:1px solid #303030;border-radius:11px;padding:11px 12px}.payment-info-item-accent{background:linear-gradient(180deg,#272029,#242024);border-color:#4a2b50}.payment-label{color:#888;font-size:10px;text-transform:none}.payment-value{color:#fff;font-size:14px;font-weight:900;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.payment-info-item-accent .payment-value{color:#eaa4f2}
+  #cicilanPaymentModalSplit .payment-field{margin-bottom:13px}.payment-field label{display:block;color:#aaa;font-size:11px;margin-bottom:6px}.payment-field label span{color:#777;font-weight:400}#cicilanPaymentModalSplit input,#cicilanPaymentModalSplit textarea{width:100%;box-sizing:border-box;border:1px solid #3b3b3b;background:#252525;color:#fff;border-radius:10px;padding:12px;outline:none;font:inherit}#cicilanPaymentModalSplit select{width:100%;box-sizing:border-box;border:1px solid #3b3b3b;background:#252525;color:#fff;border-radius:10px;padding:12px;outline:none;font:inherit;cursor:pointer}#cicilanPaymentModalSplit select:focus{border-color:#c02bd1;box-shadow:0 0 0 3px rgba(169,37,189,.12)}.payment-account-hint{margin-top:6px;color:#777;font-size:9px;line-height:1.4}.payment-account-badge{display:inline-flex;align-items:center;gap:5px;margin-top:6px;padding:5px 8px;border-radius:7px;background:#2b252d;color:#dca1e4;font-size:9px;font-weight:800}#cicilanPaymentModalSplit textarea{min-height:78px;resize:vertical}.payment-amount-field{margin-top:2px}.money-field-wrap{position:relative}.money-field-wrap .money-prefix{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#aaa;font-weight:800;pointer-events:none;z-index:1}.money-field-wrap input{padding-left:36px!important;font-weight:800;font-size:15px}.field-hint{margin-top:5px;color:#666;font-size:9px}.date-input-wrap{position:relative}.date-custom-control{cursor:pointer;display:flex;align-items:stretch;width:100%;border:1px solid #3b3b3b;background:#252525;border-radius:9px;overflow:hidden;min-height:42px;box-sizing:border-box}.date-custom-control:focus-within{border-color:#c02bd1;box-shadow:0 0 0 3px rgba(169,37,189,.12)}.date-custom-control .date-display-input{flex:1;min-width:0!important;border:0!important;background:transparent!important;box-shadow:none!important;border-radius:0!important;padding:10px 11px!important;color:#fff;cursor:pointer}.date-custom-control .date-picker-button{display:flex;align-items:center;justify-content:center;width:45px;flex:0 0 45px;border:0;border-left:1px solid #383838;background:#2b2b2b;color:#d99ae3;font-size:18px;cursor:pointer;padding:0}.date-custom-control .date-picker-button:hover{background:#353535;color:#fff}.date-custom-control .date-picker-button:active{background:#3b3b3b}.cicilan-custom-calendar{display:none;position:fixed;z-index:110000;width:min(320px,calc(100vw - 24px));background:#1d1d1d;border:1px solid #444;border-radius:14px;box-shadow:0 20px 55px rgba(0,0,0,.65);padding:12px;box-sizing:border-box;color:#fff}.cicilan-custom-calendar.open{display:block}.cicilan-cal-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}.cicilan-cal-month{font-size:14px;font-weight:900;text-align:center;flex:1}.cicilan-cal-nav{width:34px;height:32px;border:1px solid #383838;border-radius:8px;background:#292929;color:#fff;cursor:pointer;font-size:17px}.cicilan-cal-nav:hover{background:#353535}.cicilan-cal-week,.cicilan-cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.cicilan-cal-week span{text-align:center;color:#777;font-size:10px;font-weight:800;padding:4px 0}.cicilan-cal-day{height:34px;border:0;border-radius:8px;background:transparent;color:#ddd;cursor:pointer;font-size:11px;font-weight:700}.cicilan-cal-day:hover{background:#343434;color:#fff}.cicilan-cal-day.muted{color:#555}.cicilan-cal-day.today{box-shadow:inset 0 0 0 1px #8e2a9e;color:#e5a4ec}.cicilan-cal-day.selected{background:#a925bd;color:#fff}.cicilan-cal-footer{display:flex;justify-content:flex-end;margin-top:10px}.cicilan-cal-today{border:0;border-radius:8px;background:#292929;color:#dca1e4;padding:7px 10px;font-size:10px;font-weight:800;cursor:pointer}.cicilan-cal-today:hover{background:#353535}.money-input{text-align:left;font-variant-numeric:tabular-nums;letter-spacing:.1px}.cicilan-form-grid .money-input{font-weight:800}.cicilan-form-grid input.money-input{min-height:42px}
+  #cicilanPaymentModalSplit .payment-actions{display:grid;grid-template-columns:1fr 1.5fr;gap:9px;margin-top:16px}.payment-actions button{min-height:44px;border:0;border-radius:10px;padding:11px;font-weight:900;cursor:pointer}.payment-actions #cicilanPaymentSaveSplit{background:linear-gradient(180deg,#b82bc9,#9f20b5);color:#fff;box-shadow:0 7px 18px rgba(169,37,189,.24)}.payment-actions #cicilanPaymentCancelSplit{background:#333;color:#ddd}
+  .date-picker-button{display:none}
+  @media(max-width:600px){#cicilanModalSplit .cicilan-grid,#cicilanFormSplit .cicilan-form-grid,#cicilanPaymentModalSplit .payment-summary{grid-template-columns:1fr}.cicilan-title{font-size:15px}.cicilan-add{padding:8px 10px;font-size:12px}.cicilan-card{padding:12px}.history-item{grid-template-columns:1fr auto;gap:4px 8px}.history-number{grid-column:1}.history-nominal{grid-column:2;grid-row:1 / span 2;align-self:center}.history-date{grid-column:1}.cicilan-actions .cicilan-action-btn{min-width:0}.payment-shell{padding:14px}.payment-subtitle{max-width:250px}.payment-actions{grid-template-columns:1fr 1.35fr!important}}
+</style>
+
+<div id="cicilanDeleteConfirmOverlaySplit" class="cicilan-delete-confirm-overlay" role="dialog" aria-modal="true">
+  <div class="cicilan-delete-confirm-box">
+    <div class="cicilan-delete-confirm-head">
+      <div class="cicilan-delete-confirm-icon">🗑️</div>
+      <div>
+        <div id="cicilanDeleteConfirmTitleSplit" class="cicilan-delete-confirm-title">Hapus Data?</div>
+        <div id="cicilanDeleteConfirmSubSplit" class="cicilan-delete-confirm-sub">Tindakan ini tidak dapat dibatalkan.</div>
+      </div>
+    </div>
+    <div id="cicilanDeleteConfirmTargetSplit" class="cicilan-delete-confirm-target">Data Cicilan</div>
+    <div id="cicilanDeleteConfirmMessageSplit" class="cicilan-delete-confirm-message"></div>
+    <div id="cicilanDeleteConfirmWarningSplit" class="cicilan-delete-confirm-warning">⚠️ Data yang saling terhubung akan ikut diperbarui.</div>
+    <div class="cicilan-delete-confirm-actions">
+      <button type="button" class="cicilan-delete-confirm-cancel" onclick="jawabKonfirmasiHapusCicilanSplit_(false)">Batal</button>
+      <button type="button" class="cicilan-delete-confirm-ok" onclick="jawabKonfirmasiHapusCicilanSplit_(true)">🗑️ Ya, Hapus</button>
+    </div>
+  </div>
+</div>
+
+<div id="cicilanModalSplit">
+  <div class="cicilan-shell">
+    <div class="cicilan-header">
+      <button class="cicilan-back" type="button" onclick="closeCicilanSplit()">←</button>
+      <div class="cicilan-title">💳 Kelola Cicilan</div>
+      <button class="cicilan-add" type="button" onclick="toggleCicilanFormSplit(true)">+ Tambah</button>
+    </div>
+
+    <div class="cicilan-body">
+      <div id="cicilanMessageSplit"></div>
+
+      <div id="cicilanNotificationTimePickerSplit" class="notif-time-picker" role="dialog" aria-modal="true" aria-labelledby="notifTimePickerTitleSplit" onclick="if(event.target===this) closeNotifikasiTimePickerSplit()">
+        <div class="notif-time-dialog">
+          <div class="notif-time-dialog-head">
+            <div>
+              <div id="notifTimePickerTitleSplit" class="notif-time-dialog-title">⏰ Pilih Waktu Notifikasi</div>
+              <div class="notif-time-dialog-sub">Pilih jam dan menit pengingat cicilan</div>
+            </div>
+            <button type="button" class="notif-time-close" onclick="closeNotifikasiTimePickerSplit()" aria-label="Tutup">×</button>
+          </div>
+
+          <div class="notif-time-preview">
+            <div id="notifTimePreviewHourSplit" class="notif-time-preview-box">07</div>
+            <div class="notif-time-preview-colon">:</div>
+            <div id="notifTimePreviewMinuteSplit" class="notif-time-preview-box">00</div>
+          </div>
+
+          <div class="notif-time-section-label">JAM</div>
+          <div id="notifTimeHourGridSplit" class="notif-time-grid"></div>
+
+          <div class="notif-time-section-label">MENIT</div>
+          <div class="notif-time-manual">
+            <input id="notifTimeManualMinuteSplit" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" autocomplete="off" aria-label="Tulis menit secara manual" placeholder="00" value="00">
+            <button type="button" onclick="applyManualNotifikasiMinuteSplit_()">Terapkan</button>
+          </div>
+          <div class="notif-time-manual-hint">Pilih menit kelipatan 5 dari tombol, atau tulis menit 00–59 secara manual.</div>
+          <div id="notifTimeMinuteGridSplit" class="notif-time-grid"></div>
+
+          <div class="notif-time-footer">
+            <button type="button" class="notif-time-cancel" onclick="closeNotifikasiTimePickerSplit()">Batal</button>
+            <button type="button" class="notif-time-apply" onclick="applyNotifikasiTimePickerSplit()">✓ Gunakan Waktu</button>
+          </div>
+          <div class="notif-time-picker-hint">Waktu disimpan dalam format 24 jam.</div>
+        </div>
+      </div>
+
+      <div id="cicilanFormSplit">
+        <h3>Tambah Cicilan</h3>
+
+        <div id="cicilanNotificationSettingsSplit" class="cicilan-notification-settings-in-form">
+          <h3>🔔 Pengaturan Notifikasi</h3>
+          <div id="cicilanNotificationSettingsMessageSplit" class="notif-setting-message"></div>
+          <div class="notif-setting-field">
+            <label for="cicilanNotificationEmailInputSplit">Alamat Email Tujuan</label>
+            <input id="cicilanNotificationEmailInputSplit" type="email" autocomplete="email" placeholder="contoh@email.com">
+            <div class="notif-setting-hint">Alamat ini yang menerima pengingat cicilan pengguna ini.</div>
+          </div>
+          <div class="notif-setting-field">
+            <label for="cicilanNotificationTimePickerControlSplit">Waktu Notifikasi</label>
+            <input id="cicilanNotificationTimeInputSplit" class="notif-time-hidden" type="time" step="60" value="07:00" tabindex="-1" aria-hidden="true">
+            <div id="cicilanNotificationTimePickerControlSplit" class="notif-time-control" role="button" tabindex="0" aria-label="Pilih jam notifikasi" onclick="openNotifikasiTimePickerSplit()">
+              <div class="notif-time-left">
+                <div class="notif-time-icon">⏰</div>
+                <div>
+                  <div id="cicilanNotificationTimeDisplaySplit" class="notif-time-value">07:00</div>
+                  <div class="notif-time-caption">Tekan untuk memilih jam dan menit</div>
+                </div>
+              </div>
+              <div class="notif-time-chevron">›</div>
+            </div>
+            <div class="notif-setting-hint">Tekan seluruh kotak waktu untuk memilih waktu pengingat.</div>
+          </div>
+          <div class="notif-setting-toggle"><span>Aktifkan Notifikasi</span><input id="cicilanNotificationActiveInputSplit" type="checkbox" checked></div>
+          <div class="notif-schedule-notice" role="note" aria-label="Informasi jadwal pengingat">
+            <div class="notif-schedule-notice-title">🔔 Jadwal Pengingat Otomatis</div>
+            <div class="notif-schedule-notice-text">Pengingat diperiksa berdasarkan jatuh tempo Cicilan: <b>H-7 · H-3 · H-1 · Hari H · Setelah jatuh tempo</b>.</div>
+          </div>
+          <div class="notif-setting-hint" style="margin-top:10px;">
+            Pengaturan notifikasi akan disimpan bersamaan dengan Cicilan saat menekan <b>Simpan Cicilan</b>.
+          </div>
+        </div>
+
+        <div class="cicilan-field">
+          <label>Nama Barang</label>
+          <input id="cicilanNamaSplit" type="text" inputmode="text" autocomplete="off" placeholder="Contoh: Laptop, Motor, HP, atau kebutuhan lainnya">
+        </div>
+
+        <div class="cicilan-form-grid">
+          <div class="cicilan-field">
+            <label>Total Cicilan</label>
+            <input id="cicilanTotalSplit" class="money-input" type="text" inputmode="decimal" autocomplete="off" placeholder="Contoh: 12.000.000">
+          </div>
+          <div class="cicilan-field">
+            <label>Nominal per Cicilan</label>
+            <input id="cicilanNominalSplit" class="money-input" type="text" inputmode="decimal" autocomplete="off" placeholder="Contoh: 1.000.000,00">
+          </div>
+        </div>
+
+        <div class="cicilan-form-grid">
+          <div class="cicilan-field">
+            <label>Tenor</label>
+            <input id="cicilanTenorSplit" type="number" min="1" step="1" value="12">
+          </div>
+          <div class="cicilan-field">
+            <label>Frekuensi</label>
+            <select id="cicilanFrekuensiSplit">
+              <option value="Bulanan">Bulanan</option>
+              <option value="Mingguan">Mingguan</option>
+              <option value="Harian">Harian</option>
+              <option value="Tahunan">Tahunan</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="cicilan-form-grid">
+          <div class="cicilan-field">
+            <label>Tanggal Mulai</label>
+            <div class="date-input-wrap"><input id="cicilanMulaiSplit" type="hidden"><div class="date-custom-control"><input id="cicilanMulaiSplitDisplay" class="date-display-input" type="text" readonly aria-label="Tanggal mulai"><button type="button" class="date-picker-button" data-date-target="cicilanMulaiSplit" aria-label="Pilih tanggal">📅</button></div></div>
+          </div>
+          <div class="cicilan-field">
+            <label>Jatuh Tempo</label>
+            <div class="date-input-wrap"><input id="cicilanJatuhTempoSplit" type="hidden"><div class="date-custom-control"><input id="cicilanJatuhTempoSplitDisplay" class="date-display-input" type="text" readonly aria-label="Jatuh tempo"><button type="button" class="date-picker-button" data-date-target="cicilanJatuhTempoSplit" aria-label="Pilih tanggal">📅</button></div></div>
+          </div>
+        </div>
+
+        <div class="cicilan-field">
+          <label>Catatan</label>
+          <textarea id="cicilanCatatanSplit" placeholder="Catatan tambahan (opsional)"></textarea>
+        </div>
+
+        <div class="cicilan-form-actions">
+          <button id="cicilanCancelSplit" type="button" onclick="toggleCicilanFormSplit(false)">Batal</button>
+          <button id="cicilanSaveSplit" type="button" onclick="simpanCicilanSplit()">Simpan Cicilan</button>
+        </div>
+      </div>
+
+      <div id="cicilanListSplit">
+        <div class="cicilan-empty">Memuat data cicilan...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="cicilanPaymentModalSplit">
+  <div class="payment-shell">
+    <div class="payment-head">
+      <div class="payment-title-wrap">
+        <div class="payment-icon">💳</div>
+        <div>
+          <div class="payment-title">Bayar Cicilan</div>
+          <div id="cicilanPaymentSubtitleSplit" class="payment-subtitle">Masukkan pembayaran cicilan.</div>
+        </div>
+      </div>
+      <button type="button" class="payment-close" onclick="closeBayarCicilanSplit()" aria-label="Tutup">×</button>
+    </div>
+
+    <div id="cicilanPaymentMessageSplit"></div>
+
+    <div class="payment-summary">
+      <div class="payment-info-item">
+        <div class="payment-label">Cicilan ke</div>
+        <div id="cicilanPaymentKeSplit" class="payment-value">1 / 12</div>
+      </div>
+      <div class="payment-info-item payment-info-item-accent">
+        <div class="payment-label">Sisa pembayaran</div>
+        <div id="cicilanPaymentSisaSplit" class="payment-value">Rp0,00</div>
+      </div>
+    </div>
+
+    <div class="payment-field payment-amount-field">
+      <label for="cicilanPaymentNominalSplit">Nominal Pembayaran</label>
+      <div class="money-field-wrap">
+        <span class="money-prefix">Rp</span>
+        <input id="cicilanPaymentNominalSplit" class="money-input" type="text" inputmode="decimal" autocomplete="off" placeholder="0,00">
+      </div>
+      <div class="field-hint">Ketik angka dan tanda titik akan muncul otomatis.</div>
+    </div>
+
+    <div class="payment-field">
+      <label id="cicilanPaymentRekeningLabelSplit" for="cicilanPaymentRekeningSplit">🏦 Bayar dari rekening</label>
+      <select id="cicilanPaymentRekeningSplit">
+        <option value="">Pilih rekening...</option>
+      </select>
+      <div id="cicilanPaymentRekeningHintSplit" class="payment-account-hint">Pilih rekening yang digunakan untuk transaksi pembayaran ini.</div>
+    </div>
+
+    <div class="payment-field">
+      <label for="cicilanPaymentTanggalSplit">Tanggal Bayar</label>
+      <div class="date-input-wrap"><input id="cicilanPaymentTanggalSplit" type="hidden"><div class="date-custom-control"><input id="cicilanPaymentTanggalSplitDisplay" class="date-display-input" type="text" readonly aria-label="Tanggal bayar"><button type="button" class="date-picker-button" data-date-target="cicilanPaymentTanggalSplit" aria-label="Pilih tanggal">📅</button></div></div>
+    </div>
+
+    <div class="payment-field">
+      <label for="cicilanPaymentCatatanSplit">Catatan <span>(opsional)</span></label>
+      <textarea id="cicilanPaymentCatatanSplit" placeholder="Contoh: pembayaran bulan Agustus"></textarea>
+    </div>
+
+    <div class="payment-actions">
+      <button id="cicilanPaymentCancelSplit" type="button" onclick="closeBayarCicilanSplit()">Batal</button>
+      <button id="cicilanPaymentSaveSplit" type="button" onclick="simpanPembayaranCicilanSplit()">✓ Bayar Cicilan</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  function el(id) { return document.getElementById(id); }
+
+  window.openCicilanSplit = function () {
+    bindAllMoneyInputs_();
+    var modal = el('cicilanModalSplit');
+    if (!modal) return;
+    modal.style.display = 'block';
+    toggleCicilanFormSplit(false);
+    toggleNotifikasiSettingsSplit(false);
+    muatCicilanSplit();
+  };
+
+  // Kompatibilitas pemanggil lama: modul Cicilan sekarang berdiri sendiri.
+  window.openCicilanSplitFromHutangPiutang = function () {
+    window.openCicilanSplit();
+  };
+
+  window.closeCicilanSplit = function () {
+    var modal = el('cicilanModalSplit');
+    if (modal) modal.style.display = 'none';
+  };
+
+  window.toggleCicilanFormSplit = function (show) {
+    bindAllMoneyInputs_();
+    var form = el('cicilanFormSplit');
+    if (!form) return;
+    form.style.display = show ? 'block' : 'none';
+    if (show) {
+      toggleNotifikasiSettingsSplit(true);
+      var today = new Date();
+      var iso = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+      if (!el('cicilanMulaiSplit').value) setDateValueSplit_('cicilanMulaiSplit', iso);
+      else syncDateDisplaySplit_('cicilanMulaiSplit');
+      if (!el('cicilanJatuhTempoSplit').value) setDateValueSplit_('cicilanJatuhTempoSplit', iso);
+      else syncDateDisplaySplit_('cicilanJatuhTempoSplit');
+      if (el('cicilanNominalSplit')) el('cicilanNominalSplit').focus();
+    } else {
+      toggleNotifikasiSettingsSplit(false);
+    }
+  };
+
+  function setMessage(text, type) {
+    var box = el('cicilanMessageSplit');
+    if (!box) return;
+    box.className = type ? ('cicilanMessageSplit ' + type) : '';
+    box.style.display = text ? 'block' : 'none';
+    box.textContent = text || '';
+  }
+
+  function rupiah(n) { return formatRupiah_(n); }
+
+  function escapeHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  function statusLabel(item) {
+    if (item.statusWaktu === 'Terlambat') return { text: 'Terlambat ' + item.selisihHari + ' hari', cls: 'late' };
+    if (item.statusWaktu === 'JatuhTempoHariIni') return { text: 'Jatuh tempo hari ini', cls: 'today' };
+    if (item.statusWaktu === 'Selesai') return { text: 'Selesai', cls: '' };
+    if (item.selisihHari != null) return { text: 'Jatuh tempo ' + item.selisihHari + ' hari lagi', cls: '' };
+    return { text: item.status || 'Aktif', cls: '' };
+  }
+
+  var __cicilanNotificationConfigSplit = null;
+
+  function tampilkanPengaturanNotifikasiCicilanSplit_(config) {
+    config=config||{}; __cicilanNotificationConfigSplit=config;
+    var emailEl=el('cicilanNotificationEmailSplit'), statusEl=el('cicilanNotificationStatusSplit');
+    var emailInput=el('cicilanNotificationEmailInputSplit'), timeInput=el('cicilanNotificationTimeInputSplit'), activeInput=el('cicilanNotificationActiveInputSplit');
+    var email=String(config.email||'').trim(), aktif=config.aktif!==false, jam=String(config.jamPengecekan||'07:00').trim()||'07:00';
+    if(emailEl) emailEl.textContent=email||'Belum ada email notifikasi yang terdaftar';
+    if(statusEl){statusEl.textContent=aktif?'● Aktif':'● Nonaktif';statusEl.className='cicilan-notification-status'+(aktif?'':' off');}
+    if(emailInput) emailInput.value=email; if(timeInput) timeInput.value=jam; if(activeInput) activeInput.checked=aktif;
+    updateNotifikasiTimeDisplaySplit_(jam);
+  }
+
+  var __notifikasiTimePickerHourSplit = '07';
+  var __notifikasiTimePickerMinuteSplit = '00';
+
+  function normalizeNotifikasiTimeSplit_(value) {
+    var raw = String(value || '').trim();
+    var m = raw.match(/^(\d{1,2}):(\d{1,2})$/);
+    if (!m) return '07:00';
+    var h = Math.max(0, Math.min(23, parseInt(m[1], 10) || 0));
+    var min = Math.max(0, Math.min(59, parseInt(m[2], 10) || 0));
+    return String(h).padStart(2, '0') + ':' + String(min).padStart(2, '0');
+  }
+
+  function updateNotifikasiTimeDisplaySplit_(value) {
+    var normalized = normalizeNotifikasiTimeSplit_(value);
+    var parts = normalized.split(':');
+    var hour = parts[0], minute = parts[1];
+    var display = el('cicilanNotificationTimeDisplaySplit');
+    if (display) display.textContent = normalized;
+    var hidden = el('cicilanNotificationTimeInputSplit');
+    if (hidden) hidden.value = normalized;
+  }
+
+  function renderNotifikasiTimeOptionsSplit_() {
+    var hourGrid = el('notifTimeHourGridSplit');
+    var minuteGrid = el('notifTimeMinuteGridSplit');
+    var manualMinute = el('notifTimeManualMinuteSplit');
+    if (!hourGrid || !minuteGrid) return;
+
+    if (manualMinute) manualMinute.value = __notifikasiTimePickerMinuteSplit;
+
+    hourGrid.innerHTML = '';
+    minuteGrid.innerHTML = '';
+
+    for (var h = 0; h <= 23; h++) {
+      var hb = document.createElement('button');
+      hb.type = 'button';
+      hb.className = 'notif-time-option' + (String(h).padStart(2,'0') === __notifikasiTimePickerHourSplit ? ' selected' : '');
+      hb.textContent = String(h).padStart(2, '0');
+      hb.onclick = (function(hourValue) {
+        return function() {
+          __notifikasiTimePickerHourSplit = String(hourValue).padStart(2, '0');
+          renderNotifikasiTimeOptionsSplit_();
+          updateNotifikasiTimePreviewSplit_();
+        };
+      })(h);
+      hourGrid.appendChild(hb);
+    }
+
+    for (var m = 0; m < 60; m += 5) {
+      var mb = document.createElement('button');
+      mb.type = 'button';
+      mb.className = 'notif-time-option' + (String(m).padStart(2,'0') === __notifikasiTimePickerMinuteSplit ? ' selected' : '');
+      mb.textContent = String(m).padStart(2, '0');
+      mb.onclick = (function(minuteValue) {
+        return function() {
+          __notifikasiTimePickerMinuteSplit = String(minuteValue).padStart(2, '0');
+          renderNotifikasiTimeOptionsSplit_();
+          updateNotifikasiTimePreviewSplit_();
+        };
+      })(m);
+      minuteGrid.appendChild(mb);
+    }
+  }
+
+  function updateNotifikasiTimePreviewSplit_() {
+    var h = el('notifTimePreviewHourSplit');
+    var m = el('notifTimePreviewMinuteSplit');
+    if (h) h.textContent = __notifikasiTimePickerHourSplit;
+    if (m) m.textContent = __notifikasiTimePickerMinuteSplit;
+  }
+
+  window.applyManualNotifikasiMinuteSplit_ = function() {
+    var input = el('notifTimeManualMinuteSplit');
+    if (!input) return;
+
+    var raw = String(input.value || '').trim();
+
+    if (!/^\d{1,2}$/.test(raw)) {
+      input.value = __notifikasiTimePickerMinuteSplit;
+      input.focus();
+      return;
+    }
+
+    var minute = parseInt(raw, 10);
+
+    if (minute < 0 || minute > 59) {
+      input.value = __notifikasiTimePickerMinuteSplit;
+      input.focus();
+      return;
+    }
+
+    __notifikasiTimePickerMinuteSplit = String(minute).padStart(2, '0');
+    input.value = __notifikasiTimePickerMinuteSplit;
+    renderNotifikasiTimeOptionsSplit_();
+    updateNotifikasiTimePreviewSplit_();
+  };
+
+  function bindManualNotifikasiMinuteSplit_() {
+    var input = el('notifTimeManualMinuteSplit');
+    if (!input || input.dataset.bound === '1') return;
+
+    input.dataset.bound = '1';
+
+    input.addEventListener('input', function() {
+      this.value = this.value.replace(/\D/g, '').slice(0, 2);
+    });
+
+    input.addEventListener('keydown', function(event) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        applyManualNotifikasiMinuteSplit_();
+      }
+    });
+
+    input.addEventListener('blur', function() {
+      if (this.value !== '') applyManualNotifikasiMinuteSplit_();
+    });
+  }
+
+  window.openNotifikasiTimePickerSplit = function() {
+    var hidden = el('cicilanNotificationTimeInputSplit');
+    var current = normalizeNotifikasiTimeSplit_(hidden ? hidden.value : '07:00');
+    var parts = current.split(':');
+    __notifikasiTimePickerHourSplit = parts[0];
+    __notifikasiTimePickerMinuteSplit = parts[1];
+    renderNotifikasiTimeOptionsSplit_();
+    updateNotifikasiTimePreviewSplit_();
+    bindManualNotifikasiMinuteSplit_();
+    var picker = el('cicilanNotificationTimePickerSplit');
+    if (picker) {
+      picker.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+  };
+
+  window.closeNotifikasiTimePickerSplit = function() {
+    var picker = el('cicilanNotificationTimePickerSplit');
+    if (picker) picker.classList.remove('open');
+    document.body.style.overflow = '';
+  };
+
+  window.applyNotifikasiTimePickerSplit = function() {
+    var value = __notifikasiTimePickerHourSplit + ':' + __notifikasiTimePickerMinuteSplit;
+    updateNotifikasiTimeDisplaySplit_(value);
+    closeNotifikasiTimePickerSplit();
+  };
+
+  function tampilkanPesanPengaturanNotifikasiSplit_(text,type){var box=el('cicilanNotificationSettingsMessageSplit');if(!box)return;box.className=type?('notif-setting-message '+type):'notif-setting-message';box.textContent=text||'';}
+
+  window.toggleNotifikasiSettingsSplit=function(show){var panel=el('cicilanNotificationSettingsSplit');if(!panel)return;panel.style.display=show?'block':'none';if(show){tampilkanPesanPengaturanNotifikasiSplit_('','');muatEmailNotifikasiCicilanSplit_();}};
+
+  function muatEmailNotifikasiCicilanSplit_() {
+    var emailEl = el('cicilanNotificationEmailSplit');
+    var statusEl = el('cicilanNotificationStatusSplit');
+    var user = getCicilanUserKey_();
+    if (!user) {
+      if (emailEl) emailEl.textContent = 'Sesi pengguna tidak ditemukan';
+      if (statusEl) { statusEl.textContent = '● Tidak tersedia'; statusEl.className = 'cicilan-notification-status off'; }
+      tampilkanPesanPengaturanNotifikasiSplit_('Sesi pengguna tidak ditemukan. Silakan login kembali.','error');
+      return;
+    }
+
+    google.script.run
+      .withSuccessHandler(function(config) {
+        tampilkanPengaturanNotifikasiCicilanSplit_(config);
+      })
+      .withFailureHandler(function(err) {
+        if (emailEl) emailEl.textContent = 'Email notifikasi tidak dapat dimuat';
+        if (statusEl) { statusEl.textContent = '● Cek konfigurasi'; statusEl.className = 'cicilan-notification-status off'; }
+        tampilkanPesanPengaturanNotifikasiSplit_('Email dan waktu notifikasi tidak dapat dimuat.','error');
+        console.error('Gagal mengambil konfigurasi notifikasi cicilan:', err);
+      })
+      .ambilPengaturanNotifikasiCicilan(user);
+  }
+
+  (function bindNotifikasiTimePickerKeyboardSplit_(){
+    document.addEventListener('keydown', function(event) {
+      var picker = el('cicilanNotificationTimePickerSplit');
+      if (!picker || !picker.classList.contains('open')) return;
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeNotifikasiTimePickerSplit();
+      }
+    });
+  })();
+
+  var notifTimeControlSplit = el('cicilanNotificationTimePickerControlSplit');
+  if (notifTimeControlSplit) {
+    notifTimeControlSplit.addEventListener('keydown', function(event) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openNotifikasiTimePickerSplit();
+      }
+    });
+  }
+
+  window.simpanPengaturanNotifikasiCicilanSplit=function(){
+    var user=getCicilanUserKey_(), emailEl=el('cicilanNotificationEmailInputSplit'), timeEl=el('cicilanNotificationTimeInputSplit'), activeEl=el('cicilanNotificationActiveInputSplit'), btn=el('cicilanNotificationSaveSplit');
+    var email=String(emailEl?emailEl.value:'').trim(), jam=String(timeEl?timeEl.value:'').trim(), aktif=!!(activeEl&&activeEl.checked), cfg=__cicilanNotificationConfigSplit||{};
+    if(!user)return tampilkanPesanPengaturanNotifikasiSplit_('Sesi pengguna tidak ditemukan. Silakan login kembali.','error');
+    if(!email)return tampilkanPesanPengaturanNotifikasiSplit_('Email tujuan wajib diisi.','error');
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return tampilkanPesanPengaturanNotifikasiSplit_('Format email tidak valid.','error');
+    if(!/^\d{2}:\d{2}$/.test(jam))return tampilkanPesanPengaturanNotifikasiSplit_('Jam notifikasi tidak valid.','error');
+    if(btn){btn.disabled=true;btn.textContent='Menyimpan...';}
+    google.script.run.withSuccessHandler(function(res){
+      if(btn){btn.disabled=false;btn.textContent='✓ Simpan';}
+      if(!res||res.success!==true)return tampilkanPesanPengaturanNotifikasiSplit_(res&&res.message?res.message:'Pengaturan gagal disimpan.','error');
+      tampilkanPengaturanNotifikasiCicilanSplit_({userKey:user,email:email,aktif:aktif,h7:cfg.h7!==false,h3:cfg.h3!==false,h1:cfg.h1!==false,hariH:cfg.hariH!==false,setelahJatuhTempo:cfg.setelahJatuhTempo!==false,maksHariTerlambat:Number(cfg.maksHariTerlambat||7),jamPengecekan:jam});
+      tampilkanPesanPengaturanNotifikasiSplit_('Pengaturan notifikasi berhasil disimpan.','success');
+      setTimeout(function(){toggleNotifikasiSettingsSplit(false);},900);
+    }).withFailureHandler(function(err){if(btn){btn.disabled=false;btn.textContent='✓ Simpan';}tampilkanPesanPengaturanNotifikasiSplit_('Gagal menyimpan: '+(err&&err.message?err.message:String(err||'Kesalahan tidak diketahui.')),'error');})
+    .simpanPengaturanNotifikasiCicilan({userKey:user,email:email,aktif:aktif,h7:cfg.h7!==false,h3:cfg.h3!==false,h1:cfg.h1!==false,hariH:cfg.hariH!==false,setelahJatuhTempo:cfg.setelahJatuhTempo!==false,maksHariTerlambat:Number(cfg.maksHariTerlambat||7),jamPengecekan:jam});
+  };
+
+  window.muatCicilanSplit = function () {
+
+    var container = el('cicilanListSplit');
+    if (!container) return;
+    container.innerHTML = '<div class="cicilan-empty">Memuat data cicilan...</div>';
+
+    if (!window.userKey) {
+      container.innerHTML = '<div class="cicilan-empty">Sesi pengguna tidak ditemukan. Silakan login kembali.</div>';
+      muatEmailNotifikasiCicilanSplit_();
+      return;
+    }
+
+    muatEmailNotifikasiCicilanSplit_();
+
+    google.script.run
+      .withSuccessHandler(function (list) {
+        list = Array.isArray(list) ? list : [];
+        window.__cicilanListSplit = list;
+        if (!list.length) {
+          container.innerHTML = '<div class="cicilan-empty">Belum ada cicilan.<br>Tekan <b>+ Tambah</b> untuk membuat cicilan pertama.</div>';
+          return;
+        }
+
+        var html = '';
+        list.forEach(function (item) {
+          var st = statusLabel(item);
+          html +=
+            '<div class="cicilan-card">' +
+              '<div class="cicilan-card-title">' +
+                '<span>' + escapeHtml(item.nama || 'Cicilan') + '</span>' +
+                '<span class="cicilan-badge ' + st.cls + '">' + escapeHtml(st.text) + '</span>' +
+              '</div>' +
+              '<div class="cicilan-grid">' +
+                '<div class="cicilan-item"><div class="cicilan-label">Nominal / cicilan</div><div class="cicilan-value">' + rupiah(item.nominalCicilan) + '</div></div>' +
+                '<div class="cicilan-item"><div class="cicilan-label">Total</div><div class="cicilan-value">' + rupiah(item.total) + '</div></div>' +
+                '<div class="cicilan-item"><div class="cicilan-label">Sudah Dibayar</div><div class="cicilan-value">' + rupiah(item.sudahDibayar) + '</div></div>' +
+                '<div class="cicilan-item"><div class="cicilan-label">Sisa</div><div class="cicilan-value">' + rupiah(item.sisa) + '</div></div>' +
+                '<div class="cicilan-item"><div class="cicilan-label">Cicilan ke</div><div class="cicilan-value">' + escapeHtml(String(item.cicilanKe || 1)) + ' / ' + escapeHtml(String(item.tenor || '-')) + '</div></div>' +
+              '</div>' +
+              '<div class="cicilan-due"><div class="cicilan-due-main"><span class="cicilan-calendar-icon">📅</span><div><div class="cicilan-due-label">Jatuh Tempo</div><div class="cicilan-due-value">' + escapeHtml(formatDateDisplay_(item.tanggalJatuhTempo)) + '</div></div></div></div>' +
+              '<div class="cicilan-actions">' +
+                (Number(item.sisa || 0) > 0 ? '<button type="button" class="cicilan-action-btn cicilan-pay-btn" onclick="openBayarCicilanSplit(\'' + escapeHtml(item.id || '') + '\')">💳 Bayar Cicilan</button>' : '') +
+                '<button type="button" class="cicilan-action-btn cicilan-history-btn" onclick="toggleRiwayatCicilanSplit(\'' + escapeHtml(item.id || '') + '\', this)">📋 Riwayat</button>' +
+                '<button type="button" class="cicilan-action-btn cicilan-delete-btn" title="Hapus cicilan" aria-label="Hapus cicilan" onclick="hapusCicilanSplit(\'' + escapeHtml(item.id || '') + '\')">🗑️</button>' +
+              '</div>' +
+              '<div id="cicilanHistory_' + escapeHtml(item.id || '') + '" class="cicilan-history-placeholder"></div>' +
+            '</div>';
+        });
+        container.innerHTML = html;
+      })
+      .withFailureHandler(function (err) {
+        container.innerHTML = '<div class="cicilan-empty">Gagal memuat cicilan: ' + escapeHtml(err && err.message ? err.message : err) + '</div>';
+      })
+      .ambilCicilan(window.userKey);
+  };
+
+  function getCicilanUserKey_() {
+    var key = '';
+    try { key = String(window.userKey || '').trim(); } catch (e) {}
+    if (!key) {
+      try { key = String(localStorage.getItem('financeUserKey') || '').trim(); } catch (e) {}
+    }
+    return key;
+  }
+
+  function parseCicilanNominal_(value) {
+    var s = String(value == null ? '' : value).trim().replace(/\s/g, '').replace(/[^0-9,.-]/g, '');
+    if (!s) return 0;
+    var negative = s.charAt(0) === '-';
+    s = s.replace(/-/g, '');
+    var lastComma = s.lastIndexOf(','), lastDot = s.lastIndexOf('.');
+    var decimalSep = null;
+    if (lastComma >= 0 && lastDot >= 0) decimalSep = lastComma > lastDot ? ',' : '.';
+    else if (lastComma >= 0) decimalSep = (s.length - lastComma - 1 <= 2) ? ',' : null;
+    else if (lastDot >= 0) decimalSep = (s.length - lastDot - 1 <= 2) ? '.' : null;
+    if (decimalSep) {
+      var pos = s.lastIndexOf(decimalSep);
+      var intPart = s.slice(0, pos).replace(/[.,]/g, '');
+      var decPart = s.slice(pos + 1).replace(/[^0-9]/g, '');
+      s = intPart + '.' + decPart;
+    } else s = s.replace(/[.,]/g, '');
+    var n = Number(s);
+    return isFinite(n) ? (negative ? -n : n) : 0;
+  }
+
+  function formatMoney_(value, decimals) {
+    var n = Number(value);
+    if (!isFinite(n)) n = 0;
+    return n.toLocaleString('id-ID', { minimumFractionDigits: decimals == null ? 2 : decimals, maximumFractionDigits: decimals == null ? 2 : decimals });
+  }
+
+  function formatRupiah_(value) { return 'Rp' + formatMoney_(value, 2); }
+
+  function bindMoneyInput_(input) {
+    if (!input || input.dataset.moneyBound === '1') return;
+    input.dataset.moneyBound = '1';
+
+    input.addEventListener('input', function () {
+      formatMoneyInputLive_(input);
+    });
+
+    input.addEventListener('blur', function () {
+      if (String(input.value).trim() !== '') {
+        input.value = formatMoney_(parseCicilanNominal_(input.value), 2);
+      }
+    });
+  }
+
+  function formatMoneyInputLive_(input) {
+    var raw = String(input.value || '');
+    var caret = input.selectionStart == null ? raw.length : input.selectionStart;
+    var before = raw.slice(0, caret);
+    var digitsBefore = (before.match(/\d/g) || []).length;
+    var hasComma = raw.indexOf(',') >= 0;
+
+    raw = raw.replace(/[^0-9,]/g, '');
+    if (!raw) { input.value = ''; return; }
+
+    var parts = raw.split(',');
+    var intPart = (parts.shift() || '').replace(/^0+(?=\d)/, '');
+    if (!intPart) intPart = '0';
+    intPart = Number(intPart).toLocaleString('id-ID', {maximumFractionDigits:0});
+
+    var result = intPart;
+    if (hasComma) {
+      var decimal = parts.join('').replace(/\D/g, '').slice(0, 2);
+      result += ',' + decimal;
+    }
+
+    input.value = result;
+
+    // Kembalikan posisi kursor berdasarkan jumlah digit yang sudah diketik,
+    // sehingga titik ribuan tidak membuat kursor meloncat ke akhir.
+    var pos = 0, seen = 0;
+    while (pos < result.length && seen < digitsBefore) {
+      if (/\d/.test(result.charAt(pos))) seen++;
+      pos++;
+    }
+    if (hasComma && before.indexOf(',') >= 0 && before.split(',')[1] != null) {
+      var commaPos = result.indexOf(',');
+      if (caret > before.indexOf(',')) {
+        pos = Math.max(pos, commaPos + 1 + Math.min(2, (before.split(',')[1] || '').replace(/\D/g,'').length));
+      }
+    }
+    try { input.setSelectionRange(pos, pos); } catch (e) {}
+  }
+
+  function bindAllMoneyInputs_() {
+    ['cicilanTotalSplit','cicilanNominalSplit','cicilanPaymentNominalSplit'].forEach(function(id){ bindMoneyInput_(el(id)); });
+  }
+
+  function formatDateDisplay_(value) {
+    if (!value) return '-';
+    var raw = String(value);
+    var m = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m) {
+      var d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+      return d.toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' });
+    }
+    var t = new Date(value);
+    if (isNaN(t.getTime())) return raw;
+    return t.toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' });
+  }
+
+  // ============================================================
+  // CUSTOM DATE PICKER
+  // Hanya menggunakan satu ikon kalender buatan sendiri.
+  // Input hidden tetap memakai ID lama agar backend tidak berubah.
+  // ============================================================
+  var activeDatePickerId_ = '';
+  var activeDatePickerMonth_ = null;
+
+  function pad2_(n) { return String(n).padStart(2, '0'); }
+
+  function isoToDateLocal_(iso) {
+    var m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) return null;
+    var d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  function dateToIsoLocal_(d) {
+    return d.getFullYear() + '-' + pad2_(d.getMonth() + 1) + '-' + pad2_(d.getDate());
+  }
+
+  function formatDateInputDisplay_(iso) {
+    var d = isoToDateLocal_(iso);
+    if (!d) return '';
+    return d.toLocaleDateString('id-ID', {day:'2-digit', month:'long', year:'numeric'});
+  }
+
+  function syncDateDisplaySplit_(id) {
+    var input = el(id);
+    var display = el(id + 'Display');
+    if (!input || !display) return;
+    display.value = formatDateInputDisplay_(input.value);
+  }
+
+  function setDateValueSplit_(id, iso) {
+    var input = el(id);
+    if (!input) return;
+    input.value = /^\d{4}-\d{2}-\d{2}$/.test(String(iso || '')) ? String(iso) : '';
+    syncDateDisplaySplit_(id);
+  }
+
+  function ensureCustomDatePicker_() {
+    var picker = el('cicilanCustomDatePickerSplit');
+    if (picker) return picker;
+    picker = document.createElement('div');
+    picker.id = 'cicilanCustomDatePickerSplit';
+    picker.className = 'cicilan-custom-calendar';
+    picker.innerHTML =
+      '<div class="cicilan-cal-head">' +
+        '<button type="button" class="cicilan-cal-nav" data-cal-prev aria-label="Bulan sebelumnya">‹</button>' +
+        '<div class="cicilan-cal-month" data-cal-month></div>' +
+        '<button type="button" class="cicilan-cal-nav" data-cal-next aria-label="Bulan berikutnya">›</button>' +
+      '</div>' +
+      '<div class="cicilan-cal-week"><span>Min</span><span>Sen</span><span>Sel</span><span>Rab</span><span>Kam</span><span>Jum</span><span>Sab</span></div>' +
+      '<div class="cicilan-cal-days" data-cal-days></div>' +
+      '<div class="cicilan-cal-footer"><button type="button" class="cicilan-cal-today" data-cal-today>Hari ini</button></div>';
+    document.body.appendChild(picker);
+
+    picker.querySelector('[data-cal-prev]').addEventListener('click', function() {
+      activeDatePickerMonth_.setMonth(activeDatePickerMonth_.getMonth() - 1);
+      renderCustomDatePicker_();
+    });
+    picker.querySelector('[data-cal-next]').addEventListener('click', function() {
+      activeDatePickerMonth_.setMonth(activeDatePickerMonth_.getMonth() + 1);
+      renderCustomDatePicker_();
+    });
+    picker.querySelector('[data-cal-today]').addEventListener('click', function() {
+      setDateValueSplit_(activeDatePickerId_, isoToday_());
+      closeDatePickerSplit_();
+    });
+    return picker;
+  }
+
+  function positionCustomDatePicker_() {
+    var picker = ensureCustomDatePicker_();
+    var display = el(activeDatePickerId_ + 'Display');
+    var button = display ? display.parentElement.querySelector('.date-picker-button') : null;
+    if (!button) return;
+    var r = button.getBoundingClientRect();
+    var width = Math.min(320, window.innerWidth - 24);
+    var left = Math.max(12, Math.min(r.left, window.innerWidth - width - 12));
+    var top = r.bottom + 8;
+    if (top + picker.offsetHeight > window.innerHeight - 12) {
+      top = Math.max(12, r.top - picker.offsetHeight - 8);
+    }
+    picker.style.width = width + 'px';
+    picker.style.left = left + 'px';
+    picker.style.top = top + 'px';
+  }
+
+  function renderCustomDatePicker_() {
+    var picker = ensureCustomDatePicker_();
+    if (!activeDatePickerMonth_) return;
+    var monthNames = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+    picker.querySelector('[data-cal-month]').textContent = monthNames[activeDatePickerMonth_.getMonth()] + ' ' + activeDatePickerMonth_.getFullYear();
+
+    var daysHost = picker.querySelector('[data-cal-days]');
+    var y = activeDatePickerMonth_.getFullYear();
+    var m = activeDatePickerMonth_.getMonth();
+    var start = new Date(y, m, 1).getDay();
+    var count = new Date(y, m + 1, 0).getDate();
+    var prevCount = new Date(y, m, 0).getDate();
+    var selectedIso = el(activeDatePickerId_) ? el(activeDatePickerId_).value : '';
+    var todayIso = isoToday_();
+    var html = '';
+
+    for (var i = start - 1; i >= 0; i--) {
+      var prevDate = new Date(y, m - 1, prevCount - i);
+      html += '<button type="button" class="cicilan-cal-day muted" data-cal-date="' + dateToIsoLocal_(prevDate) + '">' + prevDate.getDate() + '</button>';
+    }
+    for (var day = 1; day <= count; day++) {
+      var d = new Date(y, m, day);
+      var iso = dateToIsoLocal_(d);
+      var cls = 'cicilan-cal-day';
+      if (iso === todayIso) cls += ' today';
+      if (iso === selectedIso) cls += ' selected';
+      html += '<button type="button" class="' + cls + '" data-cal-date="' + iso + '">' + day + '</button>';
+    }
+    var cells = start + count;
+    var nextDay = 1;
+    while (cells < 42) {
+      var nextDate = new Date(y, m + 1, nextDay++);
+      html += '<button type="button" class="cicilan-cal-day muted" data-cal-date="' + dateToIsoLocal_(nextDate) + '">' + nextDate.getDate() + '</button>';
+      cells++;
+    }
+    daysHost.innerHTML = html;
+    Array.prototype.forEach.call(daysHost.querySelectorAll('[data-cal-date]'), function(btn) {
+      btn.addEventListener('click', function() {
+        setDateValueSplit_(activeDatePickerId_, btn.getAttribute('data-cal-date'));
+        closeDatePickerSplit_();
+      });
+    });
+    picker.classList.add('open');
+    requestAnimationFrame(positionCustomDatePicker_);
+  }
+
+  function closeDatePickerSplit_() {
+    var picker = el('cicilanCustomDatePickerSplit');
+    if (picker) picker.classList.remove('open');
+    activeDatePickerId_ = '';
+    activeDatePickerMonth_ = null;
+  }
+
+  window.openDatePickerSplit = function(id) {
+    var input = el(id);
+    if (!input) return;
+    var current = isoToDateLocal_(input.value) || isoToDateLocal_(isoToday_());
+    activeDatePickerId_ = id;
+    activeDatePickerMonth_ = new Date(current.getFullYear(), current.getMonth(), 1);
+    renderCustomDatePicker_();
+  };
+
+  // Event delegation: elemen tanggal pada modul Cicilan dapat dirender
+  // setelah script ini dijalankan, jadi jangan hanya memasang listener
+  // sekali pada elemen yang sudah ada.
+  document.addEventListener('click', function(e) {
+    var control = e.target.closest ? e.target.closest('.date-custom-control') : null;
+    if (control) {
+      var dateButton = control.querySelector('.date-picker-button[data-date-target]');
+      if (dateButton) {
+        e.preventDefault();
+        e.stopPropagation();
+        openDatePickerSplit(dateButton.getAttribute('data-date-target'));
+        return;
+      }
+    }
+
+    var picker = el('cicilanCustomDatePickerSplit');
+    if (!picker || !picker.classList.contains('open')) return;
+    if (picker.contains(e.target)) return;
+    closeDatePickerSplit_();
+  });
+  document.addEventListener('keydown', function(e) {
+    var control = e.target.closest ? e.target.closest('.date-custom-control') : null;
+    if (!control) return;
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+
+    var dateButton = control.querySelector('.date-picker-button[data-date-target]');
+    if (!dateButton) return;
+
+    e.preventDefault();
+    openDatePickerSplit(dateButton.getAttribute('data-date-target'));
+  });
+
+  window.addEventListener('resize', function() { if (activeDatePickerId_) positionCustomDatePicker_(); });
+  window.addEventListener('scroll', function() { if (activeDatePickerId_) positionCustomDatePicker_(); }, true);
+
+  var activePaymentCicilanId_ = '';
+
+  function setPaymentMessage_(text, type) {
+    var box = el('cicilanPaymentMessageSplit');
+    if (!box) return;
+    box.className = type ? ('cicilanPaymentMessageSplit ' + type) : '';
+    box.style.display = text ? 'block' : 'none';
+    box.textContent = text || '';
+  }
+
+  function isoToday_() {
+    var today = new Date();
+    return new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0,10);
+  }
+
+  function muatRekeningPembayaranCicilan_(item) {
+    var select = el('cicilanPaymentRekeningSplit');
+    var label = el('cicilanPaymentRekeningLabelSplit');
+    var hint = el('cicilanPaymentRekeningHintSplit');
+    if (!select) return;
+
+    var isPiutang = item && String(item.tipe || '').toUpperCase() === 'PIUTANG';
+    if (label) label.textContent = isPiutang ? '🏦 Masuk ke rekening' : '🏦 Bayar dari rekening';
+    if (hint) hint.textContent = isPiutang
+      ? 'Pilih rekening tempat uang piutang akan masuk.'
+      : 'Pilih rekening yang digunakan untuk membayar cicilan.';
+
+    select.innerHTML = '<option value="">Memuat rekening...</option>';
+    select.disabled = true;
+
+    var user = getCicilanUserKey_();
+    if (!user) {
+      select.innerHTML = '<option value="">Sesi pengguna tidak ditemukan</option>';
+      return;
+    }
+
+    google.script.run
+      .withSuccessHandler(function(list) {
+        list = Array.isArray(list) ? list : [];
+        select.disabled = false;
+
+        if (!list.length) {
+          select.innerHTML = '<option value="">Belum ada rekening</option>';
+          if (hint) hint.textContent = 'Tambahkan rekening terlebih dahulu sebelum melakukan pembayaran cicilan.';
+          return;
+        }
+
+        select.innerHTML = '<option value="">Pilih rekening...</option>';
+        list.forEach(function(rek) {
+          var option = document.createElement('option');
+          option.value = String(rek.nama || '');
+          var saldo = Number(rek.saldoAkhir != null ? rek.saldoAkhir : rek.saldoAwal || 0);
+          option.textContent = String(rek.icon || '💳') + ' ' + String(rek.nama || 'Rekening') + ' • ' + rupiah(saldo);
+          select.appendChild(option);
+        });
+      })
+      .withFailureHandler(function(err) {
+        select.disabled = false;
+        select.innerHTML = '<option value="">Gagal memuat rekening</option>';
+        if (hint) hint.textContent = 'Gagal memuat rekening: ' + (err && err.message ? err.message : String(err || 'Kesalahan tidak diketahui.'));
+      })
+      .getRekeningData(user);
+  }
+
+  window.openBayarCicilanSplit = function (id) {
+    bindAllMoneyInputs_();
+    var list = window.__cicilanListSplit || [];
+    var item = list.find(function (x) { return String(x.id) === String(id); });
+    if (!item) {
+      setMessage('Data cicilan tidak ditemukan.', 'error');
+      return;
+    }
+    if (Number(item.sisa || 0) <= 0) {
+      setMessage('Cicilan ini sudah lunas.', 'error');
+      return;
+    }
+
+    activePaymentCicilanId_ = String(item.id);
+    el('cicilanPaymentSubtitleSplit').textContent = (item.nama || 'Cicilan') + ' • Sisa ' + rupiah(item.sisa);
+    el('cicilanPaymentKeSplit').textContent = String(item.cicilanKe || 1) + ' / ' + String(item.tenor || '-');
+    el('cicilanPaymentSisaSplit').textContent = rupiah(item.sisa);
+    el('cicilanPaymentNominalSplit').value = '';
+    setDateValueSplit_('cicilanPaymentTanggalSplit', isoToday_());
+    el('cicilanPaymentCatatanSplit').value = '';
+    setPaymentMessage_('', '');
+
+    var accountSelect = el('cicilanPaymentRekeningSplit');
+    if (accountSelect) {
+      accountSelect.innerHTML = '<option value="">Memuat rekening...</option>';
+      accountSelect.disabled = true;
+    }
+
+    el('cicilanPaymentModalSplit').style.display = 'flex';
+    muatRekeningPembayaranCicilan_(item);
+    setTimeout(function(){ el('cicilanPaymentNominalSplit').focus(); }, 50);
+  };
+
+  window.closeBayarCicilanSplit = function () {
+    activePaymentCicilanId_ = '';
+    var modal = el('cicilanPaymentModalSplit');
+    if (modal) modal.style.display = 'none';
+  };
+
+  window.simpanPembayaranCicilanSplit = function () {
+    var user = getCicilanUserKey_();
+    var id = activePaymentCicilanId_;
+    var nominal = parseCicilanNominal_(el('cicilanPaymentNominalSplit').value);
+    var tanggal = el('cicilanPaymentTanggalSplit').value;
+    var rekening = el('cicilanPaymentRekeningSplit').value.trim();
+    var catatan = el('cicilanPaymentCatatanSplit').value.trim();
+    var item = (window.__cicilanListSplit || []).find(function (x) { return String(x.id) === String(id); });
+
+    if (!user) return setPaymentMessage_('Sesi pengguna tidak ditemukan. Silakan login kembali.', 'error');
+    if (!id) return setPaymentMessage_('Cicilan belum dipilih.', 'error');
+    if (!(nominal > 0)) return setPaymentMessage_('Nominal pembayaran harus lebih dari 0.', 'error');
+    if (!rekening) return setPaymentMessage_('Silakan pilih rekening transaksi.', 'error');
+    if (!tanggal) return setPaymentMessage_('Tanggal pembayaran wajib diisi.', 'error');
+    if (item && nominal > Number(item.sisa || 0)) return setPaymentMessage_('Nominal pembayaran tidak boleh melebihi sisa ' + rupiah(item.sisa) + '.', 'error');
+
+    var btn = el('cicilanPaymentSaveSplit');
+    btn.disabled = true;
+    btn.textContent = 'Menyimpan...';
+    setPaymentMessage_('', '');
+
+    google.script.run
+      .withSuccessHandler(function (res) {
+        btn.disabled = false;
+        btn.textContent = 'Bayar Cicilan';
+        if (!res || res.success !== true) {
+          var detail = '';
+          try { detail = res ? JSON.stringify(res) : 'Respons kosong dari server.'; } catch (e) { detail = String(res); }
+          setPaymentMessage_('Pembayaran gagal disimpan. Respons server: ' + detail, 'error');
+          return;
+        }
+        closeBayarCicilanSplit();
+        setMessage(res.message || 'Pembayaran cicilan berhasil dicatat.', 'success');
+        muatCicilanSplit();
+        refreshDashboardAfterCicilan_();
+      })
+      .withFailureHandler(function (err) {
+        btn.disabled = false;
+        btn.textContent = 'Bayar Cicilan';
+        setPaymentMessage_('Gagal menyimpan pembayaran: ' + (err && err.message ? err.message : String(err || 'Kesalahan tidak diketahui.')), 'error');
+      })
+      .catatPembayaranCicilan({
+        cicilanId: id,
+        userKey: user,
+        nominal: nominal,
+        tanggalBayar: tanggal,
+        rekening: rekening,
+        cicilanKe: item ? (parseInt(item.cicilanKe, 10) || 1) : 1,
+        catatan: catatan
+      });
+  };
+
+  // Setelah pembayaran cicilan berhasil, dashboard utama harus langsung
+  // mengambil ulang saldo rekening, ringkasan, dan riwayat transaksi.
+  // Fungsi-fungsi ini memang sudah tersedia di Form utama.
+  function refreshDashboardAfterCicilan_() {
+    try {
+      if (typeof window.fetchRekeningData === 'function') {
+        window.fetchRekeningData();
+      }
+    } catch (e) {
+      console.warn('Refresh rekening setelah pembayaran cicilan gagal:', e);
+    }
+
+    try {
+      if (typeof loadDashboard === 'function') {
+        loadDashboard();
+      }
+    } catch (e) {
+      console.warn('Refresh dashboard setelah pembayaran cicilan gagal:', e);
+    }
+
+    try {
+      if (typeof fetchHutangPiutangData === 'function') {
+        fetchHutangPiutangData();
+      }
+    } catch (e) {
+      console.warn('Refresh Hutang/Piutang setelah perubahan cicilan gagal:', e);
+    }
+
+    try {
+      if (typeof muatRiwayatWidget === 'function') {
+        muatRiwayatWidget();
+      }
+    } catch (e) {
+      console.warn('Refresh riwayat transaksi setelah pembayaran cicilan gagal:', e);
+    }
+
+    try {
+      if (typeof muatDonutBulatWidget === 'function') {
+        muatDonutBulatWidget();
+      }
+    } catch (e) {
+      console.warn('Refresh donut setelah pembayaran cicilan gagal:', e);
+    }
+
+    try {
+      if (typeof openAllTransaksi === 'function' &&
+          document.getElementById('allTxModal') &&
+          document.getElementById('allTxModal').style.display === 'block') {
+        openAllTransaksi();
+      }
+    } catch (e) {
+      console.warn('Refresh modal transaksi gagal:', e);
+    }
+
+    try {
+      if (typeof muatRiwayatPeriode === 'function' &&
+          document.getElementById('periodeModal') &&
+          document.getElementById('periodeModal').style.display === 'block') {
+        muatRiwayatPeriode();
+      }
+    } catch (e) {
+      console.warn('Refresh riwayat periode gagal:', e);
+    }
+  }
+
+  window.toggleRiwayatCicilanSplit = function (id, btn) {
+    var host = el('cicilanHistory_' + id);
+    if (!host) return;
+    if (host.style.display === 'block') {
+      host.style.display = 'none';
+      btn.textContent = '📋 Riwayat';
+      return;
+    }
+    host.style.display = 'block';
+    host.innerHTML = '<div class="cicilan-empty" style="padding:12px;">Memuat riwayat...</div>';
+    btn.textContent = '📋 Sembunyikan';
+    var item = (window.__cicilanListSplit || []).find(function (x) { return String(x.id) === String(id); });
+    var user = getCicilanUserKey_();
+    // UserKey sesi dipakai untuk validasi kepemilikan di server.
+    // Server kemudian mengambil riwayat berdasarkan CicilanID agar data lama
+    // yang UserKey-nya belum ternormalisasi tetap bisa tampil.
+    google.script.run
+      .withSuccessHandler(function (rows) {
+        rows = Array.isArray(rows) ? rows : [];
+        rows.sort(function(a, b) {
+          var ta = a && a.tanggalBayar ? new Date(a.tanggalBayar).getTime() : 0;
+          var tb = b && b.tanggalBayar ? new Date(b.tanggalBayar).getTime() : 0;
+          return ta - tb;
+        });
+        if (!rows.length) {
+          // Jalankan pemeriksaan read-only agar bila data lama belum cocok,
+          // penyebabnya terlihat jelas tanpa mengubah data pembayaran.
+          google.script.run
+            .withSuccessHandler(function(diag) {
+              var extra = '';
+              if (diag && diag.cicilanFound && diag.pembayaranMatches === 0) {
+                extra = '<div style="margin-top:6px;color:#777;font-size:10px;">Cicilan ditemukan, tetapi belum ada baris pembayaran yang cocok dengan ID cicilan ini.</div>';
+              } else if (diag && !diag.cicilanFound) {
+                extra = '<div style="margin-top:6px;color:#ff8a80;font-size:10px;">ID cicilan tidak ditemukan di server.</div>';
+              }
+              host.innerHTML =
+                '<div style="color:#888;font-size:11px;text-align:center;padding:8px;">Belum ada pembayaran.</div>' +
+                extra +
+                '<div style="margin-top:6px;color:#777;font-size:9px;text-align:center;">ID: ' +
+                escapeHtml(String(id || '-')) + ' • User: ' + escapeHtml(String(user || '-')) +
+                ' • Server match: ' + escapeHtml(String(diag && diag.pembayaranMatches != null ? diag.pembayaranMatches : '-')) +
+                '</div>';
+            })
+            .withFailureHandler(function(err) {
+              var msg = err && err.message ? err.message : String(err || 'Kesalahan tidak diketahui');
+              host.innerHTML =
+                '<div style="color:#888;font-size:11px;text-align:center;padding:8px;">Belum ada pembayaran.</div>' +
+                '<div style="margin-top:6px;color:#ff8a80;font-size:10px;text-align:center;">Diagnostik server gagal: ' +
+                escapeHtml(msg) + '</div>' +
+                '<div style="margin-top:4px;color:#777;font-size:9px;text-align:center;">ID: ' +
+                escapeHtml(String(id || '-')) + ' • User: ' + escapeHtml(String(user || '-')) + '</div>';
+            })
+            .diagnosaRiwayatPembayaranCicilan(id, user);
+          return;
+        }
+        var html = '<div class="history-title"><span class="history-title-icon">▤</span> Riwayat Pembayaran</div>';
+        rows.forEach(function (r) {
+          var tanggal = formatDateDisplay_(r.tanggalBayar);
+          var rekeningInfo = r.rekening ? ' • 🏦 ' + escapeHtml(String(r.rekening)) : '';
+          html += '<div class="history-item"><span class="history-date">' + escapeHtml(tanggal) + rekeningInfo + '</span><span class="history-number">Cicilan ke-' + escapeHtml(String(r.cicilanKe || 1)) + '</span><span class="history-nominal">' + escapeHtml(rupiah(r.nominal)) + '<button type="button" class="history-delete-btn" title="Hapus transaksi" aria-label="Hapus transaksi" onclick="hapusTransaksiPembayaranCicilanSplit(&quot;' + escapeHtml(String(r.id || '')) + '&quot;)">🗑️</button></span></div>';
+          if (r.catatan) html += '<div class="history-note">📝 ' + escapeHtml(r.catatan) + '</div>';
+        });
+        host.innerHTML = html;
+      })
+      .withFailureHandler(function (err) {
+        host.innerHTML = '<div style="color:#ff8a80;font-size:11px;padding:8px;">Gagal memuat riwayat: ' + escapeHtml(err && err.message ? err.message : err) + '</div>';
+      })
+      .ambilRiwayatPembayaranCicilan(id, user);
+  };
+
+  var __konfirmasiHapusCicilanSplit = null;
+
+  function tampilkanKonfirmasiHapusCicilanSplit_(opts) {
+    opts = opts || {};
+    var overlay = el('cicilanDeleteConfirmOverlaySplit');
+    if (!overlay) return Promise.resolve(false);
+
+    el('cicilanDeleteConfirmTitleSplit').textContent = opts.title || 'Hapus Data?';
+    el('cicilanDeleteConfirmSubSplit').textContent = opts.subtitle || 'Tindakan ini tidak dapat dibatalkan.';
+    el('cicilanDeleteConfirmTargetSplit').textContent = opts.target || 'Data Cicilan';
+    el('cicilanDeleteConfirmMessageSplit').textContent = opts.message || '';
+    el('cicilanDeleteConfirmWarningSplit').textContent = '⚠️ ' + (opts.warning || 'Data yang saling terhubung akan ikut diperbarui.');
+
+    overlay.classList.add('open');
+    return new Promise(function(resolve) {
+      __konfirmasiHapusCicilanSplit = resolve;
+    });
+  }
+
+  window.jawabKonfirmasiHapusCicilanSplit_ = function(ok) {
+    var overlay = el('cicilanDeleteConfirmOverlaySplit');
+    if (overlay) overlay.classList.remove('open');
+    var resolve = __konfirmasiHapusCicilanSplit;
+    __konfirmasiHapusCicilanSplit = null;
+    if (resolve) resolve(!!ok);
+  };
+
+  window.hapusCicilanSplit = function (cicilanId) {
+    var user = getCicilanUserKey_();
+    if (!user) return setMessage('Sesi pengguna tidak ditemukan. Silakan login kembali.', 'error');
+    if (!cicilanId) return setMessage('ID cicilan tidak ditemukan.', 'error');
+
+    var item = (window.__cicilanListSplit || []).find(function (x) {
+      return String(x.id || '') === String(cicilanId);
+    });
+    var nama = item && item.nama ? String(item.nama) : 'cicilan ini';
+    var adaPembayaran = item && Number(item.sudahDibayar || 0) > 0;
+
+    var pesan = 'Cicilan utama akan dihapus.';
+    if (adaPembayaran) pesan += ' Seluruh riwayat pembayaran cicilan ini juga akan dihapus.';
+
+    tampilkanKonfirmasiHapusCicilanSplit_({
+      title: 'Hapus Cicilan?',
+      subtitle: 'Tindakan ini tidak dapat dibatalkan.',
+      target: nama,
+      message: pesan,
+      warning: 'Cicilan, riwayat pembayarannya, dan data terhubung akan ikut diperbarui.'
+    }).then(function(ok) {
+      if (!ok) return;
+
+      google.script.run
+      .withSuccessHandler(function (res) {
+        if (!res || res.success !== true) {
+          return setMessage(res && res.message ? res.message : 'Cicilan gagal dihapus.', 'error');
+        }
+        setMessage(res.message || 'Cicilan berhasil dihapus.', 'success');
+        muatCicilanSplit();
+        refreshDashboardAfterCicilan_();
+      })
+      .withFailureHandler(function (err) {
+        setMessage('Gagal menghapus cicilan: ' + (err && err.message ? err.message : String(err || 'Kesalahan tidak diketahui.')), 'error');
+      })
+      .hapusCicilan(cicilanId, user);
+    });
+  };
+
+  window.hapusTransaksiPembayaranCicilanSplit = function (paymentId) {
+    var user = getCicilanUserKey_();
+    if (!user) return setMessage('Sesi pengguna tidak ditemukan. Silakan login kembali.', 'error');
+    if (!paymentId) return setMessage('ID transaksi tidak ditemukan.', 'error');
+
+    tampilkanKonfirmasiHapusCicilanSplit_({
+      title: 'Hapus Pembayaran?',
+      subtitle: 'Riwayat dan total cicilan akan dihitung ulang.',
+      target: 'Riwayat Pembayaran Cicilan',
+      message: 'Pembayaran yang dipilih akan dihapus dari riwayat dan perhitungan cicilan akan diperbarui.',
+      warning: 'Saldo rekening tidak dihapus. Hanya pembayaran yang dipilih yang akan diproses.'
+    }).then(function(ok) {
+      if (!ok) return;
+
+      google.script.run
+      .withSuccessHandler(function (res) {
+        if (!res || res.success !== true) {
+          return setMessage(res && res.message ? res.message : 'Transaksi gagal dihapus.', 'error');
+        }
+        setMessage(res.message || 'Transaksi pembayaran berhasil dihapus.', 'success');
+        muatCicilanSplit();
+        refreshDashboardAfterCicilan_();
+      })
+      .withFailureHandler(function (err) {
+        setMessage('Gagal menghapus transaksi: ' + (err && err.message ? err.message : String(err || 'Kesalahan tidak diketahui.')), 'error');
+      })
+      .hapusPembayaranCicilan(paymentId, user);
+    });
+  };
+
+  window.simpanCicilanSplit = function () {
+    var currentUserKey = getCicilanUserKey_();
+    if (!currentUserKey) {
+      setMessage('Sesi pengguna tidak ditemukan. Kembali ke halaman utama, login kembali, lalu buka menu Cicilan.', 'error');
+      return;
+    }
+
+    var notifEmailEl = el('cicilanNotificationEmailInputSplit');
+    var notifTimeEl = el('cicilanNotificationTimeInputSplit');
+    var notifActiveEl = el('cicilanNotificationActiveInputSplit');
+
+    var notifEmail = String(notifEmailEl ? notifEmailEl.value : '').trim();
+    var notifJam = String(notifTimeEl ? notifTimeEl.value : '').trim();
+    var notifAktif = !!(notifActiveEl && notifActiveEl.checked);
+
+    var data = {
+      userKey: currentUserKey,
+      tipe: 'Cicilan',
+      nama: el('cicilanNamaSplit').value.trim(),
+      total: parseCicilanNominal_(el('cicilanTotalSplit').value),
+      nominalCicilan: parseCicilanNominal_(el('cicilanNominalSplit').value),
+      tenor: parseInt(el('cicilanTenorSplit').value, 10) || 0,
+      frekuensi: el('cicilanFrekuensiSplit').value,
+      tanggalMulai: el('cicilanMulaiSplit').value,
+      tanggalJatuhTempo: el('cicilanJatuhTempoSplit').value,
+      catatan: el('cicilanCatatanSplit').value.trim(),
+      cicilanKe: 1,
+      sudahDibayar: 0,
+
+      // Pengaturan notifikasi ikut dibuat pada transaksi Cicilan yang sama.
+      notifikasi: {
+        email: notifEmail,
+        jamPengecekan: notifJam,
+        aktif: notifAktif
+      }
+    };
+
+    if (!data.nama) return setMessage('Nama cicilan wajib diisi.', 'error');
+    if (!(data.total > 0)) return setMessage('Total cicilan harus lebih dari 0.', 'error');
+    if (!(data.nominalCicilan > 0)) return setMessage('Nominal per cicilan harus lebih dari 0.', 'error');
+    if (data.nominalCicilan > data.total) return setMessage('Nominal per cicilan tidak boleh lebih besar dari total cicilan.', 'error');
+    if (!(data.tenor >= 1)) return setMessage('Tenor minimal 1.', 'error');
+    if (!data.tanggalMulai || !data.tanggalJatuhTempo) return setMessage('Tanggal mulai dan jatuh tempo wajib diisi.', 'error');
+
+    // Pertahankan validasi lama untuk email dan jam, tetapi sekarang
+    // divalidasi sebelum master Cicilan dibuat.
+    if (!notifEmail) return setMessage('Alamat email notifikasi wajib diisi.', 'error');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(notifEmail)) return setMessage('Format email notifikasi tidak valid.', 'error');
+    if (!/^\d{2}:\d{2}$/.test(notifJam)) return setMessage('Jam notifikasi tidak valid.', 'error');
+
+    var btn = el('cicilanSaveSplit');
+    btn.disabled = true;
+    btn.textContent = 'Menyimpan...';
+    setMessage('', '');
+
+    google.script.run
+      .withSuccessHandler(function (res) {
+        btn.disabled = false;
+        btn.textContent = 'Simpan Cicilan';
+
+        if (!res || res.success !== true) {
+          var detail = '';
+          try { detail = res ? JSON.stringify(res) : 'Respons kosong dari server.'; } catch (e) { detail = String(res); }
+          console.error('Respons buatCicilanDenganNotifikasi tidak sukses:', res);
+          setMessage('Cicilan gagal disimpan. Respons server: ' + detail, 'error');
+          return;
+        }
+
+        if (res.notification && res.notification.success !== true) {
+          setMessage(
+            'Cicilan berhasil dibuat, tetapi pengaturan notifikasi gagal disimpan: ' +
+            (res.notification.message || 'Kesalahan tidak diketahui.'),
+            'error'
+          );
+        } else {
+          setMessage(
+            'Cicilan dan pengaturan notifikasinya berhasil disimpan. ID: ' + String(res.id || '-'),
+            'success'
+          );
+        }
+
+        muatCicilanSplit();
+        if (typeof muatEmailNotifikasiCicilanSplit_ === 'function') {
+          muatEmailNotifikasiCicilanSplit_();
+        }
+      })
+      .withFailureHandler(function (err) {
+        btn.disabled = false;
+        btn.textContent = 'Simpan Cicilan';
+        var message = err && err.message ? err.message : String(err || 'Kesalahan tidak diketahui.');
+        console.error('buatCicilanDenganNotifikasi gagal:', err);
+        setMessage('Gagal menyimpan: ' + message, 'error');
+      })
+      .buatCicilanDenganNotifikasi(data);
+  };
+})();
+
+  (function initCicilanNotificationInfo_(){
+    muatEmailNotifikasiCicilanSplit_();
+  })();
+
+  (function initCustomDates_(){
+    ['cicilanMulaiSplit','cicilanJatuhTempoSplit','cicilanPaymentTanggalSplit'].forEach(syncDateDisplaySplit_);
+
+    // Seluruh baris tanggal dapat ditekan untuk membuka kalender.
+    // Bukan hanya ikon kalender.
+    Array.prototype.forEach.call(
+      document.querySelectorAll('.date-custom-control'),
+      function(control) {
+        if (control.getAttribute('data-calendar-bound') === '1') return;
+
+        var button = control.querySelector('.date-picker-button[data-date-target]');
+        if (!button) return;
+
+        var targetId = button.getAttribute('data-date-target');
+        control.setAttribute('data-calendar-bound', '1');
+        control.setAttribute('role', 'button');
+        control.setAttribute('tabindex', '0');
+        control.setAttribute('aria-label', 'Pilih tanggal');
+
+        control.addEventListener('click', function() {
+          openDatePickerSplit(targetId);
+        });
+
+        control.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            openDatePickerSplit(targetId);
+          }
+        });
+      }
+    );
+  })();
+</script>

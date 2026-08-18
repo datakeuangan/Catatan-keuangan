@@ -1,0 +1,824 @@
+<style id="goals-ui-css">
+    /* Goal cards */
+    .goal-card { background: #242424; border: 1px solid #333; border-radius: 10px; padding: 12px; margin-bottom: 10px; }
+    .goal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .goal-left { display: flex; align-items: center; gap: 10px; font-weight: bold; font-size: 14px; }
+    .goal-icon { width: 36px; height: 36px; border-radius: 50%; background: #333; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .goal-badge { font-size: 11px; font-weight: bold; padding: 3px 8px; border-radius: 12px; background: #9c27b0; color: #fff; }
+    .goal-badge.done { background: #4caf50; }
+    .goal-progress-bg { background: #1a1a1a; height: 10px; border-radius: 5px; overflow: hidden; margin: 8px 0; border: 1px solid #333; }
+    .goal-progress-fill { background: linear-gradient(90deg, #ff9800, #4caf50); height: 100%; border-radius: 5px; transition: width 0.3s ease; }
+    .goal-progress-fill.completed { background: #4caf50; }
+    .goal-numbers { display: flex; justify-content: space-between; font-size: 11px; color: #aaa; }
+    .goal-numbers strong { color: #fff; }
+
+    /* Goals management page */
+    #goalsModal {
+      background: radial-gradient(circle at 50% -12%, rgba(255,193,7,.14), transparent 34%), linear-gradient(180deg, #151515 0%, #101010 100%);
+    }
+    .goals-manage-header { position:sticky; top:0; z-index:3; min-height:64px; padding:10px 14px; display:flex; align-items:center; gap:10px; width:100%; box-sizing:border-box; background:linear-gradient(135deg, rgba(78,54,0,.98), rgba(48,38,18,.98)); border-bottom:1px solid rgba(255,193,7,.28); box-shadow:0 7px 22px rgba(0,0,0,.28); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); }
+    .goals-manage-back { width:38px; height:38px; flex:0 0 38px; border:1px solid rgba(255,193,7,.22); border-radius:10px; background:rgba(255,193,7,.09); color:#ffe08a; font-size:20px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+    .goals-manage-back:hover { background:rgba(255,193,7,.16); border-color:rgba(255,193,7,.38); }
+    .goals-manage-title-wrap { min-width:0; display:flex; align-items:center; gap:10px; }
+    .goals-manage-title-icon { width:36px; height:36px; flex:0 0 36px; display:flex; align-items:center; justify-content:center; border-radius:10px; background:linear-gradient(145deg, rgba(255,193,7,.24), rgba(255,193,7,.08)); border:1px solid rgba(255,193,7,.30); box-shadow:inset 0 1px 0 rgba(255,255,255,.06), 0 4px 12px rgba(0,0,0,.14); font-size:18px; }
+    .goals-manage-title-main { font-size:15px; line-height:1.2; font-weight:800; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .goals-manage-title-sub { margin-top:2px; font-size:10px; color:#c9b98d; font-weight:500; }
+    .goals-manage-add { margin-left:auto; min-height:36px; padding:0 13px; border:1px solid rgba(255,193,7,.42); border-radius:10px; background:linear-gradient(135deg,#9a6b00,#765000); color:#fff3c4; font-size:12px; font-weight:800; cursor:pointer; box-shadow:0 4px 13px rgba(255,193,7,.12); white-space:nowrap; }
+    .goals-manage-add:hover { filter:brightness(1.08); transform:translateY(-1px); }
+    .goals-manage-content { width:100%; max-width:980px; margin:0 auto; padding:14px 12px 28px; box-sizing:border-box; }
+    .goals-manage-empty { min-height:210px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:24px; box-sizing:border-box; border:1px dashed rgba(255,193,7,.20); border-radius:15px; background:linear-gradient(145deg, rgba(255,193,7,.035), rgba(255,255,255,.012)); box-shadow:0 5px 16px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.02); }
+    .goals-manage-empty-icon { width:52px; height:52px; display:flex; align-items:center; justify-content:center; border-radius:15px; margin-bottom:10px; background:linear-gradient(145deg, rgba(255,193,7,.18), rgba(255,193,7,.06)); border:1px solid rgba(255,193,7,.24); font-size:24px; }
+    @media (max-width:600px) { .goals-manage-header { padding:9px 10px; } .goals-manage-title-main { font-size:14px; } .goals-manage-title-sub { font-size:9px; } .goals-manage-add { padding:0 10px; } }
+</style>
+
+<div class="widget-block" data-widget="goals">
+        <div class="card">
+          <div class="card-title-wrap">
+            <span>🎯 Goals / Target Tabungan</span>
+            <span class="side-action" style="color:#ff9800; cursor:pointer;" onclick="openAddGoalModal()">+ Tambah</span>
+          </div>
+          <div id="goalsWidgetContainer">
+            <div style="color: #888; text-align: center; font-size: 13px; padding: 10px;">Memuat target tabungan...</div>
+          </div>
+        </div>
+      </div>
+
+<div id="goalsModal" class="modal">
+    <div class="goals-manage-header">
+      <button type="button" class="goals-manage-back" onclick="closeGoalsModal()" aria-label="Kembali">←</button>
+      <div class="goals-manage-title-wrap">
+        <div class="goals-manage-title-icon">🎯</div>
+        <div>
+          <div class="goals-manage-title-main">Goals / Target Tabungan</div>
+          <div class="goals-manage-title-sub">Kelola target dan perkembangan tabunganmu</div>
+        </div>
+      </div>
+      <button type="button" class="goals-manage-add" onclick="openAddGoalModal()">+ Tambah</button>
+    </div>
+    <div class="goals-manage-content">
+      <div id="goalsModalListContainer">
+        <div class="goals-manage-empty">
+          <div class="goals-manage-empty-icon">🎯</div>
+          <div style="color:#fff; font-size:14px; font-weight:800;">Memuat target tabungan...</div>
+          <div style="color:#888; font-size:11px; margin-top:4px;">Target tabunganmu akan muncul di sini.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<div id="addGoalModal" class="popup-modal">
+    <div class="popup-box">
+      <div style="font-weight:bold; font-size:16px; margin-bottom:12px; text-align:center; flex-shrink:0;" id="goalModalTitle">Tambah Target Tabungan</div>
+      <input type="hidden" id="goalRowVal">
+      
+      <div class="popup-body">
+        <div class="form-group">
+          <label>Nama Target / Goal:</label>
+          <input type="text" id="goalNama" class="form-control" placeholder="Contoh: Beli Mobil, Umroh, Laptop">
+        </div>
+        <div class="form-group">
+          <label>Target Jumlah (Rp):</label>
+          <input type="text" inputmode="decimal" id="goalTarget" class="form-control" placeholder="50.000.000" oninput="formatNominalInput(this)">
+        </div>
+        <div class="form-group">
+          <label>Saldo Terkumpul Saat Ini (Rp):</label>
+          <input type="text" inputmode="decimal" id="goalTerkumpul" class="form-control" placeholder="0" oninput="formatNominalInput(this)">
+        </div>
+        <div class="form-group">
+          <label>Batas Tanggal Target (Opsional):</label>
+          <div class="date-field-wrap">
+            <input type="date" id="goalTglTarget" class="form-control" readonly onclick="bukaDatePickerUntuk('goalTglTarget')">
+            <span class="date-icon-fake">📅</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Pilih Icon Target:</label>
+          <div class="icon-grid" id="iconGridGoal"></div>
+          <div class="custom-icon-row">
+            <div class="custom-icon-preview" id="previewGoal">🚗</div>
+            <input type="text" id="customIconGoal" class="form-control" placeholder="Atau tempel/ketik emoji sendiri di sini" oninput="setCustomIcon(this.value, 'goal')">
+          </div>
+          <input type="hidden" id="goalIcon" value="🚗">
+        </div>
+        <div class="form-group">
+          <label>Catatan Tambahan:</label>
+          <input type="text" id="goalCatatan" class="form-control" placeholder="Keterangan target">
+        </div>
+      </div>
+
+      <div class="popup-footer">
+        <button type="button" class="form-control" style="background:#444;" onclick="closeAddGoalModal()">BATAL</button>
+        <button type="button" class="form-control" id="btnSaveGoal" style="background:#ff9800; font-weight:bold;" onclick="simpanGoal()">SIMPAN</button>
+      </div>
+    </div>
+  </div>
+
+<div id="setorGoalModal" class="popup-modal">
+    <div class="popup-box">
+      <div style="font-weight:bold; font-size:16px; margin-bottom:4px; text-align:center; flex-shrink:0;" id="setorGoalTitle">Setor Nabung ke Goal</div>
+      <div style="font-size:12px; color:#888; text-align:center; margin-bottom:12px; flex-shrink:0;" id="setorGoalSubtitle"></div>
+      <input type="hidden" id="setorGoalRow">
+      
+      <div class="popup-body">
+        <div class="form-group">
+          <label>Jumlah Setor (Rp):</label>
+          <input type="text" inputmode="decimal" id="setorGoalJumlah" class="form-control" placeholder="0" style="font-size:18px; font-weight:bold;" oninput="formatNominalInput(this)">
+        </div>
+        <div class="form-group">
+          <label>Potong dari Rekening (Opsional):</label>
+          <select id="setorGoalRekening" class="form-control">
+            <option value="">(Jangan Potong Saldo Rekening)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="popup-footer">
+        <button type="button" class="form-control" style="background:#444;" onclick="closeSetorGoalModal()">BATAL</button>
+        <button type="button" class="form-control" id="btnSetorGoal" style="background:#4caf50; font-weight:bold;" onclick="prosesSetorGoal()">SETOR NABUNG</button>
+      </div>
+    </div>
+  </div>
+
+<div id="tarikGoalModal" class="popup-modal">
+    <div class="popup-box">
+      <div style="font-weight:bold; font-size:16px; margin-bottom:4px; text-align:center; flex-shrink:0;" id="tarikGoalTitle">Tarik Saldo dari Goal</div>
+      <div style="font-size:12px; color:#888; text-align:center; margin-bottom:12px; flex-shrink:0;" id="tarikGoalSubtitle"></div>
+      <input type="hidden" id="tarikGoalRow">
+
+      <div class="popup-body">
+        <div class="form-group">
+          <label>Jumlah Tarik (Rp):</label>
+          <input type="text" inputmode="decimal" id="tarikGoalJumlah" class="form-control" placeholder="0" style="font-size:18px; font-weight:bold;" oninput="formatNominalInput(this)">
+        </div>
+        <div class="form-group">
+          <label>Masukkan ke Rekening (Opsional):</label>
+          <select id="tarikGoalRekening" class="form-control">
+            <option value="">(Jangan Tambah Saldo Rekening)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="popup-footer">
+        <button type="button" class="form-control" style="background:#444;" onclick="closeTarikGoalModal()">BATAL</button>
+        <button type="button" class="form-control" id="btnTarikGoal" style="background:#f44336; font-weight:bold;" onclick="prosesTarikGoal()">TARIK SALDO</button>
+      </div>
+    </div>
+  </div>
+
+<div id="editGoalRekeningModal" class="hp-delete-modal" aria-hidden="true">
+    <div class="hp-delete-backdrop" onclick="closeEditGoalRekeningModal()"></div>
+    <div class="hp-delete-dialog" role="dialog" aria-modal="true" aria-labelledby="editGoalRekeningTitle">
+      <div class="hp-delete-top">
+        <div class="hp-delete-icon">💳</div>
+        <div>
+          <div id="editGoalRekeningTitle" class="hp-delete-title">Atur Rekening Transaksi Goal</div>
+          <div id="editGoalRekeningSubtitle" class="hp-delete-subtitle">Nominal transaksi tidak dapat diubah.</div>
+        </div>
+      </div>
+
+      <div id="editGoalRekeningInfo" class="hp-delete-name">Transaksi Goal</div>
+
+      <div style="margin-top:12px;">
+        <div style="font-size:12px;color:#aaa;margin-bottom:6px;">Nominal (terkunci)</div>
+        <div id="editGoalRekeningNominal" class="hp-delete-name">Rp0</div>
+
+        <div style="font-size:12px;color:#aaa;margin:12px 0 6px;">Rekening</div>
+        <select id="editGoalRekeningSelect" class="form-control">
+          <option value="">(Belum ditentukan)</option>
+        </select>
+      </div>
+
+      <div class="hp-delete-warning" style="margin-top:14px;">
+        💡 <strong>Rekening dapat dipulihkan tanpa mengubah nominal.</strong><br>
+        Jika sebelumnya belum memilih rekening, pilih rekening sekarang. Sistem hanya menyesuaikan saldo rekening sesuai transaksi ini dan tidak membuat transaksi baru.
+      </div>
+
+      <div class="hp-delete-actions">
+        <button type="button" class="hp-delete-btn hp-delete-btn-cancel" onclick="closeEditGoalRekeningModal()">Batal</button>
+        <button type="button" id="editGoalRekeningSaveBtn" class="hp-delete-btn hp-delete-btn-danger" style="background:#4caf50;" onclick="simpanEditGoalRekening()">Simpan</button>
+      </div>
+    </div>
+  </div>
+
+<div id="hapusGoalModal" class="hp-delete-modal" aria-hidden="true">
+    <div class="hp-delete-backdrop" onclick="tutupHapusGoalModal()"></div>
+    <div class="hp-delete-dialog" role="dialog" aria-modal="true" aria-labelledby="hapusGoalTitle">
+      <div class="hp-delete-top">
+        <div class="hp-delete-icon">🗑️</div>
+        <div>
+          <div id="hapusGoalTitle" class="hp-delete-title">Hapus Target Tabungan?</div>
+          <div class="hp-delete-subtitle">Semua transaksi Setor/Tarik yang terkait juga akan dihapus.</div>
+        </div>
+      </div>
+
+      <div id="hapusGoalNama" class="hp-delete-name">Target Tabungan</div>
+
+      <div class="hp-delete-warning">
+        ⚠️ <strong>Tindakan ini tidak dapat dibatalkan.</strong><br>
+        Target tabungan ini beserta seluruh transaksi Setor/Tarik yang terkait akan dihapus. Saldo rekening akan dikembalikan sesuai transaksi yang terhubung.
+      </div>
+
+      <div class="hp-delete-actions">
+        <button type="button" class="hp-delete-btn hp-delete-btn-cancel" onclick="tutupHapusGoalModal()">Batal</button>
+        <button type="button" id="hapusGoalConfirmBtn" class="hp-delete-btn hp-delete-btn-danger" onclick="konfirmasiHapusGoal(event)">🗑️ Hapus</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+    var editGoalRekeningState = null;
+    var pendingHapusGoal = null;
+
+    // LOGIKA FITUR GOALS / TARGET TABUNGAN
+    // ==========================================
+    function fetchGoalsData() {
+      google.script.run
+        .withSuccessHandler(function(list) {
+          globalGoals = list || [];
+          renderGoalsAll();
+        })
+        .getGoalsData(userKey);
+    }
+
+    function buildGoalCardHtml(g) {
+      var isDone = g.persentase >= 100;
+      var gIcon = sanitizeIcon(g.icon);
+      return `
+        <div class="goal-card">
+          <div class="goal-header">
+            <div class="goal-left">
+              <div class="goal-icon">${gIcon}</div>
+              <div>
+                <div>${g.nama}</div>
+                <div style="font-size:11px; color:#888; font-weight:normal;">${g.tglTarget ? 'Target: ' + g.tglTarget : 'Tanpa Batas Waktu'}</div>
+              </div>
+            </div>
+            <span class="goal-badge ${isDone ? 'done' : ''}">${isDone ? '🎉 SELESAI' : g.persentase + '%'}</span>
+          </div>
+          
+          <div class="goal-progress-bg">
+            <div class="goal-progress-fill ${isDone ? 'completed' : ''}" style="width: ${g.persentase}%;"></div>
+          </div>
+
+          <div class="goal-numbers">
+            <span>Terkumpul: <strong>${formatRp(g.terkumpul)}</strong></span>
+            <span>Target: <strong>${formatRp(g.target)}</strong></span>
+          </div>
+          <div style="font-size:11px; color:#ff9800; margin-top:2px;">
+            ${isDone ? 'Target telah tercapai!' : 'Kurang: ' + formatRp(g.sisa)}
+          </div>
+
+          <div class="goal-actions">
+            <button class="btn-goal-sm btn-goal-setor" onclick="openSetorGoalModal(${g.row})">➕ Setor Nabung</button>
+            <button class="btn-goal-sm btn-goal-tarik" onclick="openTarikGoalModal(${g.row})">➖ Tarik Saldo</button>
+            <button class="btn-goal-sm btn-goal-edit" style="color:#f44336;" onclick="hapusGoalItem(${g.row}, '${g.nama.replace(/'/g, "\\'")}')">🗑️</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderGoalsAll() {
+      renderGoalsWidget();
+      renderGoalsModalList();
+    }
+
+    function renderGoalsWidget() {
+      var container = document.getElementById('goalsWidgetContainer');
+      if (!container) return;
+
+      if (globalGoals.length === 0) {
+        container.innerHTML = '<div style="color:#888; text-align:center; font-size:13px; padding:15px;">Belum ada target tabungan. Klik <b>+ Tambah</b> untuk membuat target baru!</div>';
+        return;
+      }
+
+      var html = '';
+      globalGoals.forEach(function(g) { html += buildGoalCardHtml(g); });
+      container.innerHTML = html;
+    }
+
+    function renderGoalsModalList() {
+      var container = document.getElementById('goalsModalListContainer');
+      if (!container) return;
+
+      if (globalGoals.length === 0) {
+        container.innerHTML = '<div style="color:#888; text-align:center; font-size:13px; padding:15px;">Belum ada target tabungan. Klik <b>+ Tambah</b> untuk membuat target baru!</div>';
+        return;
+      }
+
+      var html = '';
+      globalGoals.forEach(function(g) { html += buildGoalCardHtml(g); });
+      container.innerHTML = html;
+    }
+
+    function openGoalsModal() {
+      document.getElementById('menuDropdown').style.display = 'none';
+      renderGoalsModalList();
+      document.getElementById('goalsModal').style.display = 'block';
+    }
+
+    function closeGoalsModal() {
+      document.getElementById('goalsModal').style.display = 'none';
+    }
+
+    function selectGoalIcon(icon) {
+      var clean = sanitizeIcon(icon) || '🎯';
+      selectedGoalIcon = clean;
+      var hidden = document.getElementById('goalIcon');
+      var preview = document.getElementById('previewGoal');
+      var custom = document.getElementById('customIconGoal');
+      if (hidden) hidden.value = clean;
+      if (preview) preview.innerText = clean;
+      if (custom) custom.value = '';
+
+      var grid = document.getElementById('iconGridGoal');
+      if (grid) {
+        grid.querySelectorAll('.icon-opt').forEach(function(el) {
+          el.classList.toggle('selected', el.innerText === clean);
+        });
+      }
+    }
+
+    function openAddGoalModal() {
+      document.getElementById('goalModalTitle').innerText = 'Tambah Target Tabungan';
+      document.getElementById('goalRowVal').value = '';
+      document.getElementById('goalNama').value = '';
+      document.getElementById('goalTarget').value = '';
+      document.getElementById('goalTerkumpul').value = '';
+      document.getElementById('goalTglTarget').value = '';
+      selectGoalIcon('🚗');
+      document.getElementById('goalCatatan').value = '';
+      document.getElementById('addGoalModal').style.display = 'flex';
+    }
+
+
+    function closeAddGoalModal() {
+      document.getElementById('addGoalModal').style.display = 'none';
+    }
+
+    function simpanGoal() {
+      var nama = document.getElementById('goalNama').value.trim();
+      var target = parseNominalInput('goalTarget');
+      var terkumpul = parseNominalInput('goalTerkumpul');
+      var tglTarget = document.getElementById('goalTglTarget').value;
+      var icon = sanitizeIcon(selectedGoalIcon || document.getElementById('goalIcon').value) || '🎯';
+      var catatan = document.getElementById('goalCatatan').value.trim();
+      var row = document.getElementById('goalRowVal').value;
+
+      if (!nama) return tampilkanPeringatanInput('Nama goal wajib diisi!', 'Goals – target', 'Isi nama target sebelum menyimpan target.');
+      if (target <= 0) return tampilkanPeringatanInput('Nominal target wajib diisi!', 'Goals – target', 'Isi nominal target sebelum menyimpan target.');
+
+      var param = {
+        row: row,
+        nama: nama,
+        target: target,
+        terkumpul: terkumpul,
+        tglTarget: tglTarget,
+        icon: icon,
+        catatan: catatan,
+        userKey: userKey
+      };
+
+      var btn = document.getElementById('btnSaveGoal');
+      btn.innerText = 'MENYIMPAN...';
+      btn.disabled = true;
+      var selesai = false;
+      var timeoutId = setTimeout(function() {
+        if (selesai) return;
+        selesai = true;
+        btn.innerText = 'SIMPAN';
+        btn.disabled = false;
+        alert('Tidak ada respon dari server. Coba lagi.');
+      }, 15000);
+
+      var handler = function(newList) {
+        if (selesai) return;
+        selesai = true;
+        clearTimeout(timeoutId);
+        globalGoals = newList || [];
+        renderGoalsAll();
+        closeAddGoalModal();
+        btn.innerText = 'SIMPAN';
+        btn.disabled = false;
+      };
+      var failure = function(err) {
+        if (selesai) return;
+        selesai = true;
+        clearTimeout(timeoutId);
+        btn.innerText = 'SIMPAN';
+        btn.disabled = false;
+        alert('Gagal menyimpan Goal: ' + (err && err.message ? err.message : 'Error'));
+      };
+
+      if (row) {
+        google.script.run.withSuccessHandler(handler).withFailureHandler(failure).updateGoalDetail(param);
+      } else {
+        google.script.run.withSuccessHandler(handler).withFailureHandler(failure).simpanGoalBaru(param);
+      }
+    }
+    function openSetorGoalModal(row) {
+      var g = globalGoals.find(function(item) { return item.row === row; });
+      if (!g) return;
+
+      document.getElementById('setorGoalRow').value = g.row;
+      document.getElementById('setorGoalTitle').innerText = 'Setor Nabung: ' + g.nama;
+      document.getElementById('setorGoalSubtitle').innerText = 'Terkumpul: ' + formatRp(g.terkumpul) + ' dari Target ' + formatRp(g.target);
+      document.getElementById('setorGoalJumlah').value = '';
+      document.getElementById('setorGoalModal').style.display = 'flex';
+    }
+
+    function closeSetorGoalModal() {
+      document.getElementById('setorGoalModal').style.display = 'none';
+    }
+
+    function prosesSetorGoal() {
+      var row = document.getElementById('setorGoalRow').value;
+      var jumlah = parseNominalInput('setorGoalJumlah');
+      var rekening = document.getElementById('setorGoalRekening').value;
+
+      if (jumlah <= 0) return tampilkanPeringatanInput('Nominal setor wajib diisi!', 'Goals – setor', 'Isi nominal setor sebelum melanjutkan.');
+
+      var btn = document.getElementById('btnSetorGoal');
+      btn.innerText = 'MEMPROSES...';
+      btn.disabled = true;
+      var selesai = false;
+      var timeoutId = setTimeout(function() {
+        if (selesai) return;
+        selesai = true;
+        btn.innerText = 'SETOR NABUNG';
+        btn.disabled = false;
+        alert('Tidak ada respon dari server. Coba lagi.');
+      }, 15000);
+
+      google.script.run
+        .withSuccessHandler(function(newList) {
+          if (selesai) return;
+          selesai = true;
+          clearTimeout(timeoutId);
+          globalGoals = newList || [];
+          renderGoalsAll();
+          closeSetorGoalModal();
+          btn.innerText = 'SETOR NABUNG';
+          btn.disabled = false;
+          fetchRekeningData();
+          loadDashboard();
+        })
+        .withFailureHandler(function(err) {
+          if (selesai) return;
+          selesai = true;
+          clearTimeout(timeoutId);
+          btn.innerText = 'SETOR NABUNG';
+          btn.disabled = false;
+          alert('Gagal memproses setor Goal: ' + (err && err.message ? err.message : 'Error'));
+        })
+        .setorKeGoal({ row: row, jumlah: jumlah, rekening: rekening, userKey: userKey });
+    }
+    function openTarikGoalModal(row) {
+      var g = globalGoals.find(function(item) { return item.row === row; });
+      if (!g) return;
+
+      document.getElementById('tarikGoalRow').value = g.row;
+      document.getElementById('tarikGoalTitle').innerText = 'Tarik Saldo: ' + g.nama;
+      document.getElementById('tarikGoalSubtitle').innerText = 'Saldo Terkumpul saat ini: ' + formatRp(g.terkumpul);
+      document.getElementById('tarikGoalJumlah').value = '';
+      document.getElementById('tarikGoalModal').style.display = 'flex';
+    }
+
+    function closeTarikGoalModal() {
+      document.getElementById('tarikGoalModal').style.display = 'none';
+    }
+
+    function tampilkanPeringatanSaldoGoalTidakCukup(jumlahTarik, saldoTerkumpul, namaGoal) {
+      var pesan =
+        'Saldo Goal tidak mencukupi. Saldo terkumpul saat ini ' +
+        formatRp(saldoTerkumpul) +
+        ', sedangkan nominal tarik ' +
+        formatRp(jumlahTarik) + '.';
+
+      var modal = document.getElementById('appInputWarningModal');
+      if (!modal) {
+        alert(pesan);
+        return;
+      }
+
+      var titleEl = document.getElementById('appInputWarningTitle');
+      var subtitleEl = document.getElementById('appInputWarningSubtitle');
+      var nameEl = document.getElementById('appInputWarningName');
+      var warningEl = document.getElementById('appInputWarningMessage');
+
+      if (titleEl) titleEl.textContent = 'Saldo Goal tidak mencukupi';
+      if (subtitleEl) subtitleEl.textContent = 'Periksa kembali nominal tarik sebelum melanjutkan.';
+      if (nameEl) nameEl.textContent = namaGoal ? ('Goals – tarik: ' + namaGoal) : 'Goals – tarik';
+      if (warningEl) {
+        warningEl.innerHTML =
+          '⚠️ <strong>' + pesan + '</strong><br>' +
+          'Nominal tarik tidak boleh melebihi saldo yang sudah terkumpul pada Goal.';
+      }
+
+      modal.classList.add('show');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('hp-delete-modal-open');
+    }
+
+    function prosesTarikGoal() {
+      var row = document.getElementById('tarikGoalRow').value;
+      var jumlah = parseNominalInput('tarikGoalJumlah');
+      var rekening = document.getElementById('tarikGoalRekening').value;
+
+      if (jumlah <= 0) return tampilkanPeringatanInput('Nominal tarik wajib diisi!', 'Goals – tarik', 'Isi nominal tarik sebelum melanjutkan.');
+
+      // Validasi awal di sisi Form agar pengguna mendapat tombol warning
+      // sebelum request dikirim ke server. Backend tetap menjadi pengaman utama.
+      var goal = globalGoals.find(function(item) { return String(item.row) === String(row); });
+      var saldoTerkumpul = goal ? Number(goal.terkumpul || 0) : 0;
+      if (jumlah > saldoTerkumpul) {
+        tampilkanPeringatanSaldoGoalTidakCukup(jumlah, saldoTerkumpul, goal ? goal.nama : '');
+        return;
+      }
+
+      var btn = document.getElementById('btnTarikGoal');
+      btn.innerText = 'MEMPROSES...';
+      btn.disabled = true;
+      var selesai = false;
+      var timeoutId = setTimeout(function() {
+        if (selesai) return;
+        selesai = true;
+        btn.innerText = 'TARIK SALDO';
+        btn.disabled = false;
+        alert('Tidak ada respon dari server. Coba lagi.');
+      }, 15000);
+
+      google.script.run
+        .withSuccessHandler(function(newList) {
+          if (selesai) return;
+          selesai = true;
+          clearTimeout(timeoutId);
+          globalGoals = newList || [];
+          renderGoalsAll();
+          closeTarikGoalModal();
+          btn.innerText = 'TARIK SALDO';
+          btn.disabled = false;
+          fetchRekeningData();
+          loadDashboard();
+        })
+        .withFailureHandler(function(err) {
+          if (selesai) return;
+          selesai = true;
+          clearTimeout(timeoutId);
+          btn.innerText = 'TARIK SALDO';
+          btn.disabled = false;
+
+          var pesan = err && err.message ? err.message : 'Error';
+          if (pesan.indexOf('Saldo Goal tidak mencukupi.') === 0) {
+            // Fallback bila saldo berubah setelah Form dibuka.
+            var goalTerbaru = globalGoals.find(function(item) { return String(item.row) === String(row); });
+            var saldoTerbaru = goalTerbaru ? Number(goalTerbaru.terkumpul || 0) : 0;
+            tampilkanPeringatanSaldoGoalTidakCukup(jumlah, saldoTerbaru, goalTerbaru ? goalTerbaru.nama : '');
+            return;
+          }
+
+          // Error lain tetap memakai alur lama.
+          alert('Gagal memproses tarik Goal: ' + pesan);
+        })
+        .tarikDariGoal({ row: row, jumlah: jumlah, rekening: rekening, userKey: userKey });
+    }
+
+    var editGoalRekeningState = null;
+
+    function openEditGoalRekeningModal(tx) {
+      if (!tx) return;
+
+      editGoalRekeningState = {
+        row: tx.row,
+        transaksiId: tx.transaksiId || '',
+        tipe: tx.tipe || '',
+        subKategori: tx.subKategori || '',
+        jumlah: Number(tx.jumlah || 0),
+        rekening: tx.rekening || '',
+        dariKepada: tx.dariKepada || ''
+      };
+
+      var title = document.getElementById('editGoalRekeningTitle');
+      var subtitle = document.getElementById('editGoalRekeningSubtitle');
+      var info = document.getElementById('editGoalRekeningInfo');
+      var nominal = document.getElementById('editGoalRekeningNominal');
+      var select = document.getElementById('editGoalRekeningSelect');
+      var saveBtn = document.getElementById('editGoalRekeningSaveBtn');
+      var modal = document.getElementById('editGoalRekeningModal');
+
+      if (!title || !subtitle || !info || !nominal || !select || !saveBtn || !modal) return;
+
+      var isSetor = editGoalRekeningState.subKategori === 'Setor ke Goal';
+      title.textContent = isSetor ? 'Atur Rekening Sumber Setor' : 'Atur Rekening Tujuan Tarik';
+      subtitle.textContent = 'Nominal transaksi tidak dapat diubah.';
+      info.textContent =
+        'Tabungan › ' + editGoalRekeningState.subKategori +
+        ' · ' + (editGoalRekeningState.dariKepada || 'Target Tabungan');
+      nominal.textContent = formatRp(editGoalRekeningState.jumlah);
+
+      // Populate fresh rekening list, preserving the explicit
+      // "Belum ditentukan" state for recovery.
+      select.innerHTML = '<option value="">(Belum ditentukan)</option>';
+      globalRekening.forEach(function(r) {
+        var opt = document.createElement('option');
+        opt.value = r.nama;
+        opt.textContent = sanitizeIcon(r.icon) + ' ' + r.nama + ' (' + formatRp(r.saldoAkhir) + ')';
+        select.appendChild(opt);
+      });
+      select.value = editGoalRekeningState.rekening || '';
+
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Simpan';
+
+      modal.classList.add('show');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('hp-delete-modal-open');
+    }
+
+    function closeEditGoalRekeningModal() {
+      var modal = document.getElementById('editGoalRekeningModal');
+      var saveBtn = document.getElementById('editGoalRekeningSaveBtn');
+
+      if (modal) {
+        modal.classList.remove('show');
+        modal.setAttribute('aria-hidden', 'true');
+      }
+
+      if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Simpan';
+      }
+
+      document.body.classList.remove('hp-delete-modal-open');
+      editGoalRekeningState = null;
+    }
+
+    function simpanEditGoalRekening() {
+      var state = editGoalRekeningState;
+      var select = document.getElementById('editGoalRekeningSelect');
+      var btn = document.getElementById('editGoalRekeningSaveBtn');
+
+      if (!state || !select || !btn || btn.disabled) return;
+
+      var rekeningBaru = String(select.value || '').trim();
+
+      if (rekeningBaru === state.rekening) {
+        closeEditGoalRekeningModal();
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Menyimpan...';
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          btn.disabled = false;
+          btn.textContent = 'Simpan';
+
+          if (!res || !res.success) {
+            alert('Perubahan rekening tidak berhasil disimpan.');
+            return;
+          }
+
+          fetchRekeningData();
+          loadDashboard();
+
+          // Refresh daftar Riwayat yang sedang terbuka tanpa mengubah
+          // nominal maupun data Master Goal.
+          var allTxModal = document.getElementById('allTxModal');
+          if (allTxModal && allTxModal.style.display === 'block') {
+            openAllTransaksi();
+          }
+
+          var periodeModal = document.getElementById('periodeModal');
+          if (periodeModal && periodeModal.style.display === 'block') {
+            muatRiwayatPeriode();
+          }
+
+          closeEditGoalRekeningModal();
+        })
+        .withFailureHandler(function(err) {
+          btn.disabled = false;
+          btn.textContent = 'Simpan';
+          alert(
+            'Gagal memperbarui rekening transaksi Goal: ' +
+            (err && err.message ? err.message : 'Error')
+          );
+        })
+        .updateRekeningTransaksiGoal({
+          row: state.row,
+          transaksiId: state.transaksiId,
+          rekening: rekeningBaru,
+          userKey: userKey
+        });
+    }
+
+    var pendingHapusGoal = null;
+
+    function hapusGoalItem(row, nama) {
+      bukaHapusGoalModal(row, nama);
+    }
+
+    function bukaHapusGoalModal(row, nama) {
+      pendingHapusGoal = { row: row, nama: nama || '' };
+
+      var modal = document.getElementById('hapusGoalModal');
+      var namaEl = document.getElementById('hapusGoalNama');
+      var dangerBtn = document.getElementById('hapusGoalConfirmBtn');
+      if (!modal || !namaEl || !dangerBtn) return;
+
+      namaEl.textContent = nama || 'Target Tabungan';
+      dangerBtn.disabled = false;
+      dangerBtn.textContent = '🗑️ Hapus';
+
+      modal.classList.add('show');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('hp-delete-modal-open');
+    }
+
+    function tutupHapusGoalModal() {
+      var modal = document.getElementById('hapusGoalModal');
+      var dangerBtn = document.getElementById('hapusGoalConfirmBtn');
+
+      if (modal) {
+        modal.classList.remove('show');
+        modal.setAttribute('aria-hidden', 'true');
+      }
+
+      if (dangerBtn) {
+        dangerBtn.disabled = false;
+        dangerBtn.textContent = '🗑️ Hapus';
+      }
+
+      document.body.classList.remove('hp-delete-modal-open');
+      pendingHapusGoal = null;
+    }
+
+    function konfirmasiHapusGoal(event) {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (typeof event.stopImmediatePropagation === 'function') {
+          event.stopImmediatePropagation();
+        }
+      }
+
+      var pending = pendingHapusGoal;
+      var dangerBtn = document.getElementById('hapusGoalConfirmBtn');
+      if (!pending || !dangerBtn || dangerBtn.disabled) return;
+
+      dangerBtn.disabled = true;
+      dangerBtn.textContent = 'Menghapus...';
+
+      var row = pending.row;
+
+      google.script.run
+        .withSuccessHandler(function(newList) {
+          globalGoals = newList || [];
+          renderGoalsAll();
+
+          // Master Goal dihapus bersama seluruh riwayat Setor/Tarik terkait.
+          // Jika Riwayat sedang terbuka, tampilkan data terbaru langsung.
+          var allTxModalAfterGoalDelete = document.getElementById('allTxModal');
+          if (allTxModalAfterGoalDelete &&
+              allTxModalAfterGoalDelete.style.display === 'block') {
+            openAllTransaksi();
+          }
+
+          var periodeModalAfterGoalDelete = document.getElementById('periodeModal');
+          if (periodeModalAfterGoalDelete &&
+              periodeModalAfterGoalDelete.style.display === 'block') {
+            muatRiwayatPeriode();
+          }
+
+          fetchRekeningData();
+          loadDashboard();
+          tutupHapusGoalModal();
+        })
+        .withFailureHandler(function(err) {
+          if (dangerBtn) {
+            dangerBtn.disabled = false;
+            dangerBtn.textContent = '🗑️ Hapus';
+          }
+          alert('Gagal menghapus target tabungan: ' + (err && err.message ? err.message : 'Error'));
+        })
+        .hapusGoal(row, userKey);
+    }
+
+    function jalankanHapusGoal(row) {
+      google.script.run
+        .withSuccessHandler(function(newList) {
+          globalGoals = newList || [];
+          renderGoalsAll();
+          closeAddGoalModal();
+
+          // Saldo sudah dibalik di backend. Segarkan rekening dan dashboard
+          // langsung agar perubahan terlihat real-time.
+          fetchRekeningData();
+          loadDashboard();
+        })
+        .withFailureHandler(function(err) {
+          alert('Gagal menghapus target tabungan: ' + (err ? err.message : 'Error'));
+        })
+        .hapusGoal(row, userKey);
+    }
+</script>

@@ -1,0 +1,306 @@
+<!-- Rekening UI: feature-owned markup and behavior.
+     Shared data (globalRekening/fetchRekeningData) remains in 02_DataShared.
+     Generic icon grid builder remains in the current shell until its own shared-module pass. -->
+
+<div id="pageRekening" class="container" style="display:none;">
+  <div class="total-banner">
+    Total: <span id="totalSaldoHeader">Rp0</span>
+  </div>
+  <div id="rekeningCardList">Memuat data rekening...</div>
+</div>
+
+  <div id="addRekeningModal" class="popup-modal">
+    <div class="popup-box">
+      <div style="font-weight:bold; font-size:16px; margin-bottom:12px; text-align:center; flex-shrink:0;">Tambah Rekening Baru</div>
+      
+      <div class="popup-body">
+        <div class="form-group">
+          <label>Nama Rekening:</label>
+          <input type="text" id="newRekName" class="form-control" placeholder="Contoh: BNI, DANA, JAGO">
+        </div>
+        <div class="form-group">
+          <label>Saldo Awal (Rp):</label>
+          <input type="text" inputmode="decimal" id="newRekSaldo" class="form-control" placeholder="0" oninput="formatNominalInput(this)">
+        </div>
+        <div class="form-group">
+          <label>Pilih Icon:</label>
+          <div class="icon-grid" id="iconGridRek"></div>
+          <div class="custom-icon-row">
+            <div class="custom-icon-preview" id="previewRek">💳</div>
+            <input type="text" id="customIconRek" class="form-control" placeholder="Atau tempel/ketik emoji sendiri di sini" oninput="setCustomIcon(this.value, 'rek')">
+          </div>
+        </div>
+      </div>
+
+      <div class="popup-footer">
+        <button type="button" class="form-control" style="background:#444;" onclick="closeAddRekeningModal()">BATAL</button>
+        <button type="button" class="form-control" id="btnSaveNewRekening" style="background:#ff9800; font-weight:bold;" onclick="saveNewRekening()">SIMPAN</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="rekActionModal" class="popup-modal">
+    <div class="popup-box">
+      <div style="font-weight:bold; font-size:16px; margin-bottom:12px; text-align:center; flex-shrink:0;" id="rekActionTitle">Pilihan Rekening</div>
+      <div class="popup-body">
+        <button class="action-sheet-item" style="color:#4caf50;" onclick="quickAddTxForRek('+')">➕ Tambah Pemasukan</button>
+        <button class="action-sheet-item" style="color:#f44336;" onclick="quickAddTxForRek('-')">➖ Tambah Pengeluaran</button>
+        <button class="action-sheet-item" style="color:#2196f3;" onclick="openEditRekeningModal()">✏️ Edit Rekening</button>
+        <button class="action-sheet-item" style="color:#f44336;" onclick="confirmHapusRekening()">🗑️ Hapus Rekening</button>
+      </div>
+      <div class="popup-footer">
+        <button type="button" class="form-control" style="background:#444;" onclick="closeRekActionModal()">Batal</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="editRekeningModal" class="popup-modal">
+    <div class="popup-box">
+      <div style="font-weight:bold; font-size:16px; margin-bottom:12px; text-align:center; flex-shrink:0;">Edit Rekening</div>
+      
+      <div class="popup-body">
+        <div class="form-group">
+          <label>Nama Rekening:</label>
+          <input type="text" id="editRekName" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Saldo (Rp):</label>
+          <input type="text" inputmode="decimal" id="editRekSaldo" class="form-control" oninput="formatNominalInput(this)">
+        </div>
+        <div class="form-group">
+          <label>Pilih Icon:</label>
+          <div class="icon-grid" id="iconGridRekEdit"></div>
+          <div class="custom-icon-row">
+            <div class="custom-icon-preview" id="previewRekEdit">💳</div>
+            <input type="text" id="customIconRekEdit" class="form-control" placeholder="Atau tempel/ketik emoji sendiri di sini" oninput="setCustomIcon(this.value, 'rekEdit')">
+          </div>
+        </div>
+      </div>
+
+      <div class="popup-footer">
+        <button type="button" class="form-control" style="background:#444;" onclick="closeEditRekeningModal()">BATAL</button>
+        <button type="button" class="form-control" id="btnSaveEditRekening" style="background:#2196f3; font-weight:bold;" onclick="saveEditRekening()">SIMPAN</button>
+      </div>
+    </div>
+  </div>
+
+
+<script>
+  var selectedRekForAction = '';
+
+
+    function renderRekeningView() {
+      var total = 0;
+      var html = '';
+      
+      globalRekening.forEach(function(r) {
+        total += r.saldoAkhir;
+        var rIcon = sanitizeIcon(r.icon);
+        html += `
+          <div class="rek-card">
+            <div class="left">
+              <span style="font-size:20px;">${rIcon}</span>
+              <span>${r.nama}</span>
+            </div>
+            <div class="right" style="display:flex; align-items:center; gap:10px;">
+              <span class="balance">${formatRp(r.saldoAkhir)}</span>
+              <button class="menu-dots-btn" style="color:#aaa;" onclick="openRekActionModal('${r.nama}')">⋮</button>
+            </div>
+          </div>
+        `;
+      });
+
+      document.getElementById('totalSaldoHeader').innerText = formatRp(total);
+      document.getElementById('rekeningCardList').innerHTML = html || '<div style="color:#888; text-align:center;">Belum ada rekening.</div>';
+    }
+
+    function updateRekeningDropdown() {
+      var select = document.getElementById('rekening');
+      select.innerHTML = '';
+      globalRekening.forEach(function(r) {
+        var opt = document.createElement('option');
+        opt.value = r.nama;
+        var rIcon = sanitizeIcon(r.icon);
+        opt.innerText = rIcon + ' ' + r.nama;
+        select.appendChild(opt);
+      });
+
+      var selectDari = document.getElementById('transferDari');
+      var selectKepada = document.getElementById('transferKepada');
+      if (selectDari && selectKepada) {
+        selectDari.innerHTML = '';
+        selectKepada.innerHTML = '';
+        globalRekening.forEach(function(r) {
+          var rIcon = sanitizeIcon(r.icon);
+          var opt1 = document.createElement('option');
+          opt1.value = r.nama;
+          opt1.innerText = rIcon + ' ' + r.nama;
+          selectDari.appendChild(opt1);
+
+          var opt2 = document.createElement('option');
+          opt2.value = r.nama;
+          opt2.innerText = rIcon + ' ' + r.nama;
+          selectKepada.appendChild(opt2);
+        });
+        if (globalRekening.length > 1) selectKepada.selectedIndex = 1;
+      }
+    }
+
+    function openAddRekeningModal() {
+      document.getElementById('newRekName').value = '';
+      document.getElementById('newRekSaldo').value = '';
+      document.getElementById('addRekeningModal').style.display = 'flex';
+    }
+
+    function closeAddRekeningModal() {
+      document.getElementById('addRekeningModal').style.display = 'none';
+    }
+
+    function saveNewRekening() {
+      var name = document.getElementById('newRekName').value.trim();
+      var saldo = parseNominalInput('newRekSaldo');
+
+      if (!name) return tampilkanPeringatanInput('Nama Rekening wajib diisi!', 'Rekening', 'Isi nama rekening sebelum menekan tombol Simpan.');
+
+      var btn = document.getElementById('btnSaveNewRekening');
+      btn.innerText = 'MENYIMPAN...';
+      btn.disabled = true;
+      var selesai = false;
+      var timeoutId = setTimeout(function() {
+        if (selesai) return;
+        selesai = true;
+        btn.innerText = 'SIMPAN';
+        btn.disabled = false;
+        alert('Tidak ada respon dari server. Coba lagi.');
+      }, 15000);
+
+      google.script.run
+        .withSuccessHandler(function(newList) {
+          if (selesai) return;
+          selesai = true;
+          clearTimeout(timeoutId);
+          globalRekening = newList;
+          renderRekeningView();
+          updateRekeningDropdown();
+          closeAddRekeningModal();
+          btn.innerText = 'SIMPAN';
+          btn.disabled = false;
+          loadDashboard();
+        })
+        .withFailureHandler(function(err) {
+          if (selesai) return;
+          selesai = true;
+          clearTimeout(timeoutId);
+          btn.innerText = 'SIMPAN';
+          btn.disabled = false;
+          alert('Gagal menyimpan rekening: ' + (err ? err.message : 'Error'));
+        })
+        .simpanRekeningBaru({ nama: name, saldoAwal: saldo, icon: selectedRekIcon, userKey: userKey });
+    }
+    function openRekActionModal(nama) {
+      selectedRekForAction = nama;
+      document.getElementById('rekActionTitle').innerText = nama;
+      document.getElementById('rekActionModal').style.display = 'flex';
+    }
+
+    function closeRekActionModal() {
+      document.getElementById('rekActionModal').style.display = 'none';
+    }
+
+    function openEditRekeningModal() {
+      var rek = globalRekening.find(function(r) { return r.nama === selectedRekForAction; });
+      if (!rek) return;
+
+      closeRekActionModal();
+
+      document.getElementById('editRekName').value = rek.nama;
+      document.getElementById('editRekSaldo').value = Number(rek.saldoAkhir || 0).toLocaleString('id-ID', { maximumFractionDigits: 2 });
+      selectedRekIconEdit = sanitizeIcon(rek.icon || '💳');
+      document.getElementById('previewRekEdit').innerText = selectedRekIconEdit;
+      document.getElementById('customIconRekEdit').value = '';
+
+      var gridEdit = document.getElementById('iconGridRekEdit');
+      gridEdit.querySelectorAll('.icon-opt').forEach(function(el) {
+        el.classList.toggle('selected', el.innerText === selectedRekIconEdit);
+      });
+
+      document.getElementById('editRekeningModal').style.display = 'flex';
+    }
+
+    function closeEditRekeningModal() {
+      document.getElementById('editRekeningModal').style.display = 'none';
+    }
+
+    function confirmHapusRekening() {
+      var rek = globalRekening.find(function(r) { return r.nama === selectedRekForAction; });
+      if (!rek) return;
+
+      closeRekActionModal();
+
+      if (confirm('Yakin ingin menghapus rekening "' + rek.nama + '"? Riwayat transaksi yang sudah tercatat di rekening ini tidak akan ikut terhapus.')) {
+        google.script.run
+          .withSuccessHandler(function(newList) {
+            globalRekening = newList;
+            renderRekeningView();
+            renderSaldoWidget();
+            renderSaldoMataUang();
+            updateRekeningDropdown();
+            loadDashboard();
+          })
+          .withFailureHandler(function(err) {
+            alert('Gagal menghapus: ' + (err ? err.message : 'Error'));
+          })
+          .hapusRekening(rek.row, userKey);
+      }
+    }
+
+    function saveEditRekening() {
+      var namaBaru = document.getElementById('editRekName').value.trim();
+      var saldoBaru = parseNominalInput('editRekSaldo');
+
+      if (!namaBaru) return tampilkanPeringatanInput('Nama Rekening wajib diisi!', 'Rekening', 'Isi nama rekening sebelum menekan tombol Simpan.');
+
+      var btn = document.getElementById('btnSaveEditRekening');
+      btn.innerText = 'MENYIMPAN...';
+      btn.disabled = true;
+      var selesai = false;
+      var timeoutId = setTimeout(function() {
+        if (selesai) return;
+        selesai = true;
+        btn.innerText = 'SIMPAN';
+        btn.disabled = false;
+        alert('Tidak ada respon dari server. Coba lagi.');
+      }, 15000);
+
+      google.script.run
+        .withSuccessHandler(function(newList) {
+          if (selesai) return;
+          selesai = true;
+          clearTimeout(timeoutId);
+          globalRekening = newList;
+          renderRekeningView();
+          renderSaldoWidget();
+          renderSaldoMataUang();
+          updateRekeningDropdown();
+          closeEditRekeningModal();
+          btn.innerText = 'SIMPAN';
+          btn.disabled = false;
+          loadDashboard();
+        })
+        .withFailureHandler(function(err) {
+          if (selesai) return;
+          selesai = true;
+          clearTimeout(timeoutId);
+          btn.innerText = 'SIMPAN';
+          btn.disabled = false;
+          alert('Gagal menyimpan: ' + (err ? err.message : 'Error'));
+        })
+        .updateRekeningDetail({
+          namaLama: selectedRekForAction,
+          namaBaru: namaBaru,
+          saldoBaru: Number(saldoBaru) || 0,
+          icon: selectedRekIconEdit,
+          userKey: userKey
+        });
+    }
+</script>

@@ -1,0 +1,109 @@
+<!-- ===== ICON SYSTEM UI MODULE ===== -->
+<style id="icon-system-ui-style">
+  .icon-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:8px; max-height:180px; overflow-y:auto; margin-top:8px; background:#1a1a1a; padding:8px; border-radius:8px; -webkit-overflow-scrolling:touch; }
+  .icon-opt { font-size:20px; text-align:center; padding:6px; cursor:pointer; border-radius:6px; }
+  .icon-opt.selected { background:#9c27b0; }
+  .custom-icon-row { display:flex; align-items:center; gap:8px; margin-top:8px; }
+  .custom-icon-preview { width:44px; height:44px; flex-shrink:0; border-radius:8px; background:#1a1a1a; border:1px solid #333; display:flex; align-items:center; justify-content:center; font-size:22px; }
+</style>
+
+<script id="icon-system-ui-script">
+var selectedMainIcon = '📁';
+var selectedSubIcon = '📌';
+var selectedEditIcon = '🧾';
+var selectedRekIcon = '💳';
+var selectedRekIconEdit = '💳';
+var selectedGoalIcon = '🚗';
+
+var availableIcons = [
+      // 1. Keuangan, Bank & Kas
+      '💳','🏛️','👛','💰','💵','📈','📉','🧾','💸','🪙','🏧','💎','⚖️','🏷️',
+      // 2. Rumah, Bangunan & Properti
+      '🏠','🏡','🏢','🏣','🏤','🏥','🏦','🏨','🏪','🏫','🏬','🏭','🏰','🗼','🗽','💒','⛺','🛖','🪑','🛏️','🚪','🧹','🧺','🛋️',
+      // 3. Bensin, Transportasi Pribadi & Publik
+      '⛽','🚗','🚘','🚙','🏎️','🚚','🚛','🚜','🛵','🏍️','🚲','🛴','🚌','🚍','🚎','🚑','🛺','🚆','🚇','🚈','🚊','🚝','<ctrl42>','🚅','🚂','✈️','🛫','🛬','🚁','⛵','🛥️','🚢','⛴️','🅿️','🛣️','⚓',
+      // 4. Makanan, Kuliner & Minuman
+      '🍔','🍕','🍜','🍣','☕','🍺','🍰','🥗','🍞','🥨','🧀','🥩','🍗','🌭','🍟','🍿','🍩','🍪','🎂','🍧','🍦','🍨','🥤','🧃','🍵','🍾','🍷','🍸','🍹','🧋','🍏','🍎','🍇','🍉','🍊','🍌','🍍','🥭',
+      // 5. Market, Belanja & Olshop
+      '🛒','🛍️','🏪','🏬','🏷️','📦','🎁','🎈',
+      // 6. Keluarga, Orang & Komunitas
+      '👨‍👩‍👧','👨‍👩‍👧‍👦','👨‍👩‍👦‍👦','👨‍👩‍👧‍👧','👪','👶','👧','👦','👩','👨','👵','👴','👩‍❤️‍👨','<ctrl42>','💍','🍼','🧸','🪆',
+      // 7. Gym, Fitness, Olahraga & Hobi
+      '🏋️','🧘','⚽','🏀','🏈','⚾','🥎','🎾','🏐','🏉','🏓','🏸','🏒','🏑','🥍','🏏','🥅','⛳','🏹','🎣','🤿','🥊','🥋','🛹','🛼','🤸','🏄','🏊','🚣','🧗','🚵','🚴',
+      // 8. Elektronik, Gadget & Perangkat
+      '💻','📱','📲','🖥️','🖨️','⌨️','🖱️','💽','💾','💿','📀','📷','📸','📹','🎥','📽️','🎞️','📞','☎️','📟','📠','📺','📻','🎙️','⏱️','⏰','🕰️','⌛','⏳','📡','🔋','🔌','💡','🔦','🕯️','🎮','🎧','⌚','🕹️',
+      // 9. Pembukuan, Catatan & Alat Tulis
+      '📚','📖','📗','📘','📙','📑','📰','📓','📕','📒','📔','✏️','✒️','🖋️','🖊️','🖌️','🖍️','📝','💼','📁','📂','🗂️','📅','📆','📋','📌','📍','📎','🖇️','📐','📏','✂️','🗃️','🗄️','🗑️',
+      // 10. Hewan & Peliharaan
+      '🐾','🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🐔','🐧','🐦','🦉','🦄','🐝','🦋','🐞','🐢','🐍','🐙','🐬','🐳','🦈',
+      // 11. Hiburan, Musik & Liburan
+      '🎉','🎬','🎵','🎶','🎤','🎧','🎨','🎭','🎟️','🎫','🎯','🎲','♟️','🧩','🏖️','🏝️','🗺️','🧳',
+      // 12. Kesehatan & Perawatan Diri
+      '❤️','🏥','💊','🩺','💉','🦷','👓','🧴','🧼','🪒','🧻',
+      // 13. Pakaian & Fashion
+      '👔','👕','👖','👗','👘','👙','👠','👟','👞','🥾','👒','🧢','👑','💄','💅'
+    ];
+
+function setCustomIcon(value, context) {
+      var val = sanitizeIcon(value);
+      if (!val) return;
+
+      var mapVar = {
+        main: 'selectedMainIcon', sub: 'selectedSubIcon', edit: 'selectedEditIcon',
+        rek: 'selectedRekIcon', rekEdit: 'selectedRekIconEdit', goal: 'selectedGoalIcon'
+      };
+      var mapGrid = {
+        main: 'iconGridMain', sub: 'iconGridSub', edit: 'iconGridEdit',
+        rek: 'iconGridRek', rekEdit: 'iconGridRekEdit', goal: 'iconGridGoal'
+      };
+      var mapPreview = {
+        main: 'previewMain', sub: 'previewSub', edit: 'previewEdit',
+        rek: 'previewRek', rekEdit: 'previewRekEdit', goal: 'previewGoal'
+      };
+
+      window[mapVar[context]] = val;
+      document.getElementById(mapPreview[context]).innerText = val;
+      if (context === 'goal') document.getElementById('goalIcon').value = val;
+      document.getElementById(mapGrid[context]).querySelectorAll('.icon-opt').forEach(function(el) {
+        el.classList.remove('selected');
+      });
+    }
+
+function buildIconGrids() {
+      var gridConfigs = [
+        { gridId: 'iconGridMain', varName: 'selectedMainIcon', previewId: 'previewMain' },
+        { gridId: 'iconGridSub', varName: 'selectedSubIcon', previewId: 'previewSub' },
+        { gridId: 'iconGridEdit', varName: 'selectedEditIcon', previewId: 'previewEdit' },
+        { gridId: 'iconGridRek', varName: 'selectedRekIcon', previewId: 'previewRek' },
+        { gridId: 'iconGridRekEdit', varName: 'selectedRekIconEdit', previewId: 'previewRekEdit' },
+        { gridId: 'iconGridGoal', varName: 'selectedGoalIcon', previewId: 'previewGoal' }
+      ];
+
+      gridConfigs.forEach(function(cfg) {
+        var grid = document.getElementById(cfg.gridId);
+        if (!grid) return;
+        grid.innerHTML = '';
+        availableIcons.forEach(function(ic, idx) {
+          var cleanIc = sanitizeIcon(ic);
+          var div = document.createElement('div');
+          div.className = 'icon-opt' + (idx === 0 && cfg.gridId !== 'iconGridRekEdit' ? ' selected' : '');
+          div.innerText = cleanIc;
+          div.onclick = function() {
+            grid.querySelectorAll('.icon-opt').forEach(el => el.classList.remove('selected'));
+            div.classList.add('selected');
+            window[cfg.varName] = cleanIc;
+            var previewEl = document.getElementById(cfg.previewId);
+            if (previewEl) previewEl.innerText = cleanIc;
+            if (cfg.gridId === 'iconGridGoal') document.getElementById('goalIcon').value = cleanIc;
+            var customInputMap = {
+              previewMain: 'customIconMain', previewSub: 'customIconSub', previewEdit: 'customIconEdit',
+              previewRek: 'customIconRek', previewRekEdit: 'customIconRekEdit', previewGoal: 'customIconGoal'
+            };
+            var customInputId = customInputMap[cfg.previewId];
+            if (customInputId) document.getElementById(customInputId).value = '';
+          };
+          grid.appendChild(div);
+        });
+      });
+    }
+</script>

@@ -1,0 +1,115 @@
+<!-- 06_TransferUI.html -->
+<style id="transfer-ui-styles">
+/* Transfer-specific styling is currently inline in the preserved baseline. */
+</style>
+
+<div id="transferModal" class="modal">
+    <div class="modal-header" style="background:#2196f3;">
+      <span style="cursor:pointer;" onclick="closeTransferModal()">←</span>
+      <span>Transfer Uang</span>
+    </div>
+    <div class="container" style="padding-top: 15px;">
+      <div class="form-group">
+        <label>Nilai Transfer (Rp)</label>
+        <input type="text" inputmode="decimal" id="transferJumlah" class="form-control" placeholder="0" style="font-size: 20px; font-weight: bold;" oninput="formatNominalInput(this)">
+      </div>
+      <div class="form-group">
+        <label>Dari:</label>
+        <select id="transferDari" class="form-control" onchange="renderTransferSaldoInfo()"></select>
+        <div id="transferDariSaldo" style="font-size:12px; color:#4caf50; margin-top:4px;"></div>
+      </div>
+      <div class="form-group">
+        <label>Kepada:</label>
+        <select id="transferKepada" class="form-control" onchange="renderTransferSaldoInfo()"></select>
+        <div id="transferKepadaSaldo" style="font-size:12px; color:#4caf50; margin-top:4px;"></div>
+      </div>
+      <div class="form-group">
+        <label>Tanggal:</label>
+        <div class="date-field-wrap">
+          <input type="date" id="transferTanggal" class="form-control" readonly onclick="bukaDatePickerUntuk('transferTanggal')">
+          <span class="date-icon-fake">📅</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Catatan (Opsional)</label>
+        <input type="text" id="transferCatatan" class="form-control" placeholder="Keterangan tambahan">
+      </div>
+      <button type="button" class="btn-submit" id="btnSaveTransfer" style="background:#2196f3;" onclick="simpanTransferUang()">SIMPAN</button>
+    </div>
+  </div>
+
+<script id="transfer-ui-script">
+function openTransferModal() {
+      document.getElementById('fabWrapper').classList.remove('active');
+
+      if (globalRekening.length < 2) {
+        tampilkanPeringatanInput('Minimal harus ada 2 rekening untuk melakukan transfer.', 'Transfer', 'Tambahkan minimal dua rekening terlebih dahulu sebelum menggunakan fitur Transfer.');
+        return;
+      }
+
+      document.getElementById('transferJumlah').value = '';
+      document.getElementById('transferCatatan').value = '';
+      setInputTanggalHariIni('transferTanggal');
+      updateRekeningDropdown();
+      renderTransferSaldoInfo();
+      document.getElementById('transferModal').style.display = 'block';
+    }
+
+function closeTransferModal() {
+      document.getElementById('transferModal').style.display = 'none';
+    }
+
+function renderTransferSaldoInfo() {
+      var dari = document.getElementById('transferDari').value;
+      var kepada = document.getElementById('transferKepada').value;
+      var rekDari = globalRekening.find(function(r) { return r.nama === dari; });
+      var rekKepada = globalRekening.find(function(r) { return r.nama === kepada; });
+      document.getElementById('transferDariSaldo').innerText = rekDari ? 'Saldo: ' + formatRp(rekDari.saldoAkhir) : '';
+      document.getElementById('transferKepadaSaldo').innerText = rekKepada ? 'Saldo: ' + formatRp(rekKepada.saldoAkhir) : '';
+    }
+
+function simpanTransferUang() {
+      var jumlah = parseNominalInput('transferJumlah');
+      var dari = document.getElementById('transferDari').value;
+      var kepada = document.getElementById('transferKepada').value;
+      var tanggal = document.getElementById('transferTanggal').value;
+      var catatan = document.getElementById('transferCatatan').value;
+
+      if (!jumlah || Number(jumlah) <= 0) return tampilkanPeringatanInput('Nominal transfer wajib diisi!', 'Transfer', 'Isi nominal transfer sebelum menekan tombol Simpan.');
+      if (dari === kepada) return tampilkanPeringatanInput('Rekening asal dan tujuan tidak boleh sama!', 'Transfer', 'Pilih rekening asal dan rekening tujuan yang berbeda.');
+
+      var btn = document.getElementById('btnSaveTransfer');
+      btn.innerText = 'MENYIMPAN...';
+      btn.disabled = true;
+
+      var isDone = false;
+      var timeoutId = setTimeout(function() {
+        if (isDone) return;
+        isDone = true;
+        btn.innerText = 'SIMPAN';
+        btn.disabled = false;
+        alert('Tidak ada respon dari server. Coba refresh halaman lalu ulangi.');
+      }, 15000);
+
+      google.script.run
+        .withSuccessHandler(function() {
+          if (isDone) return;
+          isDone = true;
+          clearTimeout(timeoutId);
+          btn.innerText = 'SIMPAN';
+          btn.disabled = false;
+          closeTransferModal();
+          fetchRekeningData();
+          loadDashboard();
+        })
+        .withFailureHandler(function(err) {
+          if (isDone) return;
+          isDone = true;
+          clearTimeout(timeoutId);
+          alert('Gagal transfer: ' + (err && err.message ? err.message : 'Terjadi kesalahan tidak dikenal.'));
+          btn.innerText = 'SIMPAN';
+          btn.disabled = false;
+        })
+        .simpanTransfer({ tanggal: tanggal, dari: dari, kepada: kepada, jumlah: Number(jumlah), catatan: catatan, userKey: userKey });
+    }
+</script>

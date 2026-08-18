@@ -1,0 +1,1784 @@
+<!-- ===== APP SHELL UI MODULE ===== -->
+
+<style id="reset-data-button-style">
+  #menuDropdown button[onclick="confirmResetSemuaData()"] {
+    color: #f44336 !important;
+    font-weight: 700;
+    border-top: 1px solid rgba(244,67,54,.18);
+  }
+
+  #menuDropdown button[onclick="confirmResetSemuaData()"]:hover {
+    background: rgba(244,67,54,.08);
+  }
+</style>
+
+
+<style id="modern-reset-data-modal">
+  body.reset-modal-open {
+    overflow: hidden;
+  }
+
+  .reset-data-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .18s ease, visibility .18s ease;
+  }
+
+  .reset-data-modal.show {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .reset-data-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,.58);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+
+  .reset-data-dialog {
+    position: relative;
+    z-index: 1;
+    width: min(410px, calc(100vw - 40px));
+    box-sizing: border-box;
+    padding: 24px 24px 20px;
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: 18px;
+    background: rgba(31,31,31,.98);
+    box-shadow: 0 20px 60px rgba(0,0,0,.42);
+    transform: translateY(10px) scale(.97);
+    transition: transform .18s ease;
+    text-align: center;
+  }
+
+  .reset-data-modal.show .reset-data-dialog {
+    transform: translateY(0) scale(1);
+  }
+
+  .reset-data-icon {
+    width: 50px;
+    height: 50px;
+    margin: 0 auto 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(244,67,54,.12);
+    color: #ff6b61;
+    font-size: 25px;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .reset-data-title {
+    color: #fff;
+    font-size: 18px;
+    font-weight: 750;
+    line-height: 1.3;
+    margin-bottom: 8px;
+  }
+
+  .reset-data-message {
+    color: rgba(255,255,255,.68);
+    font-size: 13px;
+    line-height: 1.55;
+    max-width: 330px;
+    margin: 0 auto;
+  }
+
+  .reset-data-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .reset-data-btn {
+    min-width: 100px;
+    height: 38px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform .12s ease, opacity .12s ease, background .12s ease;
+  }
+
+  .reset-data-btn:hover {
+    transform: translateY(-1px);
+  }
+
+  .reset-data-btn:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .reset-data-btn-cancel {
+    background: rgba(255,255,255,.09);
+    color: rgba(255,255,255,.82);
+  }
+
+  .reset-data-btn-cancel:hover {
+    background: rgba(255,255,255,.14);
+  }
+
+  .reset-data-btn-danger {
+    background: #d94a43;
+    color: #fff;
+  }
+
+  .reset-data-btn-danger:hover {
+    background: #e2554d;
+  }
+
+  .reset-data-modal.is-success .reset-data-icon {
+    background: rgba(76,175,80,.13);
+    color: #6ed476;
+  }
+
+  .reset-data-modal.is-success .reset-data-btn-danger {
+    background: #3f9b52;
+  }
+
+  .reset-data-modal.is-error .reset-data-icon {
+    background: rgba(244,67,54,.13);
+    color: #ff6b61;
+  }
+
+  .reset-spinner {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    margin-right: 6px;
+    vertical-align: -2px;
+    border: 2px solid rgba(255,255,255,.35);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: resetSpin .7s linear infinite;
+  }
+
+  @keyframes resetSpin {
+    to { transform: rotate(360deg); }
+  }
+
+  @media (max-width: 600px) {
+    .reset-data-dialog {
+      width: min(360px, calc(100vw - 28px));
+      padding: 22px 18px 18px;
+      border-radius: 16px;
+    }
+
+    .reset-data-actions {
+      margin-top: 18px;
+    }
+
+    .reset-data-btn {
+      flex: 1;
+      min-width: 0;
+    }
+  }
+</style>
+
+
+<style id="app-shell-ui-ownership">
+
+  #appShellUI { display: none; }
+
+  #appShellUI.app-shell-active { display: block; }
+
+  .fab-main,
+  .fab-icon {
+    box-shadow: 0 4px 12px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.04);
+  }
+  .top-bar { background: #1e1e1e; color: white; padding: 15px; display: flex; align-items: center; justify-content: space-between; font-weight: bold; font-size: 18px; border-bottom: 1px solid #2c2c2c; position: relative; }
+  .top-bar-actions { display: flex; align-items: center; }
+  .menu-dots-btn { background: none; border: none; color: white; font-size: 22px; cursor: pointer; padding: 0 10px; }
+  .menu-dropdown { display: none; position: absolute; top: 50px; right: 15px; background: #262626; border: 1px solid #333; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); z-index: 200; width: 190px; }
+  .menu-dropdown button { width: 100%; background: none; border: none; color: white; padding: 12px 15px; text-align: left; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+  .menu-dropdown button:hover { background: #333; }
+
+  .fab-wrapper { position: fixed; bottom: 86px; right: 20px; display: flex; flex-direction: column; align-items: flex-end; gap: 12px; z-index: 99; }
+  .fab-main { width: 56px; height: 56px; border-radius: 50%; background: #9c27b0; color: white; border: none; font-size: 32px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; }
+  .fab-wrapper.active .fab-main { transform: rotate(45deg); background: #666; }
+  .fab-options { display: none; flex-direction: column; align-items: flex-end; gap: 10px; }
+  .fab-wrapper.active .fab-options { display: flex; }
+  .fab-option { display: flex; align-items: center; gap: 10px; border: none; background: none; cursor: pointer; }
+  .fab-label { background: #262626; color: white; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: bold; border: 1px solid #333; }
+  .fab-icon { width: 44px; height: 44px; border-radius: 50%; color: white; font-size: 20px; font-weight: bold; display: flex; align-items: center; justify-content: center; }
+  .btn-in .fab-icon { background: #4caf50; }
+  .btn-out .fab-icon { background: #f44336; }
+  .btn-transfer .fab-icon { background: #2196f3; }
+
+
+</style>
+
+<style id="welcome-app-modal-style">
+  body.welcome-modal-open { overflow: hidden; }
+
+  .welcome-app-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 11000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    box-sizing: border-box;
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .22s ease, visibility .22s ease;
+  }
+
+  .welcome-app-modal.show {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .welcome-app-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(5, 5, 7, .68);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .welcome-app-card {
+    position: relative;
+    z-index: 1;
+    width: min(720px, calc(100vw - 40px));
+    min-height: min(470px, calc(100vh - 70px));
+    box-sizing: border-box;
+    padding: 34px 38px 28px;
+    border: 1px solid rgba(156,39,176,.28);
+    border-radius: 24px;
+    background:
+      radial-gradient(circle at 50% -10%, rgba(156,39,176,.14), transparent 42%),
+      linear-gradient(145deg, rgba(35,35,38,.98), rgba(25,25,27,.98));
+    box-shadow: 0 28px 90px rgba(0,0,0,.62), 0 0 0 1px rgba(255,255,255,.025) inset;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    transform: translateY(16px) scale(.985);
+    transition: transform .22s ease;
+  }
+
+  .welcome-app-modal.show .welcome-app-card {
+    transform: translateY(0) scale(1);
+  }
+
+  .welcome-app-icon {
+    width: 78px;
+    height: 78px;
+    margin: 0 auto 17px;
+    border-radius: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(145deg, rgba(156,39,176,.20), rgba(156,39,176,.07));
+    border: 1px solid rgba(156,39,176,.30);
+    box-shadow: 0 10px 30px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.06);
+    font-size: 38px;
+  }
+
+  .welcome-app-kicker {
+    color: #b96bd0;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .14em;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  .welcome-app-title {
+    color: #fff;
+    font-size: clamp(25px, 4vw, 34px);
+    line-height: 1.15;
+    font-weight: 850;
+    margin: 0 0 10px;
+  }
+
+  .welcome-app-text {
+    max-width: 570px;
+    margin: 0 auto;
+    color: rgba(255,255,255,.68);
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  .welcome-app-actions {
+    width: min(560px, 100%);
+    margin: 28px auto 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .welcome-app-action {
+    min-height: 58px;
+    padding: 0 18px;
+    border: 1px solid rgba(255,255,255,.09);
+    border-radius: 14px;
+    cursor: pointer;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    transition: transform .15s ease, filter .15s ease, border-color .15s ease;
+  }
+
+  .welcome-app-action:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.08);
+  }
+
+  .welcome-app-action:active { transform: scale(.985); }
+
+  .welcome-app-action-tutorial {
+    background: linear-gradient(135deg, #252027, #1d1d1f);
+    border-color: rgba(156,39,176,.38);
+  }
+
+  .welcome-app-action-transaction {
+    background: linear-gradient(135deg, #9c27b0, #7b1fa2);
+    border-color: rgba(255,255,255,.12);
+  }
+
+  .welcome-app-action-icon {
+    font-size: 18px;
+    line-height: 1;
+  }
+
+  .welcome-app-note {
+    margin-top: 19px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255,255,255,.07);
+    color: rgba(255,255,255,.42);
+    font-size: 10px;
+    line-height: 1.5;
+  }
+
+  .welcome-app-preference {
+    margin-top: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    color: rgba(255,255,255,.54);
+    font-size: 11px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .welcome-app-preference input {
+    width: 15px;
+    height: 15px;
+    margin: 0;
+    accent-color: #9c27b0;
+    cursor: pointer;
+  }
+
+  .welcome-app-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 34px;
+    height: 34px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(255,255,255,.06);
+    color: rgba(255,255,255,.62);
+    font-size: 21px;
+    cursor: pointer;
+  }
+
+  .welcome-app-close:hover {
+    background: rgba(255,255,255,.11);
+    color: #fff;
+  }
+
+  @media (max-width: 600px) {
+    .welcome-app-modal { padding: 12px; }
+    .welcome-app-card {
+      width: calc(100vw - 24px);
+      min-height: auto;
+      max-height: calc(100vh - 24px);
+      overflow-y: auto;
+      padding: 29px 18px 21px;
+      border-radius: 19px;
+    }
+    .welcome-app-icon { width: 66px; height: 66px; font-size: 32px; border-radius: 19px; }
+    .welcome-app-title { font-size: 25px; }
+    .welcome-app-text { font-size: 13px; }
+    .welcome-app-actions { grid-template-columns: 1fr; margin-top: 23px; }
+    .welcome-app-action { min-height: 52px; }
+  }
+</style>
+
+
+
+<style id="future-fab-and-app-tutorial">
+  /* ===== TOMBOL TUTORIAL TERPISAH ===== */
+  .future-fab {
+    position: fixed;
+    right: 20px;
+    bottom: 25px;
+    z-index: 99;
+    min-width: 126px;
+    height: 46px;
+    padding: 0 15px;
+    border: 1px solid rgba(156,39,176,.42);
+    border-radius: 13px;
+    background: linear-gradient(135deg, #242024, #1d1d1d);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    box-shadow: 0 7px 18px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.05);
+    transition: transform .15s ease, background .15s ease, border-color .15s ease, box-shadow .15s ease;
+  }
+
+  .future-fab {
+    bottom: 20px;
+  }
+
+  .future-fab:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #2b242d, #202020);
+    border-color: rgba(156,39,176,.68);
+    box-shadow: 0 10px 22px rgba(0,0,0,.46), 0 0 0 3px rgba(156,39,176,.08);
+  }
+
+  .future-fab:active {
+    transform: scale(.97);
+  }
+
+  .future-fab::after {
+    display: none !important;
+  }
+
+  /* ===== MODAL TUTORIAL ===== */
+  body.tutorial-open {
+    overflow: hidden;
+  }
+
+  .app-tutorial-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 10050;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .18s ease, visibility .18s ease;
+  }
+
+  .app-tutorial-modal.show {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .app-tutorial-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,.66);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+  }
+
+  .app-tutorial-dialog {
+    position: relative;
+    z-index: 1;
+    width: min(520px, calc(100vw - 32px));
+    max-height: min(700px, calc(100vh - 40px));
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: 20px;
+    background: #1e1e1e;
+    box-shadow: 0 24px 70px rgba(0,0,0,.48);
+    transform: translateY(12px) scale(.98);
+    transition: transform .18s ease;
+  }
+
+  .app-tutorial-modal.show .app-tutorial-dialog {
+    transform: translateY(0) scale(1);
+  }
+
+  .app-tutorial-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 20px 22px 14px;
+  }
+
+  .app-tutorial-kicker {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .12em;
+    color: #b66ad0;
+    margin-bottom: 4px;
+  }
+
+  .app-tutorial-title {
+    color: #fff;
+    font-size: 19px;
+    font-weight: 800;
+  }
+
+  .app-tutorial-close {
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255,255,255,.08);
+    color: rgba(255,255,255,.78);
+    font-size: 23px;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .app-tutorial-close:hover {
+    background: rgba(255,255,255,.14);
+    color: #fff;
+  }
+
+  .app-tutorial-progress {
+    height: 3px;
+    background: rgba(255,255,255,.06);
+  }
+
+  .app-tutorial-progress-bar {
+    height: 100%;
+    width: 10%;
+    background: #9c27b0;
+    transition: width .2s ease;
+  }
+
+  .app-tutorial-body {
+    overflow-y: auto;
+    padding: 22px 24px 18px;
+    text-align: center;
+  }
+
+  .app-tutorial-icon {
+    width: 66px;
+    height: 66px;
+    margin: 0 auto 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 18px;
+    background: rgba(156,39,176,.13);
+    font-size: 31px;
+  }
+
+  .app-tutorial-step-label {
+    color: #888;
+    font-size: 11px;
+    font-weight: 700;
+    margin-bottom: 5px;
+  }
+
+  .app-tutorial-step-title {
+    color: #fff;
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 8px;
+  }
+
+  .app-tutorial-step-text {
+    color: rgba(255,255,255,.72);
+    font-size: 13px;
+    line-height: 1.65;
+    max-width: 430px;
+    margin: 0 auto;
+  }
+
+  .app-tutorial-tips {
+    display: grid;
+    gap: 8px;
+    margin: 18px auto 0;
+    max-width: 430px;
+    text-align: left;
+  }
+
+  .app-tutorial-tip {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: rgba(255,255,255,.045);
+    border: 1px solid rgba(255,255,255,.06);
+    color: rgba(255,255,255,.78);
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .app-tutorial-tip-icon {
+    flex: 0 0 auto;
+    font-size: 14px;
+  }
+
+  .app-tutorial-bottom {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 22px 18px;
+    border-top: 1px solid rgba(255,255,255,.07);
+  }
+
+  .app-tutorial-btn {
+    height: 38px;
+    min-width: 98px;
+    padding: 0 15px;
+    border: none;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 750;
+    cursor: pointer;
+  }
+
+  .app-tutorial-prev {
+    background: rgba(255,255,255,.08);
+    color: rgba(255,255,255,.78);
+  }
+
+  .app-tutorial-next {
+    background: #9c27b0;
+    color: #fff;
+  }
+
+  .app-tutorial-btn:disabled {
+    opacity: .35;
+    cursor: default;
+  }
+
+  .app-tutorial-skip {
+    justify-self: center;
+    border: none;
+    background: none;
+    color: #888;
+    font-size: 11px;
+    cursor: pointer;
+  }
+
+  .app-tutorial-skip:hover {
+    color: #fff;
+  }
+
+  @media (max-width: 600px) {
+    /* ===== TUTORIAL MOBILE: LEBIH RINGKAS & TIDAK TERPOTONG ===== */
+    .future-fab {
+      right: 14px;
+      bottom: 16px;
+      width: 104px;
+      min-width: 104px;
+      height: 40px;
+      padding: 0 11px;
+      border-radius: 11px;
+      font-size: 11.5px;
+      line-height: 1;
+      gap: 6px;
+      white-space: nowrap;
+      box-sizing: border-box;
+    }
+
+    .future-fab span {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 0;
+    }
+
+    .future-fab span:first-child {
+      font-size: 16px;
+      line-height: 1;
+      flex: 0 0 auto;
+    }
+
+    .future-fab span:last-child {
+      font-size: 11.5px;
+      line-height: 1;
+      flex: 0 0 auto;
+    }
+
+    .app-tutorial-modal {
+      padding: 12px;
+    }
+
+    .app-tutorial-dialog {
+      width: calc(100vw - 24px);
+      max-height: calc(100vh - 24px);
+      border-radius: 17px;
+    }
+
+    .app-tutorial-top {
+      padding: 16px 17px 12px;
+    }
+
+    .app-tutorial-body {
+      padding: 18px 17px 15px;
+    }
+
+    .app-tutorial-bottom {
+      padding: 12px 14px 15px;
+    }
+
+    .app-tutorial-btn {
+      min-width: 88px;
+    }
+  }
+</style>
+
+
+
+
+<style id="left-plus-menu-v2">
+  .left-plus-menu {
+    position: fixed;
+    left: 20px;
+    bottom: 91px;
+    z-index: 10000;
+    width: min(285px, calc(100vw - 40px));
+    padding: 8px;
+    box-sizing: border-box;
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: 15px;
+    background: rgba(29,29,29,.98);
+    box-shadow: 0 18px 45px rgba(0,0,0,.45);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(8px) scale(.97);
+    transform-origin: bottom left;
+    transition: opacity .16s ease, transform .16s ease, visibility .16s ease;
+  }
+
+  .left-plus-menu.show {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+  }
+
+  .left-plus-menu-item {
+    width: 100%;
+    min-height: 54px;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 9px 10px;
+    border: 0;
+    border-radius: 11px;
+    background: transparent;
+    color: #fff;
+    text-align: left;
+    cursor: pointer;
+    box-sizing: border-box;
+  }
+
+  .left-plus-menu-item:hover {
+    background: rgba(255,255,255,.07);
+  }
+
+  .left-plus-menu-icon {
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9px;
+    background: rgba(156,39,176,.12);
+    font-size: 17px;
+  }
+
+  .left-plus-menu-label {
+    min-width: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .left-plus-menu-label strong {
+    font-size: 12px;
+    font-weight: 750;
+    color: rgba(255,255,255,.92);
+  }
+
+  .left-plus-menu-label small {
+    font-size: 10px;
+    color: rgba(255,255,255,.48);
+  }
+
+  .left-plus-disabled {
+    cursor: default;
+    opacity: .62;
+  }
+
+  .left-plus-disabled:hover {
+    background: rgba(255,255,255,.035);
+  }
+
+  .left-plus-badge {
+    flex: 0 0 auto;
+    padding: 4px 6px;
+    border-radius: 6px;
+    background: rgba(255,193,7,.10);
+    color: #d6a800;
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: .04em;
+  }
+
+  .coming-soon-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 10100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .16s ease, visibility .16s ease;
+  }
+
+  .coming-soon-modal.show {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .coming-soon-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,.56);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+
+  .coming-soon-card {
+    position: relative;
+    z-index: 1;
+    width: min(330px, calc(100vw - 36px));
+    padding: 22px;
+    box-sizing: border-box;
+    border-radius: 17px;
+    background: #1e1e1e;
+    border: 1px solid rgba(255,255,255,.10);
+    box-shadow: 0 20px 60px rgba(0,0,0,.45);
+    text-align: center;
+    transform: scale(.97);
+    transition: transform .16s ease;
+  }
+
+  .coming-soon-modal.show .coming-soon-card {
+    transform: scale(1);
+  }
+
+  .coming-soon-icon {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(156,39,176,.12);
+    color: #c45bdd;
+    font-size: 22px;
+  }
+
+  .coming-soon-title {
+    color: #fff;
+    font-size: 17px;
+    font-weight: 800;
+    margin-bottom: 7px;
+  }
+
+  .coming-soon-text {
+    color: rgba(255,255,255,.64);
+    font-size: 12px;
+    line-height: 1.55;
+  }
+
+  .coming-soon-btn {
+    width: 100%;
+    height: 36px;
+    margin-top: 16px;
+    border: 0;
+    border-radius: 9px;
+    background: #9c27b0;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 750;
+    cursor: pointer;
+  }
+
+  @media (max-width: 600px) {
+    .left-plus-menu {
+      left: 12px;
+      bottom: 78px;
+      width: min(285px, calc(100vw - 24px));
+    }
+  }
+</style>
+
+
+
+
+<div id="appShellUI" class="app-shell-ui" aria-hidden="true">
+
+<div class="top-bar">
+    <span id="pageTitle">Ikhtisar</span>
+    <div class="top-bar-actions">
+      <button class="menu-dots-btn" onclick="scrollToDashboardWidget('hutang_piutang')" title="Cicilan">💳</button>
+      <button class="menu-dots-btn" onclick="scrollToDashboardWidget('hutang_piutang')" title="Hutang/Piutang">🤝</button>
+      <button class="menu-dots-btn" onclick="scrollToDashboardWidget('goals')" title="Target & Goals">🎯</button>
+      <button class="menu-dots-btn" onclick="openPeriodeModal()" title="Riwayat per Periode">📅</button>
+      <button class="menu-dots-btn" onclick="openSearchModal()" title="Cari transaksi">🔍</button>
+      <button class="menu-dots-btn" onclick="toggleMenuDropdown(event)">⋮</button>
+    </div>
+    <div class="menu-dropdown" id="menuDropdown">
+      <button onclick="switchPage('ikhtisar')">📊 Ikhtisar</button>
+      <button onclick="openHutangPiutangModal()">🤝 Hutang/Piutang</button>
+      <button onclick="openCicilanSplit()">💳 Cicilan</button>
+      <button onclick="openGoalsModal()">🎯 Goals / Target</button>
+      <button onclick="switchPage('rekening')">🏦 Rekening</button>
+      <button onclick="openWidgetSettings()">⚙️ Atur Tampilan</button>
+      <button onclick="openGantiKodeAksesModal()">🔐 Ganti Kode Akses</button>
+      <button onclick="openKelolaPengguna()" id="menuKelolaPenggunaBtn" style="display:none;">🛠️ Kelola Pengguna</button>
+      <button onclick="confirmResetSemuaData()" style="color:#f44336;">🗑️ Reset Semua Data</button>
+      <button onclick="logout()">🚪 Keluar (<span id="namaPenggunaLabel"></span>)</button>
+    </div>
+  </div>
+
+<!-- TOMBOL TUTORIAL APLIKASI -->
+  <button
+    id="futureFabButton"
+    class="future-fab"
+    type="button"
+    onclick="openAppTutorial()"
+    title="Buka Tutorial Aplikasi"
+    aria-label="Buka Tutorial Aplikasi">
+    <span aria-hidden="true">📘</span>
+    <span>Tutorial</span>
+  </button>
+
+  <div class="fab-wrapper" id="fabWrapper">
+    <div class="fab-options">
+      <button class="fab-option btn-in" onclick="startNewTransactionFlow('+')">
+        <span class="fab-label">Pemasukan (+)</span>
+        <span class="fab-icon">+</span>
+      </button>
+      <button class="fab-option btn-out" onclick="startNewTransactionFlow('-')">
+        <span class="fab-label">Pengeluaran (-)</span>
+        <span class="fab-icon">-</span>
+      </button>
+      <button class="fab-option btn-transfer" onclick="openTransferModal()">
+        <span class="fab-label">Transfer Uang</span>
+        <span class="fab-icon">🔄</span>
+      </button>
+    </div>
+    <button class="fab-main" id="fabMainBtn" onclick="handleFabClick()" style="background: #9c27b0;">+</button>
+  </div>
+
+<!-- ===== SAMBUTAN PEMBUKA APLIKASI ===== -->
+<div id="welcomeAppModal" class="welcome-app-modal" aria-hidden="true">
+    <div class="welcome-app-backdrop"></div>
+
+    <div class="welcome-app-card" role="dialog" aria-modal="true" aria-labelledby="welcomeAppTitle">
+      <button type="button" class="welcome-app-close" onclick="closeWelcomeWithoutAction()" aria-label="Tutup pemberitahuan">×</button>
+
+      <div class="welcome-app-icon" aria-hidden="true">👋</div>
+      <div class="welcome-app-kicker">CATATAN KEUANGAN</div>
+      <div id="welcomeAppTitle" class="welcome-app-title">Selamat Datang<span id="welcomeAppName"></span>!</div>
+      <div class="welcome-app-text">
+        Selamat datang di aplikasi catatan keuangan kamu. Kelola pemasukan, pengeluaran,
+        rekening, Hutang/Piutang, Cicilan, dan Goals dengan lebih mudah dalam satu tempat.
+      </div>
+
+      <div class="welcome-app-actions">
+        <button type="button" class="welcome-app-action welcome-app-action-tutorial" onclick="openWelcomeTutorial()">
+          <span class="welcome-app-action-icon">📘</span>
+          <span>Lanjutkan ke Tutorial</span>
+        </button>
+        <button type="button" class="welcome-app-action welcome-app-action-transaction" onclick="continueFromWelcome()">
+          <span class="welcome-app-action-icon">＋</span>
+          <span>Lanjutkan Transaksi</span>
+        </button>
+      </div>
+
+      <div class="welcome-app-note">Tutup pemberitahuan ini kapan saja. Centang opsi di bawah jika kamu tidak ingin melihat sambutan ini lagi.</div>
+      <label class="welcome-app-preference">
+        <input type="checkbox" id="welcomeAppDontShow">
+        <span>Jangan tampilkan lagi saat aplikasi dibuka</span>
+      </label>
+    </div>
+  </div>
+
+<div id="appTutorialModal" class="app-tutorial-modal" aria-hidden="true">
+    <div class="app-tutorial-backdrop" onclick="closeAppTutorial()"></div>
+
+    <div class="app-tutorial-dialog" role="dialog" aria-modal="true" aria-labelledby="appTutorialTitle">
+      <div class="app-tutorial-top">
+        <div>
+          <div class="app-tutorial-kicker">PANDUAN SINGKAT</div>
+          <div id="appTutorialTitle" class="app-tutorial-title">Kenali aplikasi kamu</div>
+        </div>
+        <button type="button" class="app-tutorial-close" onclick="closeAppTutorial()" aria-label="Tutup tutorial">×</button>
+      </div>
+
+      <div class="app-tutorial-progress">
+        <div id="appTutorialProgressBar" class="app-tutorial-progress-bar"></div>
+      </div>
+
+      <div class="app-tutorial-body">
+        <div id="appTutorialIcon" class="app-tutorial-icon">👋</div>
+        <div id="appTutorialStepLabel" class="app-tutorial-step-label">1 / 10</div>
+        <div id="appTutorialStepTitle" class="app-tutorial-step-title">Selamat datang</div>
+        <div id="appTutorialStepText" class="app-tutorial-step-text"></div>
+
+        <div id="appTutorialTips" class="app-tutorial-tips"></div>
+      </div>
+
+      <div class="app-tutorial-bottom">
+        <button id="appTutorialPrev" type="button" class="app-tutorial-btn app-tutorial-prev" onclick="tutorialPrev()">Kembali</button>
+        <button id="appTutorialSkip" type="button" class="app-tutorial-skip" onclick="closeAppTutorial()">Lewati</button>
+        <button id="appTutorialNext" type="button" class="app-tutorial-btn app-tutorial-next" onclick="tutorialNext()">Lanjut</button>
+      </div>
+    </div>
+  </div>
+
+
+<div id="leftPlusMenu" class="left-plus-menu" aria-hidden="true">
+    <button type="button" class="left-plus-menu-item" onclick="openAppTutorialFromPlus()">
+      <span class="left-plus-menu-icon">📘</span>
+      <span class="left-plus-menu-label">
+        <strong>Tutorial Aplikasi</strong>
+        <small>Panduan penggunaan aplikasi</small>
+      </span>
+    </button>
+
+    <button type="button" class="left-plus-menu-item left-plus-disabled" onclick="showComingSoon('Export PDF')">
+      <span class="left-plus-menu-icon">📄</span>
+      <span class="left-plus-menu-label">
+        <strong>Export PDF</strong>
+        <small>Segera tiba</small>
+      </span>
+      <span class="left-plus-badge">SEGERA</span>
+    </button>
+
+    <button type="button" class="left-plus-menu-item left-plus-disabled" onclick="showComingSoon('WhatsApp')">
+      <span class="left-plus-menu-icon">💬</span>
+      <span class="left-plus-menu-label">
+        <strong>WhatsApp</strong>
+        <small>Segera tiba</small>
+      </span>
+      <span class="left-plus-badge">SEGERA</span>
+    </button>
+  </div>
+
+
+<div id="comingSoonModal" class="coming-soon-modal" aria-hidden="true">
+    <div class="coming-soon-backdrop" onclick="closeComingSoon()"></div>
+    <div class="coming-soon-card">
+      <div class="coming-soon-icon">✦</div>
+      <div id="comingSoonTitle" class="coming-soon-title">Fitur</div>
+      <div id="comingSoonText" class="coming-soon-text">Fitur sedang disiapkan.</div>
+      <button type="button" class="coming-soon-btn" onclick="closeComingSoon()">Mengerti</button>
+    </div>
+  </div>
+
+
+</div>
+
+<!-- Modal konfirmasi Reset Data - custom, bukan browser confirm() -->
+  <div id="resetDataModal" class="reset-data-modal" aria-hidden="true">
+    <div class="reset-data-backdrop" onclick="tutupResetModal()"></div>
+    <div class="reset-data-dialog" role="dialog" aria-modal="true" aria-labelledby="resetDataModalTitle">
+      <div id="resetDataModalIcon" class="reset-data-icon">↻</div>
+      <div class="reset-data-content">
+        <div id="resetDataModalTitle" class="reset-data-title">Reset semua data?</div>
+        <div id="resetDataModalMessage" class="reset-data-message">
+          Data keuangan akun ini akan dikembalikan ke kondisi awal.
+        </div>
+      </div>
+      <div class="reset-data-actions">
+        <button id="resetDataCancel" type="button" class="reset-data-btn reset-data-btn-cancel" onclick="tutupResetModal()">Batal</button>
+        <button id="resetDataConfirm" type="button" class="reset-data-btn reset-data-btn-danger" onclick="jalankanResetSemuaData()">Ya, Reset</button>
+      </div>
+    </div>
+  </div>
+
+<script id="app-shell-ui-script">
+
+    function confirmResetSemuaData() {
+      var menu = document.getElementById('menuDropdown');
+      if (menu) menu.style.display = 'none';
+
+      if (!userKey) {
+        bukaResetModal('error', 'Sesi tidak ditemukan', 'Silakan login kembali untuk melanjutkan.');
+        return;
+      }
+
+      bukaResetModal(
+        'confirm',
+        'Reset semua data?',
+        'Data keuangan akun ini akan dikembalikan ke kondisi awal. Pastikan kamu tidak menekan tombol ini secara tidak sengaja.'
+      );
+    }
+
+function bukaResetModal(mode, title, message) {
+      var modal = document.getElementById('resetDataModal');
+      var titleEl = document.getElementById('resetDataModalTitle');
+      var messageEl = document.getElementById('resetDataModalMessage');
+      var iconEl = document.getElementById('resetDataModalIcon');
+      var cancelBtn = document.getElementById('resetDataCancel');
+      var confirmBtn = document.getElementById('resetDataConfirm');
+
+      if (!modal) return;
+
+      titleEl.textContent = title || 'Reset data';
+      messageEl.textContent = message || '';
+      modal.classList.remove('is-error', 'is-success');
+
+      if (mode === 'error') {
+        iconEl.textContent = '!';
+        modal.classList.add('is-error');
+        cancelBtn.style.display = 'none';
+        confirmBtn.textContent = 'Tutup';
+        confirmBtn.onclick = function() {
+          tutupResetModal();
+        };
+      } else if (mode === 'success') {
+        iconEl.textContent = '✓';
+        modal.classList.add('is-success');
+        cancelBtn.style.display = 'none';
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = 'Selesai';
+        confirmBtn.onclick = function() {
+          selesaiResetData();
+        };
+      } else {
+        iconEl.textContent = '↻';
+        cancelBtn.style.display = '';
+        confirmBtn.textContent = 'Ya, Reset';
+        confirmBtn.onclick = function() {
+          jalankanResetSemuaData();
+        };
+      }
+
+      modal.classList.add('show');
+      document.body.classList.add('reset-modal-open');
+    }
+
+function selesaiResetData() {
+      var btn = document.getElementById('resetDataConfirm');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="reset-spinner"></span> Menyiapkan halaman utama...';
+      }
+
+      // Reset data di server sudah selesai. Jangan melakukan window.location.reload()
+      // karena Web App Apps Script dapat kehilangan frame/menampilkan layar hitam
+      // saat halaman sedang memuat ulang. Kembalikan UI secara langsung di halaman ini.
+
+      // Bersihkan seluruh state modal/penghapusan yang hidup di DOM lama.
+      // Reset tidak me-reload browser, jadi state tombol seperti "Menghapus..."
+      // harus dikembalikan manual agar transaksi/master berikutnya dimulai bersih.
+      try {
+        tutupHapusHutangPiutangModal();
+        tutupHapusGoalModal();
+        closeEditGoalRekeningModal();
+        tutupWarningMasterRiwayatModal();
+        tutupWarningRiwayatModal();
+        closeTxActionModal();
+      } catch (e) {}
+      selectedTxForAction = null;
+      masterRiwayatDeleteState = null;
+      warningRiwayatState = { tipe: '', row: null, transaksi: null, nama: '', ready: false };
+      var allTxModalAfterReset = document.getElementById('allTxModal');
+      if (allTxModalAfterReset) allTxModalAfterReset.dataset.reopenAfterDelete = '0';
+
+      tutupResetModal();
+
+      // Kembalikan state tampilan ke kondisi awal aplikasi.
+      currentPage = 'ikhtisar';
+      widgetConfig = getDefaultWidgetConfig();
+      rekeningVisibility = {};
+      limitRiwayatUtama = 5;
+      serverUserSettingsLoaded = false;
+      serverUserSettings = { categoryOrderPlus: [], categoryOrderMinus: [] };
+
+      // Pastikan pengguna langsung kembali ke halaman utama tanpa refresh browser.
+      switchPage('ikhtisar');
+      applyWidgetOrder();
+
+      // Muat ulang data yang baru saja di-reset dari server secara langsung.
+      // Ini membuat dashboard berubah realtime tanpa menunggu refresh manual.
+      try {
+        localStorage.removeItem(STORAGE_KEY_SETTINGS_OWNER);
+      } catch (e) {}
+
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'Selesai';
+      }
+
+      inisialisasiApp();
+    }
+
+function tutupResetModal() {
+      var modal = document.getElementById('resetDataModal');
+      if (modal) modal.classList.remove('show');
+      document.body.classList.remove('reset-modal-open');
+    }
+
+function jalankanResetSemuaData() {
+      var btn = document.getElementById('resetDataConfirm');
+      var cancelBtn = document.getElementById('resetDataCancel');
+
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="reset-spinner"></span> Mereset...';
+      }
+      if (cancelBtn) cancelBtn.disabled = true;
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (!res || !res.sukses) {
+            if (btn) {
+              btn.disabled = false;
+              btn.textContent = 'Ya, Reset';
+            }
+            if (cancelBtn) cancelBtn.disabled = false;
+
+            bukaResetModal(
+              'error',
+              'Reset gagal',
+              (res && res.pesan) || 'Terjadi kesalahan saat mereset data.'
+            );
+            return;
+          }
+
+          // Bersihkan cache tampilan lokal agar device ini kembali ke default.
+          try {
+            localStorage.removeItem(STORAGE_KEY_USERKEY + '_settings');
+            localStorage.removeItem('widgetConfig');
+            localStorage.removeItem('rekeningVisibility');
+            localStorage.removeItem('categoryOrderPlus');
+            localStorage.removeItem('categoryOrderMinus');
+            localStorage.removeItem('limitRiwayatUtama');
+          } catch (e) {}
+
+          bukaResetModal(
+            'success',
+            'Reset berhasil',
+            'Semua data sudah direset. Akun kamu tetap aktif dan siap digunakan kembali.'
+          );
+        })
+        .withFailureHandler(function(err) {
+          if (btn) {
+            btn.disabled = false;
+            btn.textContent = 'Ya, Reset';
+          }
+          if (cancelBtn) cancelBtn.disabled = false;
+
+          bukaResetModal(
+            'error',
+            'Reset gagal',
+            err && err.message ? err.message : 'Terjadi kesalahan pada server.'
+          );
+        })
+        .resetSemuaDataAkun(userKey);
+    }
+
+    function inisialisasiApp() {
+      setInputTanggalHariIni('tanggal');
+      buildIconGrids();
+      cekStatusAdmin();
+
+      // Data keuangan dimuat segera. Pengaturan tampilan akun berjalan
+      // terpisah agar masalah/kelambatan setting tidak membuat data
+      // berhenti di "Memuat..." atau tampil Rp0.
+      fetchRekeningData();
+      fetchKategori();
+      loadDashboard();
+      fetchGoalsData();
+      muatDonutBulatWidget();
+
+      // Hutang/Piutang sengaja dimuat setelah pengaturan widget selesai.
+      // Ini mencegah callback data Hutang/Piutang bertabrakan dengan proses
+      // applyWidgetOrder() pada saat inisialisasi awal Web App.
+      loadUserSettingsFromServer(function() {
+        applyWidgetOrder();
+        muatRiwayatWidget();
+        fetchHutangPiutangData();
+      });
+    }
+
+(function initAppShellUI() {
+
+  function syncAppShellVisibility() {
+
+    var shell = document.getElementById('appShellUI');
+
+    var login = document.getElementById('loginScreen');
+
+    var app = document.getElementById('appContent');
+
+    if (!shell) return;
+
+    var loginVisible = !!login && window.getComputedStyle(login).display !== 'none';
+
+    var appVisible = !!app && window.getComputedStyle(app).display !== 'none';
+
+    var active = appVisible && !loginVisible;
+
+    shell.classList.toggle('app-shell-active', active);
+
+    shell.setAttribute('aria-hidden', active ? 'false' : 'true');
+
+    if (!active) {
+
+      closeLeftPlusMenu();
+
+      closeAppTutorial();
+
+      var fab = document.getElementById('fabWrapper');
+
+      if (fab) fab.classList.remove('active');
+
+      var menu = document.getElementById('menuDropdown');
+
+      if (menu) menu.style.display = 'none';
+
+    }
+
+  }
+
+  window.syncAppShellVisibility = syncAppShellVisibility;
+
+  var observer = new MutationObserver(syncAppShellVisibility);
+
+  function observeAuthState() {
+
+    var login = document.getElementById('loginScreen');
+
+    var app = document.getElementById('appContent');
+
+    if (login) observer.observe(login, { attributes: true, attributeFilter: ['style', 'class', 'hidden'] });
+
+    if (app) observer.observe(app, { attributes: true, attributeFilter: ['style', 'class', 'hidden'] });
+
+    syncAppShellVisibility();
+
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', observeAuthState); else observeAuthState();
+
+})();
+
+// ===== TUTORIAL APLIKASI =====
+    var appTutorialIndex = 0;
+
+    var APP_TUTORIAL_STEPS = [
+      {
+        icon: '👋',
+        title: 'Selamat datang di aplikasi keuangan',
+        text: 'Aplikasi ini dibuat untuk membantu kamu mencatat, mengatur, dan memantau keuangan dalam satu tempat. Tutorial ini akan mengenalkan fungsi utama dari awal sampai fitur pengelolaan keuangan yang lebih lengkap.',
+        tips: [
+          'Tekan "Lanjut" untuk mengikuti panduan langkah demi langkah.',
+          'Gunakan "Kembali" untuk melihat penjelasan sebelumnya atau "Lewati" jika kamu ingin langsung menggunakan aplikasi.'
+        ]
+      },
+      {
+        icon: '🏠',
+        title: 'Kenali halaman utama',
+        text: 'Halaman Ikhtisar adalah pusat informasi aplikasi. Di sini kamu bisa melihat ringkasan kondisi keuangan dan berbagai widget yang membantu membaca data dengan cepat.',
+        tips: [
+          'Widget yang tampil di halaman utama dapat kamu atur sesuai kebutuhan.',
+          'Setiap widget mewakili bagian tertentu dari data keuanganmu.'
+        ]
+      },
+      {
+        icon: '⋮',
+        title: 'Menu titik tiga adalah pusat fitur',
+        text: 'Menu titik tiga di kanan atas menjadi akses utama ke berbagai menu aplikasi yang lebih lengkap.',
+        tips: [
+          'Di dalamnya tersedia Hutang/Piutang, Cicilan, Goals / Target, Rekening, dan Atur Tampilan.',
+          'Gunakan menu ini ketika kamu ingin masuk ke pengelolaan fitur tertentu.'
+        ]
+      },
+      {
+        icon: '⚡',
+        title: 'Ikon cepat di luar menu',
+        text: 'Beberapa fitur penting juga memiliki ikon cepat di bagian luar agar bisa dibuka tanpa masuk ke menu titik tiga.',
+        tips: [
+          '💳 mengarah ke bagian Cicilan.',
+          '🤝 mengarah ke Hutang/Piutang dan Cicilan di Dashboard.',
+          '🎯 mengarah ke Goals / Target Tabungan.'
+        ]
+      },
+      {
+        icon: '⚙️',
+        title: 'Atur widget sesuka kamu',
+        text: 'Menu Atur Tampilan digunakan untuk menentukan widget mana yang ingin ditampilkan dan bagaimana susunannya di halaman utama.',
+        tips: [
+          'Kamu bisa menyesuaikan tampilan Dashboard sesuai kebutuhan.',
+          'Pengaturan ini berfungsi untuk merapikan halaman utama tanpa mengubah data transaksi.'
+        ]
+      },
+      {
+        icon: '💰',
+        title: 'Catat pemasukan',
+        text: 'Gunakan tombol + transaksi di kanan bawah ketika kamu menerima uang. Pilih Pemasukan lalu isi data transaksi yang diperlukan.',
+        tips: [
+          'Pilih rekening yang menerima uang dan kategori yang sesuai.',
+          'Data yang disimpan akan masuk ke riwayat dan memengaruhi saldo serta ringkasan keuangan.'
+        ]
+      },
+      {
+        icon: '🛒',
+        title: 'Catat pengeluaran',
+        text: 'Ketika uang keluar, gunakan pilihan Pengeluaran. Pilih rekening sumber, kategori, nominal, tanggal, dan keterangan bila diperlukan.',
+        tips: [
+          'Kategori utama dan subkategori membantu mengelompokkan pengeluaran.',
+          'Warna kategori utama yang kamu atur juga digunakan agar identitas kategori lebih mudah dikenali.'
+        ]
+      },
+      {
+        icon: '🔄',
+        title: 'Transfer antar rekening',
+        text: 'Jika uang hanya berpindah dari satu rekening ke rekening lain milikmu, gunakan Transfer agar perpindahan saldo tercatat dengan tepat.',
+        tips: [
+          'Tentukan rekening asal dan rekening tujuan dengan benar.',
+          'Transfer berbeda dari pemasukan dan pengeluaran karena hanya memindahkan saldo antar rekening.'
+        ]
+      },
+      {
+        icon: '🏦',
+        title: 'Kelola rekening',
+        text: 'Rekening adalah tempat saldo transaksi dicatat, seperti rekening bank, e-wallet, atau tempat penyimpanan uang lainnya.',
+        tips: [
+          'Kamu dapat menambah dan menyesuaikan rekening yang ingin digunakan untuk transaksi.',
+          'Pilih rekening yang tepat setiap kali melakukan transaksi agar saldo tetap sesuai.'
+        ]
+      },
+      {
+        icon: '🤝',
+        title: 'Hutang & Piutang',
+        text: 'Gunakan Hutang/Piutang untuk mencatat kewajiban yang harus kamu bayar atau uang yang harus diterima dari pihak lain.',
+        tips: [
+          'Hutang digunakan ketika kamu meminjam uang dari orang atau pihak lain.',
+          'Piutang digunakan ketika kamu meminjamkan uang kepada orang atau pihak lain.',
+          'Transaksi yang berkaitan dengan rekening dapat menyesuaikan saldo rekening sesuai pengaturannya.'
+        ]
+      },
+      {
+        icon: '💳',
+        title: 'Cicilan',
+        text: 'Cicilan digunakan untuk membagi pembayaran menjadi beberapa kali sesuai nominal, tenor, frekuensi, tanggal mulai, dan jatuh tempo yang kamu tentukan.',
+        tips: [
+          'Setiap Cicilan memiliki ID transaksi sendiri sehingga riwayat dan pengaturannya dapat dikelola secara terpisah.',
+          'Pembayaran Cicilan akan terhubung dengan pencatatan Hutang/Piutang yang terkait.'
+        ]
+      },
+      {
+        icon: '🎯',
+        title: 'Goals / Target Tabungan',
+        text: 'Goals membantu kamu menentukan tujuan dana, misalnya menabung untuk kendaraan, kebutuhan tertentu, atau target keuangan lainnya.',
+        tips: [
+          'Buat target dengan nama, nominal target, dan tanggal yang jelas.',
+          'Gunakan Setor Nabung untuk menambah pencapaian target dan Tarik Saldo ketika perlu mengambil dana.',
+          'Perkembangan target akan terlihat dari jumlah terkumpul dan sisa menuju target.'
+        ]
+      },
+      {
+        icon: '🧭',
+        title: 'Kamu siap menggunakan aplikasi',
+        text: 'Sekarang kamu sudah mengenal alur utama aplikasi: mencatat transaksi, mengelola rekening, mengatur Hutang/Piutang dan Cicilan, serta menentukan Goals untuk tujuan dana.',
+        tips: [
+          'Mulai dari transaksi pertama yang ingin kamu catat.',
+          'Tutorial ini bisa dibuka kembali kapan saja melalui tombol Tutorial.',
+          'Gunakan "Lanjut" untuk menyelesaikan panduan atau "Lewati" kapan saja.'
+        ]
+      }
+    ];
+
+
+    // ===== MENU + KIRI =====
+
+    function closeLeftPlusMenu() {
+      var menu = document.getElementById('leftPlusMenu');
+      if (menu) {
+        menu.classList.remove('show');
+        menu.setAttribute('aria-hidden', 'true');
+      }
+    }
+
+    function openAppTutorialFromPlus() {
+      closeLeftPlusMenu();
+      openAppTutorial();
+    }
+
+    function showComingSoon(featureName) {
+      closeLeftPlusMenu();
+
+      var modal = document.getElementById('comingSoonModal');
+      var title = document.getElementById('comingSoonTitle');
+      var text = document.getElementById('comingSoonText');
+
+      if (!modal) return;
+
+      title.textContent = featureName;
+      text.textContent = 'Fitur ' + featureName + ' sedang disiapkan dan akan segera tiba.';
+      modal.classList.add('show');
+      modal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeComingSoon() {
+      var modal = document.getElementById('comingSoonModal');
+      if (modal) {
+        modal.classList.remove('show');
+        modal.setAttribute('aria-hidden', 'true');
+      }
+    }
+
+    document.addEventListener('click', function(e) {
+      var menu = document.getElementById('leftPlusMenu');
+      var fab = document.getElementById('futureFabButton');
+
+      if (!menu || !menu.classList.contains('show')) return;
+
+      if (!menu.contains(e.target) && (!fab || !fab.contains(e.target))) {
+        closeLeftPlusMenu();
+      }
+    });
+
+    function openAppTutorial() {
+      var menu = document.getElementById('menuDropdown');
+      if (menu) menu.style.display = 'none';
+
+      appTutorialIndex = 0;
+      renderAppTutorial();
+
+      var modal = document.getElementById('appTutorialModal');
+      if (modal) {
+        modal.classList.add('show');
+        modal.setAttribute('aria-hidden', 'false');
+      }
+      document.body.classList.add('tutorial-open');
+    }
+
+    function closeAppTutorial() {
+      var modal = document.getElementById('appTutorialModal');
+      if (modal) {
+        modal.classList.remove('show');
+        modal.setAttribute('aria-hidden', 'true');
+      }
+      document.body.classList.remove('tutorial-open');
+    }
+
+    function renderAppTutorial() {
+      var step = APP_TUTORIAL_STEPS[appTutorialIndex];
+      if (!step) return;
+
+      var total = APP_TUTORIAL_STEPS.length;
+      var current = appTutorialIndex + 1;
+
+      document.getElementById('appTutorialIcon').textContent = step.icon;
+      document.getElementById('appTutorialStepLabel').textContent = current + ' / ' + total;
+      document.getElementById('appTutorialStepTitle').textContent = step.title;
+      document.getElementById('appTutorialStepText').textContent = step.text;
+
+      var tips = document.getElementById('appTutorialTips');
+      tips.innerHTML = step.tips.map(function(tip) {
+        return '<div class="app-tutorial-tip">' +
+          '<span class="app-tutorial-tip-icon">•</span>' +
+          '<span>' + tip + '</span>' +
+        '</div>';
+      }).join('');
+
+      document.getElementById('appTutorialProgressBar').style.width =
+        ((current / total) * 100) + '%';
+
+      var prev = document.getElementById('appTutorialPrev');
+      var next = document.getElementById('appTutorialNext');
+
+      prev.disabled = appTutorialIndex === 0;
+      next.textContent = appTutorialIndex === total - 1 ? 'Selesai' : 'Lanjut';
+    }
+
+    function tutorialNext() {
+      if (appTutorialIndex >= APP_TUTORIAL_STEPS.length - 1) {
+        closeAppTutorial();
+        return;
+      }
+
+      appTutorialIndex++;
+      renderAppTutorial();
+    }
+
+    function tutorialPrev() {
+      if (appTutorialIndex <= 0) return;
+      appTutorialIndex--;
+      renderAppTutorial();
+    }
+
+
+var STORAGE_KEY_WELCOME_PREFIX = 'financeWelcomeDismissed_';
+
+    function getWelcomeStorageKey() {
+      return STORAGE_KEY_WELCOME_PREFIX + (userKey || 'guest');
+    }
+
+    function shouldShowWelcomeApp() {
+      try {
+        return localStorage.getItem(getWelcomeStorageKey()) !== '1';
+      } catch (e) {
+        return true;
+      }
+    }
+
+    function showWelcomeApp() {
+      var modal = document.getElementById('welcomeAppModal');
+      var nama = document.getElementById('welcomeAppName');
+      var check = document.getElementById('welcomeAppDontShow');
+      if (!modal) return;
+
+      if (nama) {
+        nama.textContent = namaPengguna ? ', ' + namaPengguna : '';
+      }
+      if (check) check.checked = false;
+
+      modal.classList.add('show');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('welcome-modal-open');
+    }
+
+    function closeWelcomeApp() {
+      var modal = document.getElementById('welcomeAppModal');
+      if (modal) {
+        modal.classList.remove('show');
+        modal.setAttribute('aria-hidden', 'true');
+      }
+      document.body.classList.remove('welcome-modal-open');
+    }
+
+    function confirmWelcomePreference() {
+      var check = document.getElementById('welcomeAppDontShow');
+      if (check && check.checked) {
+        try { localStorage.setItem(getWelcomeStorageKey(), '1'); } catch (e) {}
+      }
+    }
+
+    function openWelcomeTutorial() {
+      confirmWelcomePreference();
+      closeWelcomeApp();
+      openAppTutorial();
+    }
+
+    function continueFromWelcome() {
+      confirmWelcomePreference();
+      closeWelcomeApp();
+      if (currentPage === 'ikhtisar') {
+        var fab = document.getElementById('fabWrapper');
+        if (fab && !fab.classList.contains('active')) {
+          fab.classList.add('active');
+        }
+      }
+    }
+
+    function closeWelcomeWithoutAction() {
+      confirmWelcomePreference();
+      closeWelcomeApp();
+    }
+
+
+var currentPage = 'ikhtisar';
+
+
+function toggleMenuDropdown(e) {
+      e.stopPropagation();
+      var d = document.getElementById('menuDropdown');
+      d.style.display = (d.style.display === 'block') ? 'none' : 'block';
+    }
+
+    document.addEventListener('click', function() {
+      var d = document.getElementById('menuDropdown');
+      if (d) d.style.display = 'none';
+    });
+
+    function switchPage(page) {
+      currentPage = page;
+      document.getElementById('menuDropdown').style.display = 'none';
+      document.getElementById('fabWrapper').classList.remove('active');
+
+      if (page === 'ikhtisar') {
+        document.getElementById('pageTitle').innerText = 'Ikhtisar';
+        document.getElementById('pageIkhtisar').style.display = 'block';
+        document.getElementById('pageRekening').style.display = 'none';
+        document.getElementById('fabMainBtn').style.background = '#9c27b0';
+      } else {
+        document.getElementById('pageTitle').innerText = 'Rekening';
+        document.getElementById('pageIkhtisar').style.display = 'none';
+        document.getElementById('pageRekening').style.display = 'block';
+        document.getElementById('fabMainBtn').style.background = '#ff9800';
+      }
+    }
+
+    function handleFabClick() {
+      if (currentPage === 'ikhtisar') {
+        toggleFab();
+      } else {
+        openAddRekeningModal();
+      }
+    }
+
+    function toggleFab() {
+      document.getElementById('fabWrapper').classList.toggle('active');
+    }
+
+
+</script>
